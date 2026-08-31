@@ -1,2 +1,0 @@
-Hi! Frontend folder here!!
-We'll do frontend stuff 😃
