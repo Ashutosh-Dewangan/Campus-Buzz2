@@ -2,18 +2,13 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
-    "rootDir": "./src",
-    "outDir": "./dist",
-
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
-    "sourceMap": true,
     "skipLibCheck": true,
-
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "prisma7.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

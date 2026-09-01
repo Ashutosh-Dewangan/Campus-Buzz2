@@ -6,18 +6,22 @@ interface JwtPayload {
   role: string;
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
+    }
+  }
+}
+
 const JWT_SECRET: string = process.env.JWT_SECRET ?? "";
 
 if (JWT_SECRET.length === 0) {
   throw new Error("JWT_SECRET is not configured");
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: JwtPayload;
-}
-
 export function authenticate(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) {
