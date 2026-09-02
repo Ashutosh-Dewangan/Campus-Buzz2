@@ -1,22 +1,78 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { setSession } from "@/lib/session";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [rollNumber, setRollNumber] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(
+  async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    if (!rollNumber || !email) {
-      alert("Please fill all fields.");
+    setError("");
+
+    if (!rollNumber.trim() || !email.trim()) {
+      setError("Please fill all fields.");
       return;
     }
 
-    alert("Verification code sent.");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rollNumber: rollNumber.trim(),
+            instituteEmail: email.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Login failed"
+        );
+      }
+
+      setSession({
+        token: data.token,
+        user: {
+          id: data.user.id,
+          rollNumber: data.user.rollNumber,
+          email: data.user.instituteEmail,
+          role: data.user.role,
+        },
+      });
+
+      router.push("/buzz");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Login failed"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -45,6 +101,7 @@ export default function LoginPage() {
                 setRollNumber(e.target.value)
               }
               className="w-full rounded-xl border px-4 py-3"
+              placeholder="STUDENT001"
             />
           </div>
 
@@ -60,14 +117,22 @@ export default function LoginPage() {
                 setEmail(e.target.value)
               }
               className="w-full rounded-xl border px-4 py-3"
+              placeholder="student@campusbuzz.test"
             />
           </div>
 
+          {error && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-xl bg-black py-3 font-semibold text-white"
+            disabled={isLoading}
+            className="w-full rounded-xl bg-black py-3 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Continue
+            {isLoading ? "Signing in..." : "Continue"}
           </button>
         </form>
       </div>

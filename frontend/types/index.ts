@@ -1,4 +1,6 @@
-export type UserRole = "STUDENT" | "CLUB" | "COMMITTEE" | "ADMIN";
+export type UserRole =
+  | "STUDENT"
+  | "ADMIN";
 
 export type Hashtag =
   | "#foodsplit"
@@ -7,17 +9,25 @@ export type Hashtag =
   | "#lost"
   | "#found";
 
-export interface Post {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  hashtag: Hashtag;
-  author: string;
-  contact?: string;
-  createdAt: string;
-  expiresAt?: string;
-}
+  export interface Post {
+    id: string;
+    image: string;
+    title: string;
+    description: string;
+    hashtags: string[];
+    interactionType:
+      | "FOOD_SPLIT"
+      | "CAB_SPLIT"
+      | "RESELL"
+      | "LOST"
+      | "FOUND";
+    author: string;
+    contactName?: string;
+    contactPhone?: string;
+    createdAt: string;
+    expiresAt?: string;
+    status: "ACTIVE" | "CLOSED";
+  }
 
 export interface Event {
   id: string;

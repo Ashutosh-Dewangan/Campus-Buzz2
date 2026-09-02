@@ -1,116 +1,322 @@
-import { Complaint, Event, OfficialPost, Post } from "@/types";
+import {
+  Complaint,
+  Event,
+  OfficialPost,
+  Post,
+} from "@/types";
+
+import { getSession } from "@/lib/session";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://localhost:5000";
 
-export async function getPosts(): Promise<Post[]> {
-  const response = await fetch(
-    `${API_URL}/api/posts`
-  );
+function getAuthHeaders(): HeadersInit {
+  const session = getSession();
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch posts");
+  if (!session?.token) {
+    return {};
   }
 
-  return response.json();
+  return {
+    Authorization: `Bearer ${session.token}`,
+  };
 }
 
-export async function createPost(data: FormData): Promise<Post> {
+function getErrorMessage(
+  data: unknown,
+  fallback: string
+): string {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof data.message === "string"
+  ) {
+    return data.message;
+  }
+
+  return fallback;
+}
+
+function mapPost(post: any): Post {
+  return {
+    id: post.id,
+    image: post.imageUrl,
+    title: post.title,
+    description: post.description,
+    hashtags:
+      post.hashtags?.map(
+        (item: any) => item.hashtag?.name
+      ) ?? [],
+    interactionType: post.interactionType,
+    author: post.author?.name ?? "Unknown",
+    createdAt: post.createdAt,
+    expiresAt: post.expiresAt ?? undefined,
+    status: post.status,
+  };
+}
+
+export async function getPosts(): Promise<Post[]> {
+  const response = await fetch(
+    `${API_URL}/api/posts`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+      cache: "no-store",
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      getErrorMessage(
+        data,
+        "Failed to fetch posts"
+      )
+    );
+  }
+
+  return Array.isArray(data)
+    ? data.map(mapPost)
+    : [];
+}
+
+export async function createPost(
+  data: FormData
+): Promise<Post> {
   const response = await fetch(
     `${API_URL}/api/posts`,
     {
       method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
       body: data,
     }
   );
 
+  const responseData =
+    await response.json();
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to create post");
+    throw new Error(
+      getErrorMessage(
+        responseData,
+        "Failed to create post"
+      )
+    );
   }
 
-  return response.json();
+  return mapPost(responseData.post);
 }
 
 export async function getEvents(): Promise<Event[]> {
-  const response = await fetch(`${API_URL}/api/events`);
+  const response = await fetch(
+    `${API_URL}/api/events`
+  );
+
   if (!response.ok) {
-    throw new Error("Failed to fetch events");
+    throw new Error(
+      "Failed to fetch events"
+    );
   }
+
   return response.json();
 }
 
-export async function createEvent(event: Omit<Event, "id">): Promise<Event> {
-  const response = await fetch(`${API_URL}/api/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(event),
-  });
+export async function createEvent(
+  event: Omit<Event, "id">
+): Promise<Event> {
+  const response = await fetch(
+    `${API_URL}/api/events`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(event),
+    }
+  );
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to create event");
+    const errorData =
+      await response.json().catch(
+        () => ({})
+      );
+
+    throw new Error(
+      getErrorMessage(
+        errorData,
+        "Failed to create event"
+      )
+    );
   }
+
   return response.json();
 }
 
 export async function getComplaints(): Promise<Complaint[]> {
-  const response = await fetch(`${API_URL}/api/complaints`);
+  const response = await fetch(
+    `${API_URL}/api/complaints`
+  );
+
   if (!response.ok) {
-    throw new Error("Failed to fetch complaints");
+    throw new Error(
+      "Failed to fetch complaints"
+    );
   }
+
   return response.json();
 }
 
-export async function createComplaint(complaint: {
-  title: string;
-  description: string;
-}): Promise<Complaint> {
-  const response = await fetch(`${API_URL}/api/complaints`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(complaint),
-  });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to create complaint");
+export async function createComplaint(
+  complaint: {
+    title: string;
+    description: string;
   }
+): Promise<Complaint> {
+  const response = await fetch(
+    `${API_URL}/api/complaints`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(
+        complaint
+      ),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData =
+      await response.json().catch(
+        () => ({})
+      );
+
+    throw new Error(
+      getErrorMessage(
+        errorData,
+        "Failed to create complaint"
+      )
+    );
+  }
+
   return response.json();
 }
 
-export async function resolveComplaint(id: string): Promise<Complaint> {
-  const response = await fetch(`${API_URL}/api/complaints/${id}/resolve`, {
-    method: "PATCH",
-  });
+export async function resolveComplaint(
+  id: string
+): Promise<Complaint> {
+  const response = await fetch(
+    `${API_URL}/api/complaints/${id}/resolve`,
+    {
+      method: "PATCH",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to resolve complaint");
+    const errorData =
+      await response.json().catch(
+        () => ({})
+      );
+
+    throw new Error(
+      getErrorMessage(
+        errorData,
+        "Failed to resolve complaint"
+      )
+    );
   }
+
   return response.json();
 }
 
 export async function getOfficialPosts(): Promise<OfficialPost[]> {
-  const response = await fetch(`${API_URL}/api/official`);
+  const response = await fetch(
+    `${API_URL}/api/official`
+  );
+
   if (!response.ok) {
-    throw new Error("Failed to fetch official posts");
+    throw new Error(
+      "Failed to fetch official posts"
+    );
   }
+
   return response.json();
 }
+export async function getPostContact(
+  postId: string
+): Promise<{
+  contactName: string;
+  contactPhone: string;
+}> {
+  const response = await fetch(
+    `${API_URL}/api/posts/${encodeURIComponent(
+      postId
+    )}/contact`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
 
-export async function createOfficialPost(post: {
-  organization: string;
-  content: string;
-  formUrl?: string;
-  eventName?: string;
-}): Promise<OfficialPost> {
-  const response = await fetch(`${API_URL}/api/official`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(post),
-  });
+  const data =
+    await response.json();
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to create official post");
+    throw new Error(
+      getErrorMessage(
+        data,
+        "Failed to fetch contact information"
+      )
+    );
   }
+
+  return data;
+}
+export async function createOfficialPost(
+  post: {
+    organization: string;
+    content: string;
+    formUrl?: string;
+    eventName?: string;
+  }
+): Promise<OfficialPost> {
+  const response = await fetch(
+    `${API_URL}/api/official`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(post),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData =
+      await response.json().catch(
+        () => ({})
+      );
+
+    throw new Error(
+      getErrorMessage(
+        errorData,
+        "Failed to create official post"
+      )
+    );
+  }
+
   return response.json();
 }

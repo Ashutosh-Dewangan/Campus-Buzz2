@@ -25,7 +25,10 @@ export default function CreatePostForm({
   const [description, setDescription] = useState("");
   const [hashtag, setHashtag] = useState<Hashtag | "">("");
   const [expiry, setExpiry] = useState("24");
-  const [contact, setContact] = useState("");
+  const [contactName, setContactName] =
+  useState("");
+  const [contactPhone, setContactPhone] =
+  useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,10 +74,15 @@ export default function CreatePostForm({
 
     // Contact is required for lost/found posts
     if (
-      (hashtag === "#lost" || hashtag === "#found") &&
-      !contact.trim()
+      (hashtag === "#resell" ||
+        hashtag === "#lost" ||
+        hashtag === "#found") &&
+      (!contactName.trim() ||
+        !contactPhone.trim())
     ) {
-      setError("Please provide contact information.");
+      setError(
+        "Please provide contact name and phone number."
+      );
       return;
     }
 
@@ -85,26 +93,45 @@ export default function CreatePostForm({
 
       formData.append("title", title.trim());
       formData.append("description", description.trim());
-      formData.append("hashtag", hashtag);
+      formData.append(
+        "hashtags",
+        JSON.stringify([hashtag])
+      );
+      
       formData.append("image", file);
-
-      // Temporary until real authentication is connected
-      formData.append("author", "You");
-
+      
       if (
         hashtag === "#foodsplit" ||
         hashtag === "#cabsplit"
       ) {
-        formData.append("expiry", expiry);
+        const expiryHours = Number(expiry);
+      
+        const expiresAt = new Date(
+          Date.now() +
+            expiryHours * 60 * 60 * 1000
+        );
+      
+        formData.append(
+          "expiresAt",
+          expiresAt.toISOString()
+        );
       }
-
+      
       if (
+        hashtag === "#resell" ||
         hashtag === "#lost" ||
         hashtag === "#found"
       ) {
-        formData.append("contact", contact.trim());
+        formData.append(
+          "contactName",
+          contactName.trim()
+        );
+      
+        formData.append(
+          "contactPhone",
+          contactPhone.trim()
+        );
       }
-
       const created = await createPost(formData);
 
       onPostCreated?.(created);
@@ -128,6 +155,7 @@ export default function CreatePostForm({
     hashtag === "#cabsplit";
 
   const needsContact =
+    hashtag === "#resell" ||
     hashtag === "#lost" ||
     hashtag === "#found";
 
@@ -247,27 +275,45 @@ export default function CreatePostForm({
 
           {/* Contact */}
           {needsContact && (
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Contact Info *
-              </label>
+  <div className="space-y-3">
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">
+        Contact Name *
+      </label>
 
-              <input
-                value={contact}
-                onChange={(e) =>
-                  setContact(e.target.value)
-                }
-                placeholder="Phone or email"
-                className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
-              />
+      <input
+        value={contactName}
+        onChange={(e) =>
+          setContactName(e.target.value)
+        }
+        placeholder="Your name"
+        className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+      />
+    </div>
 
-              <p className="mt-1 text-xs text-gray-500">
-                This contact information will be shown to students
-                viewing this post.
-              </p>
-            </div>
-          )}
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">
+        Contact Phone *
+      </label>
 
+      <input
+        type="tel"
+        value={contactPhone}
+        onChange={(e) =>
+          setContactPhone(e.target.value)
+        }
+        placeholder="Your phone number"
+        className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+      />
+    </div>
+
+    <p className="text-xs text-gray-500">
+      Your contact details will only be shown
+      when another student chooses to view
+      contact information for this post.
+    </p>
+  </div>
+)}
           {/* Expiry */}
           {needsExpiry && (
             <div>

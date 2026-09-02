@@ -8,20 +8,34 @@ interface PostCardProps {
   onAction: (post: Post) => void;
 }
 
-function getRemainingTime(expiresAt?: string) {
+function getRemainingTime(
+  expiresAt?: string
+) {
   if (!expiresAt) return null;
 
-  const difference = new Date(expiresAt).getTime() - Date.now();
+  const difference =
+    new Date(expiresAt).getTime() -
+    Date.now();
 
   if (difference <= 0) {
     return "Expired";
   }
 
-  const seconds = Math.floor(difference / 1000);
+  const seconds = Math.floor(
+    difference / 1000
+  );
 
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
+  const days = Math.floor(
+    seconds / 86400
+  );
+
+  const hours = Math.floor(
+    (seconds % 86400) / 3600
+  );
+
+  const minutes = Math.floor(
+    (seconds % 3600) / 60
+  );
 
   if (days > 0) {
     return `${days}d ${hours}h remaining`;
@@ -38,24 +52,33 @@ export default function PostCard({
   post,
   onAction,
 }: PostCardProps) {
-  const [remainingTime, setRemainingTime] = useState(
-    getRemainingTime(post.expiresAt)
-  );
+  const [remainingTime, setRemainingTime] =
+    useState(
+      getRemainingTime(post.expiresAt)
+    );
 
   useEffect(() => {
-    if (!post.expiresAt) return;
+    if (!post.expiresAt) {
+      return;
+    }
 
     const interval = setInterval(() => {
-      setRemainingTime(getRemainingTime(post.expiresAt));
+      setRemainingTime(
+        getRemainingTime(post.expiresAt)
+      );
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, [post.expiresAt]);
 
-  const buttonText =
-    post.hashtag === "#lost" || post.hashtag === "#found"
-      ? "View Contact"
-      : "Join Room";
+  const isContactPost =
+    post.interactionType === "LOST" ||
+    post.interactionType === "FOUND";
+
+  const buttonText = isContactPost
+    ? "View Contact"
+    : "Join Room";
 
   return (
     <article className="overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md">
@@ -66,12 +89,19 @@ export default function PostCard({
       />
 
       <div className="p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-semibold text-blue-600">
-            {post.hashtag}
-          </span>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {post.hashtags.map((hashtag) => (
+              <span
+                key={hashtag}
+                className="text-sm font-semibold text-blue-600"
+              >
+                {hashtag}
+              </span>
+            ))}
+          </div>
 
-          <span className="text-xs text-gray-500">
+          <span className="shrink-0 text-xs text-gray-500">
             {post.author}
           </span>
         </div>

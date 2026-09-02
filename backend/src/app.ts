@@ -1,27 +1,15 @@
 import express from "express";
 import cors from "cors";
-import multer from "multer";
 import authRoutes from "./routes/auth.routes";
 import testRoutes from "./routes/test.routes";
+import postRoutes from "./routes/post.routes";
 
-const upload = multer();
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-interface PostItem {
-  id: string;
-  image: string;
-  title: string;
-  description: string;
-  hashtag: string;
-  author: string;
-  contact?: string;
-  createdAt: string;
-  expiresAt?: string;
-}
+app.use("/api/posts", postRoutes);
 
 interface EventItem {
   id: string;
@@ -49,59 +37,6 @@ interface OfficialPostItem {
   eventName?: string;
   createdAt: string;
 }
-
-// In-memory data store with initial seed
-let posts: PostItem[] = [
-  {
-    id: "1",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-    title: "Pizza order tonight",
-    description: "Ordering pizza from Domino's around 8 PM. Anyone interested in splitting?",
-    hashtag: "#foodsplit",
-    author: "Rahul",
-    createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "2",
-    image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d",
-    title: "Cab to railway station",
-    description: "Leaving campus for the railway station at 6 PM. Looking for 2-3 people to split the fare.",
-    hashtag: "#cabsplit",
-    author: "Priya",
-    createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "3",
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-    title: "Selling my old watch",
-    description: "Barely used watch. DM if interested. Negotiation can happen in person.",
-    hashtag: "#resell",
-    author: "Aman",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62",
-    title: "Lost black backpack",
-    description: "Lost near the library yesterday evening. Contains a notebook and charger.",
-    hashtag: "#lost",
-    author: "Neha",
-    contact: "neha@example.com",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    image: "https://images.unsplash.com/photo-1577702312708-7c1c4a3b6f4e",
-    title: "Found water bottle",
-    description: "Found a blue water bottle near Block B. Contact me to collect it.",
-    hashtag: "#found",
-    author: "Vikram",
-    contact: "vikram@example.com",
-    createdAt: new Date().toISOString(),
-  },
-];
 
 let events: EventItem[] = [
   {
@@ -166,65 +101,6 @@ app.get("/api/health", (_req, res) => {
 // Auth & Test Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
-
-// ========================
-// POSTS API
-// ========================
-app.get("/api/posts", (_req, res) => {
-  res.json(posts);
-});
-
-app.post("/api/posts", upload.any(), (req, res) => {
-  const { title, description, hashtag, expiry, author, contact } = req.body;
-
-  // Validation
-  if (!title || typeof title !== "string" || !title.trim()) {
-    return res.status(400).json({ error: "Title is required." });
-  }
-
-  if (!description || typeof description !== "string" || !description.trim()) {
-    return res.status(400).json({ error: "Description is required." });
-  }
-
-  if (!hashtag || typeof hashtag !== "string" || !hashtag.trim()) {
-    return res.status(400).json({ error: "Hashtag is required." });
-  }
-
-  const validHashtags = ["#foodsplit", "#cabsplit", "#resell", "#lost", "#found"];
-  if (!validHashtags.includes(hashtag.trim())) {
-    return res.status(400).json({ error: "Invalid hashtag." });
-  }
-
-  let expiresAt: string | undefined = undefined;
-  if (expiry && !isNaN(Number(expiry))) {
-    const hours = Number(expiry);
-    expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-  }
-
-  // Default placeholder images by category
-  const imageMap: Record<string, string> = {
-    "#foodsplit": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-    "#cabsplit": "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d",
-    "#resell": "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-    "#lost": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62",
-    "#found": "https://images.unsplash.com/photo-1577702312708-7c1c4a3b6f4e",
-  };
-
-  const newPost: PostItem = {
-    id: Date.now().toString(),
-    title: title.trim(),
-    description: description.trim(),
-    hashtag: hashtag.trim(),
-    image: imageMap[hashtag.trim()] || "https://images.unsplash.com/photo-1523240795612-9a054b0db644",
-    author: author ? String(author).trim() : "You",
-    contact: contact ? String(contact).trim() : undefined,
-    createdAt: new Date().toISOString(),
-    expiresAt,
-  };
-
-  posts = [newPost, ...posts];
-  res.status(201).json(newPost);
-});
 
 // ========================
 // EVENTS API
