@@ -27,6 +27,7 @@ export default function CreatePostForm({
   const [expiry, setExpiry] = useState("24");
   const [contact, setContact] = useState("");
   const [file, setFile] = useState<File | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +36,12 @@ export default function CreatePostForm({
   ) {
     event.preventDefault();
     setError(null);
+
+    // Image is mandatory for every Campus Buzz post
+    if (!file) {
+      setError("Please select an image.");
+      return;
+    }
 
     if (!title.trim()) {
       setError("Please enter a title.");
@@ -51,6 +58,7 @@ export default function CreatePostForm({
       return;
     }
 
+    // Expiry is mandatory only for foodsplit and cabsplit
     if (
       (hashtag === "#foodsplit" || hashtag === "#cabsplit") &&
       (!expiry ||
@@ -61,76 +69,80 @@ export default function CreatePostForm({
       return;
     }
 
+    // Contact is required for lost/found posts
+    if (
+      (hashtag === "#lost" || hashtag === "#found") &&
+      !contact.trim()
+    ) {
+      setError("Please provide contact information.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Build FormData for backend API
       const formData = new FormData();
+
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("hashtag", hashtag);
+      formData.append("image", file);
+
+      // Temporary until real authentication is connected
       formData.append("author", "You");
-      if (hashtag === "#foodsplit" || hashtag === "#cabsplit") {
+
+      if (
+        hashtag === "#foodsplit" ||
+        hashtag === "#cabsplit"
+      ) {
         formData.append("expiry", expiry);
       }
-      if (contact.trim()) {
+
+      if (
+        hashtag === "#lost" ||
+        hashtag === "#found"
+      ) {
         formData.append("contact", contact.trim());
       }
-      if (file) {
-        formData.append("image", file);
-      }
 
-      let created: Post;
-      try {
-        created = await createPost(formData);
-      } catch (err: any) {
-        // Fallback for offline / demo mode
-        const imageMap: Record<string, string> = {
-          "#foodsplit": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-          "#cabsplit": "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d",
-          "#resell": "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-          "#lost": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62",
-          "#found": "https://images.unsplash.com/photo-1577702312708-7c1c4a3b6f4e",
-        };
-
-        const hours = (hashtag === "#foodsplit" || hashtag === "#cabsplit") ? Number(expiry) : undefined;
-        created = {
-          id: Date.now().toString(),
-          title: title.trim(),
-          description: description.trim(),
-          hashtag,
-          image: file ? URL.createObjectURL(file) : (imageMap[hashtag] || "https://images.unsplash.com/photo-1523240795612-9a054b0db644"),
-          author: "You",
-          contact: contact.trim() || undefined,
-          createdAt: new Date().toISOString(),
-          expiresAt: hours ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString() : undefined,
-        };
-      }
+      const created = await createPost(formData);
 
       onPostCreated?.(created);
+
       alert("Post created successfully!");
+
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to create post");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to create post.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
 
   const needsExpiry =
-    hashtag === "#foodsplit" || hashtag === "#cabsplit";
+    hashtag === "#foodsplit" ||
+    hashtag === "#cabsplit";
+
   const needsContact =
-    hashtag === "#lost" || hashtag === "#found";
+    hashtag === "#lost" ||
+    hashtag === "#found";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+
+        {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
             Create Buzz
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
             className="text-xl text-gray-500 hover:text-black"
           >
@@ -138,46 +150,58 @@ export default function CreatePostForm({
           </button>
         </div>
 
+        {/* Error */}
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600 font-medium">
+          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
+
+          {/* Image */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Image
+              Image *
             </label>
 
             <input
               type="file"
               accept="image/*"
               onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setFile(e.target.files[0]);
-                }
+                setFile(e.target.files?.[0] ?? null);
               }}
               className="w-full rounded-lg border p-2 text-sm"
             />
+
+            <p className="mt-1 text-xs text-gray-500">
+              An image is required for every Campus Buzz post.
+            </p>
           </div>
 
+          {/* Title */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Title
+              Title *
             </label>
 
             <input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
               placeholder="What's happening?"
               className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
             />
           </div>
 
+          {/* Description */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Description
+              Description *
             </label>
 
             <textarea
@@ -191,47 +215,64 @@ export default function CreatePostForm({
             />
           </div>
 
+          {/* Hashtag */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
-              Hashtag
+              Hashtag *
             </label>
 
             <select
               value={hashtag}
               onChange={(e) =>
-                setHashtag(e.target.value as Hashtag)
+                setHashtag(
+                  e.target.value as Hashtag
+                )
               }
-              className="w-full rounded-lg border px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-lg border bg-white px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
             >
-              <option value="">Select hashtag</option>
+              <option value="">
+                Select hashtag
+              </option>
 
               {hashtags.map((tag) => (
-                <option key={tag} value={tag}>
+                <option
+                  key={tag}
+                  value={tag}
+                >
                   {tag}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* Contact */}
           {needsContact && (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Contact Info (Phone / Email)
+                Contact Info *
               </label>
 
               <input
                 value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                placeholder="e.g. 9876543210 or your@email.com"
+                onChange={(e) =>
+                  setContact(e.target.value)
+                }
+                placeholder="Phone or email"
                 className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
               />
+
+              <p className="mt-1 text-xs text-gray-500">
+                This contact information will be shown to students
+                viewing this post.
+              </p>
             </div>
           )}
 
+          {/* Expiry */}
           {needsExpiry && (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
-                Expiry
+                Expiry *
               </label>
 
               <select
@@ -239,28 +280,52 @@ export default function CreatePostForm({
                 onChange={(e) =>
                   setExpiry(e.target.value)
                 }
-                className="w-full rounded-lg border px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-black"
+                className="w-full rounded-lg border bg-white px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
               >
                 <option value="0.1667">
                   10 minutes
                 </option>
+
                 <option value="0.5">
                   30 minutes
                 </option>
-                <option value="1">1 hour</option>
-                <option value="6">6 hours</option>
-                <option value="12">12 hours</option>
-                <option value="24">24 hours</option>
-                <option value="48">2 days</option>
+
+                <option value="1">
+                  1 hour
+                </option>
+
+                <option value="6">
+                  6 hours
+                </option>
+
+                <option value="12">
+                  12 hours
+                </option>
+
+                <option value="24">
+                  24 hours
+                </option>
+
+                <option value="48">
+                  2 days
+                </option>
               </select>
+
+              <p className="mt-1 text-xs text-gray-500">
+                Food split and cab split posts automatically
+                expire after this time.
+              </p>
             </div>
           )}
 
+          {/* Buttons */}
           <div className="flex justify-end gap-3 pt-2">
+
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border px-5 py-2.5 font-medium hover:bg-gray-100 transition"
+              disabled={isSubmitting}
+              className="rounded-xl border px-5 py-2.5 font-medium transition hover:bg-gray-100 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -268,10 +333,13 @@ export default function CreatePostForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-black px-5 py-2.5 font-semibold text-white hover:bg-gray-800 disabled:opacity-50 transition"
+              className="rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-gray-800 disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create Buzz"}
+              {isSubmitting
+                ? "Creating..."
+                : "Create Buzz"}
             </button>
+
           </div>
         </form>
       </div>

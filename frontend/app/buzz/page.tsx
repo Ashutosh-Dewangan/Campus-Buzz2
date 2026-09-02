@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import PostCard from "@/components/buzz/PostCard";
 import CreatePostForm from "@/components/buzz/CreatePostForm";
 import { mockPosts } from "@/data/mockData";
@@ -17,6 +18,7 @@ const filters: ("ALL" | Hashtag)[] = [
 ];
 
 export default function BuzzPage() {
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [selectedFilter, setSelectedFilter] =
     useState<"ALL" | Hashtag>("ALL");
@@ -49,7 +51,7 @@ export default function BuzzPage() {
           (post) => post.hashtag === selectedFilter
         );
 
-  function handlePostAction(post: Post) {
+  /*function handlePostAction(post: Post) {
     if (
       post.hashtag === "#foodsplit" ||
       post.hashtag === "#cabsplit" ||
@@ -69,7 +71,28 @@ export default function BuzzPage() {
         }`
       );
     }
+  }*/
+ function handlePostAction(post: Post) {
+  if (
+    post.hashtag === "#foodsplit" ||
+    post.hashtag === "#cabsplit" ||
+    post.hashtag === "#resell"
+  ) {
+    router.push(`/rooms?postId=${encodeURIComponent(post.id)}`);
+    return;
   }
+
+  if (
+    post.hashtag === "#lost" ||
+    post.hashtag === "#found"
+  ) {
+    if (post.contact) {
+      alert(`Contact: ${post.contact}`);
+    } else {
+      alert("No contact information available.");
+    }
+  }
+}
 
   function handleCreatePostClose() {
     setShowCreatePost(false);

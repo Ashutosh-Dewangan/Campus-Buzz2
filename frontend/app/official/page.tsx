@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import OfficialPostCard from "@/components/official/OfficialPostCard";
 import CreateOfficialPost from "@/components/official/CreateOfficialPost";
 import { mockOfficialPosts } from "@/data/mockData";
-import { OfficialPost } from "@/types";
+import { OfficialPost, UserRole } from "@/types";
 import { getOfficialPosts } from "@/lib/api";
+import { canCreateOfficialPost } from "@/lib/auth";
+
 
 export default function OfficialPage() {
   const [posts, setPosts] = useState<OfficialPost[]>(mockOfficialPosts);
