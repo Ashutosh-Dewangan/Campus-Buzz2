@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
+import authRoutes from "./routes/auth.routes";
+import testRoutes from "./routes/test.routes";
 
 const upload = multer();
 const app = express();
@@ -161,8 +163,12 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", message: "Campus Buzz API is running" });
 });
 
+// Auth & Test Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/test", testRoutes);
+
 // ========================
-// STAGE 5: POSTS API
+// POSTS API
 // ========================
 app.get("/api/posts", (_req, res) => {
   res.json(posts);

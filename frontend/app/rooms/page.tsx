@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import ChatRoom from "@/components/rooms/ChatRoom";
 
@@ -28,7 +28,7 @@ const activeRooms = [
   },
 ];
 
-export default function RoomsPage() {
+function RoomsContent() {
   const searchParams = useSearchParams();
   const postId = searchParams.get("postId");
 
@@ -151,5 +151,24 @@ export default function RoomsPage() {
 
       </div>
     </main>
+  );
+}
+
+export default function RoomsPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            Active Rooms
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Loading conversations...
+          </p>
+        </div>
+      </main>
+    }>
+      <RoomsContent />
+    </Suspense>
   );
 }
