@@ -72,46 +72,49 @@ export default function CreateComplaint({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-xl text-gray-500 hover:text-black cursor-pointer"
+            className="cursor-pointer rounded-lg p-1 text-xl text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
           >
             ×
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600 font-medium">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="complaint-title" className="mb-1 block text-sm font-medium text-gray-700">
               Complaint Subject / Title *
             </label>
             <input
+              id="complaint-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Broken water purifier in Hostel 2, Wi-Fi outage"
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="complaint-desc" className="mb-1 block text-sm font-medium text-gray-700">
               Description & Location Details *
             </label>
             <textarea
+              id="complaint-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Describe the issue, exact floor/room, and duration..."
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
           </div>
 
-          <div className="rounded-xl bg-gray-50 p-3.5 text-xs text-gray-600 border">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5 text-xs text-gray-600">
             🛡️ <strong>Privacy notice:</strong> Only the student administration will review the complaint for resolution. The feed will only display <em>Anonymous Student</em>.
           </div>
 
@@ -119,14 +122,14 @@ export default function CreateComplaint({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border px-5 py-2.5 font-medium hover:bg-gray-100 transition cursor-pointer"
+              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-black px-5 py-2.5 font-semibold text-white hover:bg-gray-800 disabled:opacity-50 transition cursor-pointer"
+              className="cursor-pointer rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50"
             >
               {isSubmitting ? "Submitting..." : "Submit Complaint"}
             </button>

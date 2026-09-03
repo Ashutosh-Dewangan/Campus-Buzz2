@@ -37,7 +37,12 @@ export function getCurrentUser(): CurrentUser | null {
   return getSession()?.user ?? null;
 }
 
+export function setCurrentUser(user: CurrentUser, token: string = "session-token") {
+  setSession({ token, user });
+}
+
 export function setSession(session: Session) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(
     SESSION_KEY,
     JSON.stringify(session)
@@ -45,5 +50,6 @@ export function setSession(session: Session) {
 }
 
 export function clearSession() {
+  if (typeof window === "undefined") return;
   localStorage.removeItem(SESSION_KEY);
 }

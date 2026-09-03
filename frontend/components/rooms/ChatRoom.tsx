@@ -98,8 +98,9 @@ export default function ChatRoom({
         </p>
 
         <button
+          type="button"
           onClick={() => setHasLeft(false)}
-          className="mt-5 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
+          className="mt-5 cursor-pointer rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         >
           Rejoin Room
         </button>
@@ -108,7 +109,7 @@ export default function ChatRoom({
   }
 
   return (
-    <div className="flex h-[600px] flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
+    <div className="flex h-[600px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
       {/* Room Header */}
       <div className="border-b bg-white p-5">
@@ -150,8 +151,9 @@ export default function ChatRoom({
             {isCreator ? (
               !roomClosed ? (
                 <button
+                  type="button"
                   onClick={handleCloseRoom}
-                  className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                  className="cursor-pointer rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
                 >
                   Close Room
                 </button>
@@ -162,8 +164,9 @@ export default function ChatRoom({
               )
             ) : (
               <button
+                type="button"
                 onClick={handleLeaveRoom}
-                className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="cursor-pointer rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
               >
                 Leave Room
               </button>
@@ -212,13 +215,14 @@ export default function ChatRoom({
                 }
               }}
               placeholder="Type a message..."
-              className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
 
             <button
+              type="button"
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="rounded-xl bg-black px-5 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="cursor-pointer rounded-xl bg-black px-5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Send
             </button>

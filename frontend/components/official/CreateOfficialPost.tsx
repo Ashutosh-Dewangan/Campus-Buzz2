@@ -89,30 +89,32 @@ export default function CreateOfficialPost({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-xl text-gray-500 hover:text-black cursor-pointer"
+            className="cursor-pointer rounded-lg p-1 text-xl text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
           >
             ×
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600 font-medium">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="official-org" className="mb-1 block text-sm font-medium text-gray-700">
               Publishing Body / Organization *
             </label>
             <input
+              id="official-org"
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
               list="org-list"
               placeholder="Select or enter organization name"
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
             <datalist id="org-list">
               {commonOrgs.map((org) => (
@@ -122,40 +124,43 @@ export default function CreateOfficialPost({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="official-content" className="mb-1 block text-sm font-medium text-gray-700">
               Announcement / Notice Content *
             </label>
             <textarea
+              id="official-content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="Important notice details, instructions, deadlines..."
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="official-form-url" className="mb-1 block text-sm font-medium text-gray-700">
               Form / Registration URL (Optional)
             </label>
             <input
+              id="official-form-url"
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
               type="url"
               placeholder="https://forms.google.com/..."
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="official-event-name" className="mb-1 block text-sm font-medium text-gray-700">
               Linked Event Name (Optional)
             </label>
             <input
+              id="official-event-name"
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="e.g. Placement Drive 2026, Annual Elections"
-              className="w-full rounded-lg border px-4 py-2.5 outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
             />
           </div>
 
@@ -163,14 +168,14 @@ export default function CreateOfficialPost({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border px-5 py-2.5 font-medium hover:bg-gray-100 transition cursor-pointer"
+              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-black px-5 py-2.5 font-semibold text-white hover:bg-gray-800 disabled:opacity-50 transition cursor-pointer"
+              className="cursor-pointer rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50"
             >
               {isSubmitting ? "Publishing..." : "Publish Notice"}
             </button>

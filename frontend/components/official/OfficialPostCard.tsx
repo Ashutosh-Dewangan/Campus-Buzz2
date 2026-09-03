@@ -23,7 +23,7 @@ export default function OfficialPostCard({
           href={post.formUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-block rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition"
+          className="mt-4 inline-block rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         >
           Open Form
         </a>

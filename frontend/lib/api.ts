@@ -23,20 +23,27 @@ function getAuthHeaders(): HeadersInit {
   };
 }
 
-function getErrorMessage(
-  data: unknown,
-  fallback: string
-): string {
+async function getErrorMessage(
+  response: Response
+): Promise<string> {
+  const data =
+    await response.json().catch(() => null);
+
   if (
-    typeof data === "object" &&
-    data !== null &&
-    "message" in data &&
+    data &&
+    typeof data.error === "string"
+  ) {
+    return data.error;
+  }
+
+  if (
+    data &&
     typeof data.message === "string"
   ) {
     return data.message;
   }
 
-  return fallback;
+  return `Request failed with status ${response.status}`;
 }
 
 function mapPost(post: any): Post {
@@ -68,16 +75,13 @@ export async function getPosts(): Promise<Post[]> {
     }
   );
 
-  const data = await response.json();
-
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(
-        data,
-        "Failed to fetch posts"
-      )
+      await getErrorMessage(response)
     );
   }
+
+  const data = await response.json();
 
   return Array.isArray(data)
     ? data.map(mapPost)
@@ -98,17 +102,14 @@ export async function createPost(
     }
   );
 
-  const responseData =
-    await response.json();
-
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(
-        responseData,
-        "Failed to create post"
-      )
+      await getErrorMessage(response)
     );
   }
+
+  const responseData =
+    await response.json();
 
   return mapPost(responseData.post);
 }
@@ -120,7 +121,7 @@ export async function getEvents(): Promise<Event[]> {
 
   if (!response.ok) {
     throw new Error(
-      "Failed to fetch events"
+      await getErrorMessage(response)
     );
   }
 
@@ -143,16 +144,8 @@ export async function createEvent(
   );
 
   if (!response.ok) {
-    const errorData =
-      await response.json().catch(
-        () => ({})
-      );
-
     throw new Error(
-      getErrorMessage(
-        errorData,
-        "Failed to create event"
-      )
+      await getErrorMessage(response)
     );
   }
 
@@ -166,7 +159,7 @@ export async function getComplaints(): Promise<Complaint[]> {
 
   if (!response.ok) {
     throw new Error(
-      "Failed to fetch complaints"
+      await getErrorMessage(response)
     );
   }
 
@@ -194,16 +187,8 @@ export async function createComplaint(
   );
 
   if (!response.ok) {
-    const errorData =
-      await response.json().catch(
-        () => ({})
-      );
-
     throw new Error(
-      getErrorMessage(
-        errorData,
-        "Failed to create complaint"
-      )
+      await getErrorMessage(response)
     );
   }
 
@@ -224,16 +209,8 @@ export async function resolveComplaint(
   );
 
   if (!response.ok) {
-    const errorData =
-      await response.json().catch(
-        () => ({})
-      );
-
     throw new Error(
-      getErrorMessage(
-        errorData,
-        "Failed to resolve complaint"
-      )
+      await getErrorMessage(response)
     );
   }
 
@@ -247,12 +224,13 @@ export async function getOfficialPosts(): Promise<OfficialPost[]> {
 
   if (!response.ok) {
     throw new Error(
-      "Failed to fetch official posts"
+      await getErrorMessage(response)
     );
   }
 
   return response.json();
 }
+
 export async function getPostContact(
   postId: string
 ): Promise<{
@@ -270,20 +248,18 @@ export async function getPostContact(
     }
   );
 
-  const data =
-    await response.json();
-
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(
-        data,
-        "Failed to fetch contact information"
-      )
+      await getErrorMessage(response)
     );
   }
 
+  const data =
+    await response.json();
+
   return data;
 }
+
 export async function createOfficialPost(
   post: {
     organization: string;
@@ -305,16 +281,8 @@ export async function createOfficialPost(
   );
 
   if (!response.ok) {
-    const errorData =
-      await response.json().catch(
-        () => ({})
-      );
-
     throw new Error(
-      getErrorMessage(
-        errorData,
-        "Failed to create official post"
-      )
+      await getErrorMessage(response)
     );
   }
 

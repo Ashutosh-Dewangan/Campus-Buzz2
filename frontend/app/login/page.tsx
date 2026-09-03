@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setSession } from "@/lib/session";
+import { setCurrentUser } from "@/lib/session";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -49,19 +49,19 @@ export default function LoginPage() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Login failed"
+          data.message || data.error || "Login failed"
         );
       }
 
-      setSession({
-        token: data.token,
-        user: {
+      setCurrentUser(
+        {
           id: data.user.id,
           rollNumber: data.user.rollNumber,
-          email: data.user.instituteEmail,
+          email: data.user.instituteEmail || data.user.email,
           role: data.user.role,
         },
-      });
+        data.token
+      );
 
       router.push("/buzz");
     } catch (error) {
@@ -76,13 +76,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
       <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
           Campus Buzz
         </h1>
 
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           Sign in to your campus account
         </p>
 
@@ -91,46 +91,48 @@ export default function LoginPage() {
           className="mt-8 space-y-5"
         >
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label htmlFor="login-roll" className="mb-2 block text-sm font-medium text-gray-700">
               Roll Number
             </label>
 
             <input
+              id="login-roll"
               value={rollNumber}
               onChange={(e) =>
                 setRollNumber(e.target.value)
               }
-              className="w-full rounded-xl border px-4 py-3"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
               placeholder="STUDENT001"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-gray-700">
               Institute Email
             </label>
 
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) =>
                 setEmail(e.target.value)
               }
-              className="w-full rounded-xl border px-4 py-3"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
               placeholder="student@campusbuzz.test"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-xl bg-black py-3 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full cursor-pointer rounded-xl bg-black py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? "Signing in..." : "Continue"}
           </button>
