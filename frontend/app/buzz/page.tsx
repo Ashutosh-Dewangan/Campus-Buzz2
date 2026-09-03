@@ -3,70 +3,202 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import PostCard from "@/components/buzz/PostCard";
 import CreatePostForm from "@/components/buzz/CreatePostForm";
+import CampusPulse from "@/components/buzz/CampusPulse";
+import { useTheme } from "@/components/layout/ThemeProvider";
 
 import { getPostContact, getPosts } from "@/lib/api";
 import { Post } from "@/types";
 
+/* ---------- Filter config ---------- */
 const filters = [
-  {
-    label: "All",
-    value: "ALL",
-    description: "Everything happening around campus",
-  },
-  {
-    label: "#foodsplit",
-    value: "#foodsplit",
-    description: "Find people to share food orders",
-  },
-  {
-    label: "#cabsplit",
-    value: "#cabsplit",
-    description: "Share rides and split fares",
-  },
-  {
-    label: "#resell",
-    value: "#resell",
-    description: "Buy and sell within campus",
-  },
-  {
-    label: "#lost",
-    value: "#lost",
-    description: "Help find something that is missing",
-  },
-  {
-    label: "#found",
-    value: "#found",
-    description: "Help return something found",
-  },
+  { label: "ALL",       value: "ALL",        cls: "tag-all"    },
+  { label: "#FOODSPLIT", value: "#foodsplit", cls: "tag-food"   },
+  { label: "#CASSPLIT",  value: "#cabsplit",  cls: "tag-cab"    },
+  { label: "#RESELL",    value: "#resell",    cls: "tag-resell" },
+  { label: "#LOST",      value: "#lost",      cls: "tag-lost"   },
+  { label: "#FOUND",     value: "#found",     cls: "tag-found"  },
 ];
 
+const rightFilters = ["CLUBS", "DEVELOPERS", "LEADS"];
+
+/* ---------- Spider web SVG ---------- */
+function SpiderWeb({ dark }: { dark: boolean }) {
+  return (
+    <svg
+      className="spider-web-deco"
+      viewBox="0 0 160 160"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ color: dark ? "#00f5ff" : "#666" }}
+    >
+      {Array.from({ length: 8 }, (_, i) => {
+        const angle = (i * Math.PI * 2) / 8;
+        const x = 80 + 75 * Math.cos(angle);
+        const y = 80 + 75 * Math.sin(angle);
+        return (
+          <line
+            key={i}
+            x1="80" y1="80" x2={x} y2={y}
+            stroke="currentColor" strokeWidth="1"
+          />
+        );
+      })}
+      {[20, 38, 56, 74].map((r, i) => (
+        <circle
+          key={i} cx="80" cy="80" r={r}
+          stroke="currentColor" strokeWidth="1" fill="none"
+        />
+      ))}
+    </svg>
+  );
+}
+
+/* ---------- Individual post card ---------- */
+function FeedCard({
+  post,
+  onAction,
+  dark,
+}: {
+  post: Post;
+  onAction: (post: Post) => void;
+  dark: boolean;
+}) {
+  const primaryTag = post.hashtags[0] || "#campus";
+  const isRoomPost = ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
+    post.interactionType
+  );
+
+  const minutesAgo = Math.round(
+    (Date.now() - new Date(post.createdAt).getTime()) / 60000
+  );
+  const joined = Math.floor(Math.random() * 15) + 2;
+
+  return (
+    <div className="feed-card cb-fade-up">
+      {/* Spider web decoration */}
+      <SpiderWeb dark={dark} />
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Tag */}
+        <div className="feed-card-tag">{primaryTag}</div>
+
+        {/* Title */}
+        <h2 className="feed-card-title">{post.title}</h2>
+
+        {/* Description */}
+        <p className="feed-card-desc">{post.description}</p>
+
+        {/* Bottom row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            marginTop: 12,
+          }}
+        >
+          {/* Meta */}
+          <div className="feed-card-meta">
+            {joined} joined · posted {minutesAgo} min ago
+          </div>
+
+          {/* Actions */}
+          {post.status === "ACTIVE" && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: 6,
+              }}
+            >
+              {isRoomPost && (
+                <span className="join-badge">
+                  {Math.floor(Math.random() * 8) + 2} John Idk
+                </span>
+              )}
+              {post.expiresAt && (
+                <span className="time-badge">
+                  {Math.floor(Math.random() * 6) + 1}h left
+                </span>
+              )}
+              <button
+                className="retro-btn"
+                onClick={() => onAction(post)}
+                style={{ fontSize: 10, padding: "4px 10px" }}
+              >
+                {isRoomPost ? "OPEN ROOM" : "VIEW CONTACT"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Skeleton loader ---------- */
+function SkeletonCard() {
+  return (
+    <div className="feed-card" style={{ minHeight: 140 }}>
+      <div
+        style={{
+          height: 14, width: "30%", borderRadius: 3,
+          background: "var(--border)", marginBottom: 8,
+          animation: "pulse 1.4s ease-in-out infinite",
+        }}
+      />
+      <div
+        style={{
+          height: 22, width: "75%", borderRadius: 3,
+          background: "var(--border)", marginBottom: 8,
+        }}
+      />
+      <div
+        style={{
+          height: 14, width: "90%", borderRadius: 3,
+          background: "var(--border)",
+        }}
+      />
+    </div>
+  );
+}
+
+/* ---------- Main page ---------- */
 export default function BuzzPage() {
   const router = useRouter();
+  const { resolved, setPreference } = useTheme();
+  const dark = resolved === "dark";
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const [selectedFilter, setSelectedFilter] =
-    useState("ALL");
-
-  const [showCreatePost, setShowCreatePost] =
-    useState(false);
-
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [activeRightFilter, setActiveRightFilter] = useState("");
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [upsideDown, setUpsideDown] = useState(dark);
+
+  // Sync "Upside Down Mode" toggle with actual dark theme
+  useEffect(() => {
+    setUpsideDown(dark);
+  }, [dark]);
+
+  const toggleUpsideDown = () => {
+    const next = !upsideDown;
+    setUpsideDown(next);
+    setPreference(next ? "dark" : "light");
+  };
 
   const loadPosts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError("");
-
       const data = await getPosts();
       setPosts(data);
     } catch (err) {
       console.error(err);
-      setError(
-        "We couldn't load the campus feed right now."
-      );
+      setError("We couldn't load the campus feed right now.");
     } finally {
       setIsLoading(false);
     }
@@ -77,273 +209,270 @@ export default function BuzzPage() {
   }, [loadPosts]);
 
   const filteredPosts = useMemo(() => {
-    if (selectedFilter === "ALL") {
-      return posts;
-    }
-
-    return posts.filter((post) =>
-      post.hashtags.includes(selectedFilter)
-    );
+    if (selectedFilter === "ALL") return posts;
+    return posts.filter((p) => p.hashtags.includes(selectedFilter));
   }, [posts, selectedFilter]);
 
-  const activeFilter = filters.find(
-    (filter) => filter.value === selectedFilter
-  );
-
   const handlePostAction = async (post: Post) => {
-    if (post.status === "CLOSED") {
-      return;
-    }
-
+    if (post.status === "CLOSED") return;
     switch (post.interactionType) {
       case "FOOD_SPLIT":
       case "CAB_SPLIT":
       case "RESELL":
         router.push(`/rooms?postId=${post.id}`);
         break;
-
       case "LOST":
       case "FOUND":
         try {
           const contact = await getPostContact(post.id);
-
-          alert(
-            `Contact: ${contact.contactName}\nPhone: ${contact.contactPhone}`
-          );
-        } catch (err) {
-          console.error(err);
-
-          alert(
-            "Unable to retrieve the poster's contact information."
-          );
+          alert(`Contact: ${contact.contactName}\nPhone: ${contact.contactPhone}`);
+        } catch {
+          alert("Unable to retrieve contact information.");
         }
-        break;
-
-      default:
         break;
     }
   };
 
   const handlePostCreated = (newPost: Post) => {
-    setPosts((currentPosts) => [
-      newPost,
-      ...currentPosts,
-    ]);
-
+    setPosts((cur) => [newPost, ...cur]);
     setShowCreatePost(false);
   };
 
   return (
-    <main className="min-h-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="cb-page">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-sm sm:px-8 sm:py-9">
-          <div className="relative z-10 max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+    <div className="buzz-layout">
+      {/* ===== CENTER COLUMN ===== */}
+      <div className="buzz-center">
 
-              <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-orange-700">
-                Campus Buzz
-              </span>
-            </div>
+        {/* Title + search row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 0,
+          }}
+        >
+          <div>
+            <div className="buzz-title">CAMPUS BUZZ</div>
+            <div className="buzz-subtitle">The Campus, In Real Time.</div>
+          </div>
+        </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              What&apos;s happening
-              <br className="hidden sm:block" />
-              around campus?
-            </h1>
+        {/* Upside Down Mode toggle */}
+        <div className="upsidedown-toggle-row">
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={upsideDown}
+              onChange={toggleUpsideDown}
+            />
+            <span className="toggle-slider" />
+          </label>
+          <span className="upsidedown-label">Upside Down Mode</span>
+        </div>
 
-            <p className="mt-3 max-w-xl text-sm leading-6 text-gray-500 sm:text-base">
-              Find people to coordinate with, discover
-              what&apos;s happening, and make campus life a
-              little easier.
-            </p>
+        {/* Filter pills + right filter buttons */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 14,
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          <div className="filter-tag-row" style={{ margin: 0, gap: 6 }}>
+            {filters.map((f) => (
+              <button
+                key={f.value}
+                className={`tag-pill ${f.cls}${selectedFilter === f.value ? " tag-pill--active" : ""}`}
+                onClick={() => setSelectedFilter(f.value)}
+                type="button"
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--fg-muted)",
+              }}
+            >
+              FILTER
+            </span>
+            {rightFilters.map((rf) => (
+              <button
+                key={rf}
+                className={`filter-pill${activeRightFilter === rf ? " filter-pill--active" : ""}`}
+                onClick={() =>
+                  setActiveRightFilter(activeRightFilter === rf ? "" : rf)
+                }
+                type="button"
+              >
+                {rf}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Post creator */}
+        <div className="post-creator">
+          <div className="post-creator-title">What's happening on Campus?</div>
+          <div className="post-creator-sub">
+            Add a photo, title, description • #hashtag
+          </div>
+          <div className="post-creator-actions">
+            <button className="retro-btn-outline" type="button">
+              📷 PHOTO
+            </button>
             <button
+              className="retro-btn"
               type="button"
               onClick={() => setShowCreatePost(true)}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800"
             >
-              <span className="text-base">+</span>
+              ✈️ POST
+            </button>
+          </div>
+        </div>
+
+        {/* Feed */}
+        {isLoading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : error ? (
+          <div className="feed-card" style={{ textAlign: "center", padding: 32 }}>
+            <p style={{ color: "var(--accent)", fontWeight: 800 }}>
+              Something went wrong
+            </p>
+            <p style={{ fontSize: 12, color: "var(--fg-muted)", margin: "8px 0 16px" }}>
+              {error}
+            </p>
+            <button className="retro-btn" onClick={loadPosts}>
+              Try again
+            </button>
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div
+            className="feed-card"
+            style={{ textAlign: "center", padding: 40 }}
+          >
+            <div style={{ fontSize: 32, marginBottom: 10 }}>✦</div>
+            <p style={{ fontWeight: 800, color: "var(--fg)" }}>
+              Nothing here yet
+            </p>
+            <p style={{ fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 16px" }}>
+              Be the first to post in this category.
+            </p>
+            <button
+              className="retro-btn"
+              onClick={() => setShowCreatePost(true)}
+            >
               Create a Buzz
             </button>
           </div>
-
-          <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-orange-100/70 blur-2xl" />
-
-          <div className="pointer-events-none absolute -bottom-20 right-16 h-40 w-40 rounded-full bg-gray-100 blur-2xl" />
-        </section>
-
-        {/* Filters */}
-        <section className="mt-6">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                Explore
-              </p>
-
-              <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-950">
-                Campus activity
-              </h2>
-            </div>
-
-            {!isLoading && (
-              <span className="hidden rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-500 sm:inline-flex">
-                {filteredPosts.length}{" "}
-                {filteredPosts.length === 1
-                  ? "post"
-                  : "posts"}
-              </span>
-            )}
-          </div>
-
-          <div className="mt-4 -mx-1 overflow-x-auto px-1 pb-1">
-            <div className="flex min-w-max gap-2">
-              {filters.map((filter) => {
-                const isSelected =
-                  selectedFilter === filter.value;
-
-                return (
-                  <button
-                    key={filter.value}
-                    type="button"
-                    onClick={() =>
-                      setSelectedFilter(filter.value)
-                    }
-                    aria-pressed={isSelected}
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
-                      isSelected
-                        ? "border-gray-950 bg-gray-950 text-white shadow-sm"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {activeFilter && (
-            <p className="mt-2 text-xs text-gray-400">
-              {activeFilter.description}
-            </p>
-          )}
-        </section>
-
-        {/* Feed */}
-        <section className="mt-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
-                >
-                  <div className="aspect-[16/9] animate-pulse bg-gray-100" />
-
-                  <div className="space-y-3 p-5">
-                    <div className="h-3 w-20 animate-pulse rounded bg-gray-100" />
-
-                    <div className="h-6 w-3/4 animate-pulse rounded bg-gray-100" />
-
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
-
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-gray-100" />
-
-                    <div className="h-11 w-full animate-pulse rounded-xl bg-gray-100" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-lg">
-                !
-              </div>
-
-              <h2 className="mt-4 text-base font-bold text-gray-900">
-                Something went wrong
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-                {error}
-              </p>
-
-              <button
-                type="button"
-                onClick={loadPosts}
-                className="mt-5 rounded-xl bg-gray-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
-              >
-                Try again
-              </button>
-            </div>
-          ) : filteredPosts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl">
-                ✦
-              </div>
-
-              <h2 className="mt-4 text-base font-bold text-gray-900">
-                Nothing here yet
-              </h2>
-
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                There aren&apos;t any posts matching this
-                filter yet. Be the first person to start
-                the conversation.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setShowCreatePost(true)}
-                className="mt-5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:border-gray-950 hover:bg-gray-950 hover:text-white"
-              >
-                Create a Buzz
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onAction={handlePostAction}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        ) : (
+          filteredPosts.map((post) => (
+            <FeedCard
+              key={post.id}
+              post={post}
+              onAction={handlePostAction}
+              dark={dark}
+            />
+          ))
+        )}
       </div>
 
-      {/* Create post modal */}
+      {/* ===== RIGHT COLUMN ===== */}
+      <div className="buzz-right">
+        <CampusPulse />
+      </div>
+
+      {/* ===== CREATE POST MODAL ===== */}
       {showCreatePost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-6">
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(4px)",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "2px solid var(--border-strong)",
+              borderRadius: 8,
+              maxWidth: 600,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "4px 4px 0 var(--border-strong)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 20px",
+                borderBottom: "1.5px solid var(--border)",
+              }}
+            >
               <div>
-                <h2 className="text-base font-bold text-gray-950">
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: 16,
+                    fontWeight: 900,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: "var(--accent)",
+                  }}
+                >
                   Create a Buzz
                 </h2>
-
-                <p className="mt-0.5 text-xs text-gray-400">
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    fontSize: 11,
+                    color: "var(--fg-muted)",
+                  }}
+                >
                   Start a conversation on campus.
                 </p>
               </div>
-
               <button
                 type="button"
-                onClick={() =>
-                  setShowCreatePost(false)
-                }
-                aria-label="Close create post"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+                onClick={() => setShowCreatePost(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 22,
+                  color: "var(--fg-muted)",
+                  cursor: "pointer",
+                  lineHeight: 1,
+                }}
+                aria-label="Close"
               >
                 ×
               </button>
             </div>
-
-            <div className="p-5 sm:p-6">
+            <div style={{ padding: "16px 20px" }}>
               <CreatePostForm
                 onPostCreated={handlePostCreated}
                 onClose={() => setShowCreatePost(false)}
@@ -352,6 +481,6 @@ export default function BuzzPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
