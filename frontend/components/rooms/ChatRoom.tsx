@@ -83,16 +83,16 @@ export default function ChatRoom({
 
   if (hasLeft) {
     return (
-      <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl border bg-white p-8 text-center shadow-sm">
+      <div className="flex h-[600px] flex-col items-center justify-center comic-card p-8 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-2xl">
           🚪
         </div>
 
-        <h2 className="mt-4 text-xl font-bold text-gray-900">
+        <h2 className="stay-loop-title mt-4">
           You left this room
         </h2>
 
-        <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
+        <p className="comic-sub mt-2 max-w-sm">
           You can return to the Campus Buzz feed and join the
           conversation again whenever you want.
         </p>
@@ -100,7 +100,7 @@ export default function ChatRoom({
         <button
           type="button"
           onClick={() => setHasLeft(false)}
-          className="mt-5 cursor-pointer rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+          className="comic-btn mt-5"
         >
           Rejoin Room
         </button>
@@ -109,10 +109,10 @@ export default function ChatRoom({
   }
 
   return (
-    <div className="flex h-[600px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="flex h-[600px] flex-col overflow-hidden comic-card">
 
       {/* Room Header */}
-      <div className="border-b bg-white p-5">
+      <div className="border-b p-5" style={{ borderColor: "#000" }}>
         <div className="flex items-start justify-between gap-4">
 
           <div className="min-w-0">
@@ -133,11 +133,11 @@ export default function ChatRoom({
               )}
             </div>
 
-            <h1 className="mt-3 truncate text-xl font-bold text-gray-900">
+            <h1 className="stay-loop-title mt-3 truncate" style={{ fontSize: 24 }}>
               {roomName}
             </h1>
 
-            <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
+            <div className="mt-1 flex items-center gap-1.5 text-sm" style={{ color: "var(--fg-muted)" }}>
               <span>👥</span>
               <span>
                 {memberCount}{" "}
@@ -153,7 +153,7 @@ export default function ChatRoom({
                 <button
                   type="button"
                   onClick={handleCloseRoom}
-                  className="cursor-pointer rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                  className="comic-btn"
                 >
                   Close Room
                 </button>
@@ -166,7 +166,7 @@ export default function ChatRoom({
               <button
                 type="button"
                 onClick={handleLeaveRoom}
-                className="cursor-pointer rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                className="comic-btn-outline"
               >
                 Leave Room
               </button>
@@ -176,7 +176,7 @@ export default function ChatRoom({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-5">
+      <div className="flex-1 space-y-4 overflow-y-auto p-5" style={{ background: "rgba(0,0,0,0.25)" }}>
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-gray-400">
@@ -204,7 +204,7 @@ export default function ChatRoom({
 
       {/* Message Input */}
       {!roomClosed ? (
-        <div className="border-t bg-white p-4">
+        <div className="border-t p-4" style={{ borderColor: "#000" }}>
           <div className="flex gap-2">
             <input
               value={input}
@@ -215,14 +215,14 @@ export default function ChatRoom({
                 }
               }}
               placeholder="Type a message..."
-              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input flex-1 px-4 py-3 text-sm outline-none"
             />
 
             <button
               type="button"
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="cursor-pointer rounded-xl bg-black px-5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              className="comic-btn disabled:opacity-40"
             >
               Send
             </button>

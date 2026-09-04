@@ -2,18 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ThemeSelector from "./ThemeSelector";
 
 const navItems = [
-  { label: "Campus Buzz", href: "/buzz", icon: "🏫", badge: "C1" },
-  { label: "Events",      href: "/events",      icon: "📅" },
-  { label: "Rooms",       href: "/rooms",       icon: "🚪" },
-  { label: "Complaints",  href: "/complaints",  icon: "🔔" },
-];
-
-const officialItems = [
-  { label: "Clubs & Committees", href: "/official" },
-  { label: "Campus Calendar",    href: "/official/calendar" },
+  {
+    label: "Campus Buzz",
+    href: "/buzz",
+    icon: "📣",
+    img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Events",
+    href: "/events",
+    icon: "✦",
+    img: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Rooms",
+    href: "/rooms",
+    icon: "👥",
+    img: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Complaints",
+    href: "/complaints",
+    icon: "▣",
+    img: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Official Space",
+    href: "/official",
+    icon: "⚑",
+    img: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Clubs & Committees",
+    href: "/official",
+    icon: "★",
+    img: "https://images.unsplash.com/photo-1461896836934-ffe607ba6851?auto=format&fit=crop&w=500&q=60",
+  },
+  {
+    label: "Campus Calendar",
+    href: "/official/calendar",
+    icon: "▦",
+    img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=500&q=60",
+  },
 ];
 
 export default function Sidebar() {
@@ -21,62 +53,45 @@ export default function Sidebar() {
 
   return (
     <aside className="cb-sidebar">
-      {/* Logo block */}
       <div className="cb-sidebar-logo">
-        <Link href="/buzz" style={{ textDecoration: "none" }}>
-          <div className="cb-sidebar-logo-text">CAMPUS<br />BUZZ</div>
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <div className="cb-sidebar-logo-text">
+            CAMPUS
+            <em>BUZZ</em>
+          </div>
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="cb-sidebar-nav">
         {navItems.map((item) => {
           const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+            item.label === "Clubs & Committees"
+              ? false
+              : item.href === "/official"
+                ? pathname === "/official"
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
           return (
             <Link
-              key={item.href}
+              key={`${item.href}-${item.label}`}
               href={item.href}
-              className={`cb-sidebar-item${isActive ? " cb-sidebar-item--active" : ""}`}
+              className={`cb-panel${isActive ? " cb-panel--active" : ""}`}
+              style={{ backgroundImage: `url("${item.img}")` }}
               aria-current={isActive ? "page" : undefined}
             >
-              {item.badge && (
-                <span className="cb-sidebar-badge">{item.badge}</span>
-              )}
-              <span className="cb-sidebar-item-icon">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="cb-panel-icon" aria-hidden="true">{item.icon}</span>
+              <span className="cb-panel-label">{item.label}</span>
             </Link>
           );
         })}
-
-        {/* Official Space section */}
-        <div className="cb-sidebar-section-label">Ovicial Space</div>
-        {officialItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="cb-sidebar-item"
-          >
-            <span style={{ fontSize: 11, color: "var(--fg-muted)" }}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
       </nav>
 
-      {/* Theme Selector */}
-      <ThemeSelector />
-
-      {/* Profile card */}
       <div className="cb-profile-card">
         <div className="cb-id-card">
-          <div className="cb-id-photo-placeholder">👤</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div className="cb-id-avatar">AD</div>
-            <div>
-              <div className="cb-id-name">Ashutosh D.</div>
-              <div className="cb-id-role">Verified Student</div>
-            </div>
+          <div className="cb-id-avatar">AD</div>
+          <div>
+            <div className="cb-id-name">Ashutosh D.</div>
+            <div className="cb-id-role">Verified Student</div>
           </div>
         </div>
       </div>

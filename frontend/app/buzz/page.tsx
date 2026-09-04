@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 import CreatePostForm from "@/components/buzz/CreatePostForm";
 import CampusPulse from "@/components/buzz/CampusPulse";
-import { useTheme } from "@/components/layout/ThemeProvider";
 
 import { getPostContact, getPosts } from "@/lib/api";
 import { Post } from "@/types";
@@ -23,14 +22,13 @@ const filters = [
 const rightFilters = ["CLUBS", "DEVELOPERS", "LEADS"];
 
 /* ---------- Spider web SVG ---------- */
-function SpiderWeb({ dark }: { dark: boolean }) {
+function SpiderWeb() {
   return (
     <svg
       className="spider-web-deco"
       viewBox="0 0 160 160"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ color: dark ? "#00f5ff" : "#666" }}
     >
       {Array.from({ length: 8 }, (_, i) => {
         const angle = (i * Math.PI * 2) / 8;
@@ -58,11 +56,9 @@ function SpiderWeb({ dark }: { dark: boolean }) {
 function FeedCard({
   post,
   onAction,
-  dark,
 }: {
   post: Post;
   onAction: (post: Post) => void;
-  dark: boolean;
 }) {
   const primaryTag = post.hashtags[0] || "#campus";
   const isRoomPost = ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
@@ -77,7 +73,7 @@ function FeedCard({
   return (
     <div className="feed-card cb-fade-up">
       {/* Spider web decoration */}
-      <SpiderWeb dark={dark} />
+      <SpiderWeb />
 
       <div style={{ position: "relative", zIndex: 1 }}>
         {/* Tag */}
@@ -168,8 +164,6 @@ function SkeletonCard() {
 /* ---------- Main page ---------- */
 export default function BuzzPage() {
   const router = useRouter();
-  const { resolved, setPreference } = useTheme();
-  const dark = resolved === "dark";
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -177,18 +171,6 @@ export default function BuzzPage() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [upsideDown, setUpsideDown] = useState(dark);
-
-  // Sync "Upside Down Mode" toggle with actual dark theme
-  useEffect(() => {
-    setUpsideDown(dark);
-  }, [dark]);
-
-  const toggleUpsideDown = () => {
-    const next = !upsideDown;
-    setUpsideDown(next);
-    setPreference(next ? "dark" : "light");
-  };
 
   const loadPosts = useCallback(async () => {
     try {
@@ -240,35 +222,31 @@ export default function BuzzPage() {
 
   return (
     <div className="buzz-layout">
+      <div className="buzz-wordcloud" aria-hidden="true">
+        <span style={{ top: "12%", left: "28%", fontSize: 54 }}>FACULTY</span>
+        <span style={{ top: "22%", right: "18%", fontSize: 36, color: "rgba(42,240,255,0.28)" }}>GRAD 2026</span>
+        <span style={{ top: "38%", left: "8%", fontSize: 42 }}>EXAMS</span>
+        <span style={{ top: "48%", right: "32%", fontSize: 28 }}>SYLLABUS</span>
+        <span style={{ bottom: "22%", left: "18%", fontSize: 32, color: "rgba(255,225,74,0.3)" }}>HOSTEL</span>
+        <span className="sfx" style={{ top: "8%", right: "38%", color: "#ffe14a", fontSize: 72, transform: "rotate(-8deg)" }}>ZAP!</span>
+        <span className="sfx" style={{ bottom: "18%", right: "12%", color: "#2af0ff", fontSize: 64, transform: "rotate(6deg)" }}>CRASH!</span>
+      </div>
+
       {/* ===== CENTER COLUMN ===== */}
       <div className="buzz-center">
 
-        {/* Title + search row */}
         <div
           style={{
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            marginBottom: 0,
+            marginBottom: 16,
           }}
         >
           <div>
             <div className="buzz-title">CAMPUS BUZZ</div>
             <div className="buzz-subtitle">The Campus, In Real Time.</div>
           </div>
-        </div>
-
-        {/* Upside Down Mode toggle */}
-        <div className="upsidedown-toggle-row">
-          <label className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={upsideDown}
-              onChange={toggleUpsideDown}
-            />
-            <span className="toggle-slider" />
-          </label>
-          <span className="upsidedown-label">Upside Down Mode</span>
         </div>
 
         {/* Filter pills + right filter buttons */}
@@ -333,11 +311,11 @@ export default function BuzzPage() {
               📷 PHOTO
             </button>
             <button
-              className="retro-btn"
+              className="pow-btn"
               type="button"
               onClick={() => setShowCreatePost(true)}
             >
-              ✈️ POST
+              POST
             </button>
           </div>
         </div>
@@ -386,7 +364,6 @@ export default function BuzzPage() {
               key={post.id}
               post={post}
               onAction={handlePostAction}
-              dark={dark}
             />
           ))
         )}
@@ -412,18 +389,7 @@ export default function BuzzPage() {
             padding: 16,
           }}
         >
-          <div
-            style={{
-              background: "var(--bg-card)",
-              border: "2px solid var(--border-strong)",
-              borderRadius: 8,
-              maxWidth: 600,
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              boxShadow: "4px 4px 0 var(--border-strong)",
-            }}
-          >
+          <div className="comic-modal">
             <div
               style={{
                 display: "flex",

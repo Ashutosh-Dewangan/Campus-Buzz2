@@ -45,22 +45,20 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <main className="comic-page">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-                Campus Events
-              </h1>
+              <h1 className="comic-title">Campus Events</h1>
               {rsvpedEvents.length > 0 && (
-                <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+                <span className="tag-pill tag-found tag-pill--active">
                   {rsvpedEvents.length} RSVP&apos;d
                 </span>
               )}
             </div>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="comic-sub">
               Discover workshops, hackathons, cultural nights, and club activities.
             </p>
           </div>
@@ -68,7 +66,7 @@ export default function EventsPage() {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="cursor-pointer rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+            className="comic-btn"
           >
             + Create Event
           </button>
@@ -80,7 +78,7 @@ export default function EventsPage() {
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="h-64 animate-pulse rounded-2xl border bg-white shadow-sm"
+                className="comic-card h-64 animate-pulse"
               />
             ))}
           </div>
@@ -88,20 +86,18 @@ export default function EventsPage() {
 
         {/* Events Grid */}
         {!isLoading && events.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center sm:p-14">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
+          <div className="comic-card comic-empty">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center text-2xl" style={{ border: "3px solid #000" }}>
               📅
             </div>
-            <h2 className="mt-5 text-lg font-semibold text-gray-900">
-              No events scheduled
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+            <h2 className="stay-loop-title mt-5">No events scheduled</h2>
+            <p className="comic-sub mx-auto max-w-md">
               Be the first to schedule an upcoming workshop or activity!
             </p>
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="mt-5 cursor-pointer rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="comic-btn mt-5"
             >
               Create Event
             </button>
@@ -133,9 +129,9 @@ export default function EventsPage() {
         {/* View Event Details Modal */}
         {selectedEvent && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
-              <div className="flex items-center justify-between border-b pb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
+            <div className="comic-modal p-6">
+              <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
+                <h2 className="stay-loop-title">
                   {selectedEvent.name}
                 </h2>
                 <button
@@ -147,28 +143,28 @@ export default function EventsPage() {
                 </button>
               </div>
 
-              <div className="my-5 space-y-3 text-sm text-gray-700">
+              <div className="my-5 space-y-3 text-sm" style={{ color: "var(--fg)" }}>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">📅 Date:</span>
+                  <span className="font-semibold">📅 Date:</span>
                   <span>{selectedEvent.date}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">🕐 Time:</span>
+                  <span className="font-semibold">🕐 Time:</span>
                   <span>{selectedEvent.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">📍 Venue:</span>
+                  <span className="font-semibold">📍 Venue:</span>
                   <span>{selectedEvent.venue}</span>
                 </div>
                 {selectedEvent.createdBy && (
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900">🏛 Organizer:</span>
+                    <span className="font-semibold">🏛 Organizer:</span>
                     <span>{selectedEvent.createdBy}</span>
                   </div>
                 )}
                 <div className="pt-2">
-                  <p className="mb-1 font-semibold text-gray-900">About the Event:</p>
-                  <p className="rounded-xl border bg-gray-50 p-4 leading-relaxed text-gray-600">
+                  <p className="mb-1 font-semibold">About the Event:</p>
+                  <p className="comic-card p-4 leading-relaxed" style={{ color: "var(--fg-muted)" }}>
                     {selectedEvent.description}
                   </p>
                 </div>
@@ -178,18 +174,14 @@ export default function EventsPage() {
                 <button
                   type="button"
                   onClick={() => toggleRsvp(selectedEvent.id)}
-                  className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                    rsvpedEvents.includes(selectedEvent.id)
-                      ? "bg-green-50 text-green-700 ring-1 ring-green-200 hover:bg-green-100"
-                      : "bg-black text-white hover:bg-gray-800"
-                  }`}
+                  className="comic-btn"
                 >
                   {rsvpedEvents.includes(selectedEvent.id) ? "✓ Going" : "RSVP"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedEvent(null)}
-                  className="cursor-pointer rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                  className="comic-btn-outline"
                 >
                   Close
                 </button>

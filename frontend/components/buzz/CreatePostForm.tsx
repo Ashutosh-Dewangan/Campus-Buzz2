@@ -234,18 +234,18 @@ export default function CreatePostForm({
       className="space-y-6"
     >
       {/* Intro */}
-      <div className="rounded-xl border border-orange-100 bg-orange-50/70 p-4">
+      <div className="comic-form-note">
         <div className="flex gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sm shadow-sm">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center text-sm" style={{ border: "3px solid #000", background: "var(--accent)" }}>
             ✦
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold">
               Start a campus conversation
             </p>
 
-            <p className="mt-1 text-xs leading-5 text-gray-500">
+            <p className="mt-1 text-xs leading-5" style={{ color: "var(--fg-muted)" }}>
               Choose a hashtag carefully — it determines
               what happens when other students interact
               with your post.
@@ -259,7 +259,7 @@ export default function CreatePostForm({
         <div className="mb-2 flex items-center justify-between">
           <label
             htmlFor="buzz-image"
-            className="text-sm font-semibold text-gray-900"
+            className="text-sm font-semibold"
           >
             Image
             <span className="ml-1 text-orange-500">
@@ -322,7 +322,7 @@ export default function CreatePostForm({
         <div className="mb-2 flex items-center justify-between">
           <label
             htmlFor="buzz-title"
-            className="text-sm font-semibold text-gray-900"
+            className="text-sm font-semibold"
           >
             Title
             <span className="ml-1 text-orange-500">
@@ -344,7 +344,7 @@ export default function CreatePostForm({
             setTitle(event.target.value)
           }
           placeholder="What do you want campus to know?"
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+          className="comic-input w-full px-4 py-3 text-sm outline-none"
         />
       </div>
 
@@ -353,7 +353,7 @@ export default function CreatePostForm({
         <div className="mb-2 flex items-center justify-between">
           <label
             htmlFor="buzz-description"
-            className="text-sm font-semibold text-gray-900"
+            className="text-sm font-semibold"
           >
             Description
             <span className="ml-1 text-orange-500">
@@ -375,7 +375,7 @@ export default function CreatePostForm({
             setDescription(event.target.value)
           }
           placeholder="Add the details students need..."
-          className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+          className="comic-input w-full resize-none px-4 py-3 text-sm leading-6 outline-none"
         />
       </div>
 
@@ -383,7 +383,7 @@ export default function CreatePostForm({
       <div>
         <label
           htmlFor="buzz-hashtag"
-          className="mb-2 block text-sm font-semibold text-gray-900"
+          className="mb-2 block text-sm font-semibold"
         >
           Hashtag
           <span className="ml-1 text-orange-500">
@@ -397,7 +397,7 @@ export default function CreatePostForm({
           onChange={(event) =>
             setHashtag(event.target.value)
           }
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+          className="comic-input w-full px-4 py-3 text-sm outline-none"
         >
           {hashtagOptions.map((option) => (
             <option
@@ -423,7 +423,7 @@ export default function CreatePostForm({
         <div>
           <label
             htmlFor="buzz-expiry"
-            className="mb-2 block text-sm font-semibold text-gray-900"
+            className="mb-2 block text-sm font-semibold"
           >
             Coordination expiry
             <span className="ml-1 text-orange-500">
@@ -437,7 +437,7 @@ export default function CreatePostForm({
             onChange={(event) =>
               setExpiry(event.target.value)
             }
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+            className="comic-input w-full px-4 py-3 text-sm outline-none"
           >
             {expiryOptions.map((option) => (
               <option
@@ -460,7 +460,7 @@ export default function CreatePostForm({
       {needsContact && (
         <div className="space-y-4 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold">
               Contact information
             </p>
 
@@ -486,7 +486,7 @@ export default function CreatePostForm({
                 setContactName(event.target.value)
               }
               placeholder="Your name"
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+              className="comic-input w-full px-4 py-3 text-sm outline-none"
             />
           </div>
 
@@ -506,7 +506,7 @@ export default function CreatePostForm({
                 setContactPhone(event.target.value)
               }
               placeholder="Your phone number"
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-950/10"
+              className="comic-input w-full px-4 py-3 text-sm outline-none"
             />
           </div>
         </div>
@@ -528,7 +528,7 @@ export default function CreatePostForm({
           type="button"
           onClick={onClose}
           disabled={isSubmitting}
-          className="rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+          className="comic-btn-outline disabled:opacity-50"
         >
           Cancel
         </button>
@@ -536,7 +536,7 @@ export default function CreatePostForm({
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="rounded-xl bg-gray-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="comic-btn disabled:opacity-50"
         >
           {isSubmitting
             ? "Posting..."

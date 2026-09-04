@@ -61,22 +61,19 @@ export default function ComplaintsPage() {
       : complaints.filter((c) => c.status === filter);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <main className="comic-page">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Complaints & Feedback
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="comic-title">Complaints & Feedback</h1>
+            <p className="comic-sub">
               Submit anonymous issues regarding hostel, library, internet, and campus facilities.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Admin Role Toggle to test resolve capability */}
-            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
+            <label className="comic-card flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-medium">
               <input
                 type="checkbox"
                 checked={canResolve}
@@ -89,7 +86,7 @@ export default function ComplaintsPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="cursor-pointer rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="comic-btn"
             >
               + File Complaint
             </button>
@@ -103,11 +100,7 @@ export default function ComplaintsPage() {
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
-              className={`cursor-pointer whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 ${
-                filter === tab
-                  ? "bg-black text-white shadow-sm"
-                  : "bg-white text-gray-700 shadow-sm ring-1 ring-gray-200 hover:bg-gray-100"
-              }`}
+              className={`filter-pill${filter === tab ? " filter-pill--active" : ""}`}
             >
               {tab === "ALL" ? "All Complaints" : tab === "OPEN" ? "Open Issues" : "Resolved"}
             </button>
@@ -120,7 +113,7 @@ export default function ComplaintsPage() {
             {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="h-52 animate-pulse rounded-2xl border bg-white shadow-sm"
+                className="comic-card h-52 animate-pulse"
               />
             ))}
           </div>
@@ -128,14 +121,9 @@ export default function ComplaintsPage() {
 
         {/* Complaints Grid */}
         {!isLoading && filteredComplaints.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center sm:p-14">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
-              📢
-            </div>
-            <h2 className="mt-5 text-lg font-semibold text-gray-900">
-              No complaints found
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+          <div className="comic-card comic-empty">
+            <h2 className="stay-loop-title">No complaints found</h2>
+            <p className="comic-sub mx-auto max-w-md">
               {filter === "OPEN"
                 ? "Great news! There are no open issues."
                 : "No complaints in this category."}

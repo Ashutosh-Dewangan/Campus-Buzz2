@@ -24,7 +24,7 @@ export default function ComplaintCard({
   }
 
   return (
-    <article className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md flex flex-col justify-between">
+    <article className="comic-card flex flex-col justify-between p-5">
       <div>
         <div className="flex items-start justify-between gap-3">
           <div className="mb-3 flex items-center gap-2">
@@ -33,11 +33,11 @@ export default function ComplaintCard({
             </span>
 
             <div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold">
                 Anonymous Student
               </p>
 
-              <p className="text-xs text-gray-400">
+              <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
                 Identity protected
               </p>
             </div>
@@ -54,11 +54,11 @@ export default function ComplaintCard({
           </span>
         </div>
 
-        <h2 className="mt-2 text-lg font-bold text-gray-900">
+        <h2 className="mt-2 stay-loop-title" style={{ fontSize: 22 }}>
           {complaint.title}
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-gray-600">
+        <p className="mt-2 text-sm leading-6" style={{ color: "var(--fg-muted)" }}>
           {complaint.description}
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function ComplaintCard({
           <button
             type="button"
             onClick={handleResolveClick}
-            className="cursor-pointer rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+            className="comic-btn-outline"
           >
             Mark resolved
           </button>

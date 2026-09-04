@@ -76,22 +76,17 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4 sm:p-6">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Campus Buzz
-        </h1>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Sign in to your campus account
-        </p>
+    <main className="comic-page flex items-center justify-center">
+      <div className="comic-card w-full max-w-md p-8">
+        <h1 className="comic-title">Campus Buzz</h1>
+        <p className="comic-sub">Sign in to your campus account</p>
 
         <form
           onSubmit={handleSubmit}
           className="mt-8 space-y-5"
         >
           <div>
-            <label htmlFor="login-roll" className="mb-2 block text-sm font-medium text-gray-700">
+            <label htmlFor="login-roll" className="mb-2 block text-sm font-medium">
               Roll Number
             </label>
 
@@ -101,13 +96,13 @@ export default function LoginPage() {
               onChange={(e) =>
                 setRollNumber(e.target.value)
               }
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-3 text-sm outline-none"
               placeholder="STUDENT001"
             />
           </div>
 
           <div>
-            <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-gray-700">
+            <label htmlFor="login-email" className="mb-2 block text-sm font-medium">
               Institute Email
             </label>
 
@@ -118,7 +113,7 @@ export default function LoginPage() {
               onChange={(e) =>
                 setEmail(e.target.value)
               }
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-3 text-sm outline-none"
               placeholder="student@campusbuzz.test"
             />
           </div>
@@ -132,7 +127,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full cursor-pointer rounded-xl bg-black py-3 text-sm font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="comic-btn w-full py-3 disabled:opacity-50"
           >
             {isLoading ? "Signing in..." : "Continue"}
           </button>

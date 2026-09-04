@@ -47,17 +47,12 @@ function RoomsContent() {
   }, [postId]);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <main className="comic-page">
       <div className="mx-auto max-w-7xl">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Active Rooms
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Join conversations happening around campus.
-          </p>
+          <h1 className="comic-title">Active Rooms</h1>
+          <p className="comic-sub">Join conversations happening around campus.</p>
         </div>
 
         {/* Rooms Layout */}
@@ -65,15 +60,15 @@ function RoomsContent() {
 
           {/* Sidebar */}
           <aside className="lg:col-span-1">
-            <div className="rounded-2xl border bg-white p-4 shadow-sm">
+            <div className="comic-card p-4">
 
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="font-semibold text-gray-900">
+                  <h2 className="stay-loop-title" style={{ fontSize: 20 }}>
                     Available Rooms
                   </h2>
 
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="comic-sub">
                     {activeRooms.length} active conversations
                   </p>
                 </div>
@@ -95,15 +90,18 @@ function RoomsContent() {
                       onClick={() =>
                         setSelectedRoom(room)
                       }
-                      className={`w-full cursor-pointer rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-black ${
-                        isSelected
-                          ? "border-black bg-gray-50 shadow-sm"
-                          : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                      className={`w-full cursor-pointer p-4 text-left comic-card ${
+                        isSelected ? "" : "opacity-80"
                       }`}
+                      style={
+                        isSelected
+                          ? { outline: "2px solid var(--neon-cyan)" }
+                          : undefined
+                      }
                     >
                       <div className="flex items-center justify-between gap-3">
 
-                        <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-600">
+                        <span className="tag-pill tag-cab">
                           {room.type}
                         </span>
 
@@ -113,12 +111,12 @@ function RoomsContent() {
                         </span>
                       </div>
 
-                      <h3 className="mt-3 truncate font-semibold text-gray-900">
+                      <h3 className="mt-3 truncate font-semibold">
                         {room.name}
                       </h3>
 
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs" style={{ color: "var(--fg-muted)" }}>
                           👥 {room.count}{" "}
                           {room.count === 1
                             ? "member"
@@ -159,15 +157,11 @@ function RoomsContent() {
 export default function RoomsPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <main className="comic-page">
         <div className="mx-auto max-w-7xl">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Active Rooms
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Loading conversations...
-            </p>
+            <h1 className="comic-title">Active Rooms</h1>
+            <p className="comic-sub">Loading conversations...</p>
           </div>
         </div>
       </main>
