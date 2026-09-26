@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { UserRole } from "@/types";
 
 export interface CurrentUser {
@@ -13,6 +14,7 @@ export interface Session {
 }
 
 const SESSION_KEY = "campus_buzz_session";
+const SESSION_EVENT = "campus_buzz_session_change";
 
 export function getSession(): Session | null {
   if (typeof window === "undefined") {
@@ -47,9 +49,46 @@ export function setSession(session: Session) {
     SESSION_KEY,
     JSON.stringify(session)
   );
+  window.dispatchEvent(new Event(SESSION_EVENT));
 }
 
 export function clearSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(SESSION_KEY);
+  window.dispatchEvent(new Event(SESSION_EVENT));
+}
+
+function subscribe(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener(SESSION_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(SESSION_EVENT, callback);
+  };
+}
+
+let cachedSessionString: string | null = null;
+let cachedCurrentUser: CurrentUser | null = null;
+
+function getSnapshot(): CurrentUser | null {
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(SESSION_KEY);
+  if (stored !== cachedSessionString) {
+    cachedSessionString = stored;
+    try {
+      cachedCurrentUser = stored ? (JSON.parse(stored) as Session).user : null;
+    } catch {
+      cachedCurrentUser = null;
+    }
+  }
+  return cachedCurrentUser;
+}
+
+function getServerSnapshot(): CurrentUser | null {
+  return null;
+}
+
+export function useCurrentUser(): CurrentUser | null {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

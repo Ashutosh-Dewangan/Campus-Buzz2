@@ -1,58 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ComplaintCard from "@/components/complaints/ComplaintCard";
 import CreateComplaint from "@/components/complaints/CreateComplaint";
-import { mockComplaints } from "@/data/mockData";
 import { Complaint } from "@/types";
 import { getComplaints, resolveComplaint } from "@/lib/api";
+import { isAdmin } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/session";
 
 export default function ComplaintsPage() {
-  const [complaints, setComplaints] = useState<Complaint[]>(mockComplaints);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [canResolve, setCanResolve] = useState(false);
   const [filter, setFilter] = useState<"ALL" | "OPEN" | "RESOLVED">("ALL");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [resolveMessage, setResolveMessage] = useState("");
+
+  const user = useCurrentUser();
+  const isUserAdmin = user ? isAdmin(user.role) : false;
+
+  const loadComplaints = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const fetched = await getComplaints();
+      if (Array.isArray(fetched)) {
+        setComplaints(fetched);
+      }
+    } catch {
+      setError("We couldn't load complaints right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadComplaints() {
-      setIsLoading(true);
+    let ignore = false;
+    async function fetchInitial() {
       try {
         const fetched = await getComplaints();
-        if (Array.isArray(fetched) && fetched.length > 0) {
+        if (!ignore && Array.isArray(fetched)) {
           setComplaints(fetched);
         }
-      } catch (err) {
-        console.warn("Backend API unavailable, using mock complaints fallback:", err);
+      } catch {
+        if (!ignore) {
+          setError("We couldn't load complaints right now.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
-    loadComplaints();
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   async function handleResolve(id: string) {
     try {
-      try {
-        await resolveComplaint(id);
-      } catch {
-        // Fallback for offline mode
-      }
-
+      await resolveComplaint(id);
       setComplaints((current) =>
         current.map((c) =>
-          c.id === id ? { ...c, status: "RESOLVED" } : c
+          c.id === id ? { ...c, status: "RESOLVED" as const } : c
         )
       );
-      alert("Complaint marked as resolved!");
+      setResolveMessage("Complaint marked as resolved.");
+      setTimeout(() => setResolveMessage(""), 3000);
     } catch (err) {
       console.error("Error resolving complaint:", err);
+      setResolveMessage("Failed to mark complaint as resolved.");
+      setTimeout(() => setResolveMessage(""), 3000);
     }
   }
 
   function handleComplaintCreated(newComplaint: Complaint) {
     setComplaints((current) => [newComplaint, ...current]);
+    setShowCreateModal(false);
   }
 
   const filteredComplaints =
@@ -66,32 +92,30 @@ export default function ComplaintsPage() {
         {/* Header */}
         <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="comic-title">Complaints & Feedback</h1>
+            <h1 className="comic-title">Complaints &amp; Feedback</h1>
             <p className="comic-sub">
-              Submit anonymous issues regarding hostel, library, internet, and campus facilities.
+              Submit anonymous issues about hostel, library, internet and campus facilities.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="comic-card flex cursor-pointer items-center gap-2 px-3.5 py-2.5 text-xs font-medium">
-              <input
-                type="checkbox"
-                checked={canResolve}
-                onChange={(e) => setCanResolve(e.target.checked)}
-                className="rounded text-black focus:ring-black"
-              />
-              <span>Admin / Resolver View</span>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="comic-btn"
-            >
-              + File Complaint
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(true)}
+            className="comic-btn"
+          >
+            + File Complaint
+          </button>
         </div>
+
+        {/* Resolve success message */}
+        {resolveMessage && (
+          <div
+            className="mb-4 rounded-sm border-2 border-black px-4 py-3 text-sm font-semibold"
+            style={{ background: "rgba(0,229,200,0.12)", color: "var(--tag-found)" }}
+          >
+            {resolveMessage}
+          </div>
+        )}
 
         {/* Filter Tabs */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
@@ -119,27 +143,54 @@ export default function ComplaintsPage() {
           </div>
         )}
 
+        {/* Error state */}
+        {error && !isLoading && (
+          <div className="comic-card comic-empty mb-6">
+            <p style={{ color: "var(--accent)", fontWeight: 800 }}>Failed to load complaints</p>
+            <p className="comic-sub">{error}</p>
+            <button
+              type="button"
+              onClick={loadComplaints}
+              className="comic-btn mt-4"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         {/* Complaints Grid */}
-        {!isLoading && filteredComplaints.length === 0 ? (
+        {!isLoading && !error && filteredComplaints.length === 0 ? (
           <div className="comic-card comic-empty">
             <h2 className="stay-loop-title">No complaints found</h2>
             <p className="comic-sub mx-auto max-w-md">
               {filter === "OPEN"
-                ? "Great news! There are no open issues."
-                : "No complaints in this category."}
+                ? "Great — no open issues right now."
+                : filter === "RESOLVED"
+                ? "No resolved complaints in this view."
+                : "No complaints have been filed yet."}
             </p>
           </div>
         ) : (
           !isLoading && (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {filteredComplaints.map((complaint) => (
-                <ComplaintCard
-                  key={complaint.id}
-                  complaint={complaint}
-                  canResolve={canResolve}
-                  onResolve={handleResolve}
-                />
-              ))}
+              {filteredComplaints.map((complaint) => {
+                const canResolveThis =
+                  isUserAdmin ||
+                  Boolean(
+                    user?.id &&
+                      complaint.userId &&
+                      user.id === complaint.userId
+                  );
+
+                return (
+                  <ComplaintCard
+                    key={complaint.id}
+                    complaint={complaint}
+                    canResolve={canResolveThis}
+                    onResolve={handleResolve}
+                  />
+                );
+              })}
             </div>
           )
         )}

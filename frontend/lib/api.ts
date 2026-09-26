@@ -46,15 +46,28 @@ async function getErrorMessage(
   return `Request failed with status ${response.status}`;
 }
 
-function mapPost(post: any): Post {
+interface BackendPost {
+  id: string;
+  imageUrl: string;
+  title: string;
+  description: string;
+  hashtags?: Array<{ hashtag?: { name: string } }>;
+  interactionType: Post["interactionType"];
+  author?: { name?: string };
+  createdAt: string;
+  expiresAt?: string | null;
+  status: "ACTIVE" | "CLOSED";
+}
+
+function mapPost(post: BackendPost): Post {
   return {
     id: post.id,
     image: post.imageUrl,
     title: post.title,
     description: post.description,
     hashtags:
-      post.hashtags?.map(
-        (item: any) => item.hashtag?.name
+      post.hashtags?.flatMap(
+        (item) => (item.hashtag?.name ? [item.hashtag.name] : [])
       ) ?? [],
     interactionType: post.interactionType,
     author: post.author?.name ?? "Unknown",

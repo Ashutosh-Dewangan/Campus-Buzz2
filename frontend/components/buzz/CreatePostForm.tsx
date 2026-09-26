@@ -92,7 +92,8 @@ export default function CreatePostForm({
 
   const needsContact =
     hashtag === "#lost" ||
-    hashtag === "#found";
+    hashtag === "#found" ||
+    hashtag === "#resell";
 
   const needsExpiry =
     hashtag === "#foodsplit" ||
@@ -107,8 +108,8 @@ export default function CreatePostForm({
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file.");
+    if (file.type !== "image/jpeg" && file.type !== "image/png") {
+      setError("Only PNG and JPEG images are allowed.");
       return;
     }
 
@@ -184,7 +185,7 @@ export default function CreatePostForm({
         "description",
         description.trim()
       );
-      formData.append("hashtags", hashtag);
+      formData.append("hashtags", JSON.stringify([hashtag]));
 
       if (needsContact) {
         formData.append(
@@ -199,7 +200,18 @@ export default function CreatePostForm({
       }
 
       if (needsExpiry) {
-        formData.append("expiry", expiry);
+        const expiryMsMap: Record<string, number> = {
+          "10m": 10 * 60 * 1000,
+          "30m": 30 * 60 * 1000,
+          "1h": 60 * 60 * 1000,
+          "6h": 6 * 60 * 60 * 1000,
+          "12h": 12 * 60 * 60 * 1000,
+          "24h": 24 * 60 * 60 * 1000,
+          "2d": 2 * 24 * 60 * 60 * 1000,
+        };
+        const expiryMs = expiryMsMap[expiry] || 24 * 60 * 60 * 1000;
+        const expiresAt = new Date(Date.now() + expiryMs).toISOString();
+        formData.append("expiresAt", expiresAt);
       }
 
       const newPost = await createPost(formData);
@@ -311,7 +323,7 @@ export default function CreatePostForm({
         <input
           id="buzz-image"
           type="file"
-          accept="image/*"
+          accept="image/png,image/jpeg"
           onChange={handleImageChange}
           className="sr-only"
         />

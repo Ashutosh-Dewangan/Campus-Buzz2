@@ -51,10 +51,9 @@ export default function CreateComplaint({
       }
 
       onComplaintCreated?.(created);
-      alert("Anonymous complaint submitted successfully!");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to submit complaint");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to submit complaint");
     } finally {
       setIsSubmitting(false);
     }

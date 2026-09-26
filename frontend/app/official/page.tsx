@@ -1,39 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import OfficialPostCard from "@/components/official/OfficialPostCard";
 import CreateOfficialPost from "@/components/official/CreateOfficialPost";
-import { mockOfficialPosts } from "@/data/mockData";
-import { OfficialPost, UserRole } from "@/types";
+import { OfficialPost } from "@/types";
 import { getOfficialPosts } from "@/lib/api";
 import { canCreateOfficialPost } from "@/lib/auth";
-
+import { useCurrentUser } from "@/lib/session";
 
 export default function OfficialPage() {
-  const [posts, setPosts] = useState<OfficialPost[]>(mockOfficialPosts);
+  const [posts, setPosts] = useState<OfficialPost[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const user = useCurrentUser();
+  const canPost = user ? canCreateOfficialPost(user.role) : false;
+
+  const loadOfficialPosts = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const fetched = await getOfficialPosts();
+      if (Array.isArray(fetched)) {
+        setPosts(fetched);
+      }
+    } catch {
+      setError("We couldn't load official announcements right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadOfficialPosts() {
-      setIsLoading(true);
+    let ignore = false;
+    async function fetchInitial() {
       try {
         const fetched = await getOfficialPosts();
-        if (Array.isArray(fetched) && fetched.length > 0) {
+        if (!ignore && Array.isArray(fetched)) {
           setPosts(fetched);
         }
-      } catch (err) {
-        console.warn("Backend API unavailable, using mock official posts fallback:", err);
+      } catch {
+        if (!ignore) {
+          setError("We couldn't load official announcements right now.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
-    loadOfficialPosts();
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   function handlePostCreated(newPost: OfficialPost) {
     setPosts((current) => [newPost, ...current]);
+    setShowCreatePost(false);
   }
 
   return (
@@ -52,14 +78,32 @@ export default function OfficialPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowCreatePost(true)}
-            className="comic-btn"
-          >
-            + Post Notice
-          </button>
+          {/* Only render this button for authorized roles */}
+          {canPost && (
+            <button
+              type="button"
+              onClick={() => setShowCreatePost(true)}
+              className="comic-btn"
+            >
+              + Post Notice
+            </button>
+          )}
         </div>
+
+        {/* Error state */}
+        {error && !isLoading && (
+          <div className="comic-card comic-empty mb-6">
+            <p style={{ color: "var(--accent)", fontWeight: 800 }}>Failed to load announcements</p>
+            <p className="comic-sub">{error}</p>
+            <button
+              type="button"
+              onClick={loadOfficialPosts}
+              className="comic-btn mt-4"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* Loading skeleton */}
         {isLoading && (
@@ -74,19 +118,21 @@ export default function OfficialPage() {
         )}
 
         {/* Posts List */}
-        {!isLoading && posts.length === 0 ? (
+        {!isLoading && !error && posts.length === 0 ? (
           <div className="comic-card comic-empty">
             <h2 className="stay-loop-title">No official announcements</h2>
             <p className="comic-sub mx-auto max-w-md">
               No notices have been published yet. Check back soon for administrative announcements.
             </p>
-            <button
-              type="button"
-              onClick={() => setShowCreatePost(true)}
-              className="comic-btn mt-5"
-            >
-              Post Notice
-            </button>
+            {canPost && (
+              <button
+                type="button"
+                onClick={() => setShowCreatePost(true)}
+                className="comic-btn mt-5"
+              >
+                Post Notice
+              </button>
+            )}
           </div>
         ) : (
           !isLoading && (
@@ -99,7 +145,7 @@ export default function OfficialPage() {
         )}
 
         {/* Create Official Post Modal */}
-        {showCreatePost && (
+        {canPost && showCreatePost && (
           <CreateOfficialPost
             onClose={() => setShowCreatePost(false)}
             onPostCreated={handlePostCreated}

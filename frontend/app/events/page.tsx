@@ -1,36 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import EventCard from "@/components/events/EventCard";
 import EventForm from "@/components/events/EventForm";
-import { mockEvents } from "@/data/mockData";
 import { Event } from "@/types";
 import { getEvents } from "@/lib/api";
+import { canCreateEvent } from "@/lib/auth";
+import { useCurrentUser } from "@/lib/session";
+
+function getEventDate(event: Event): Date {
+  const dateTime = `${event.date}T${event.time}`;
+  const parsed = new Date(dateTime);
+  return Number.isNaN(parsed.getTime()) ? new Date(event.date) : parsed;
+}
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [rsvpedEvents, setRsvpedEvents] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const user = useCurrentUser();
+  const canCreate = user ? canCreateEvent(user.role) : false;
+
+  const loadEvents = useCallback(async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const fetched = await getEvents();
+      if (Array.isArray(fetched)) {
+        setEvents(fetched);
+      }
+    } catch {
+      setError("We couldn't load campus events right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadEvents() {
-      setIsLoading(true);
+    let ignore = false;
+    async function fetchInitial() {
       try {
         const fetched = await getEvents();
-        if (Array.isArray(fetched) && fetched.length > 0) {
+        if (!ignore && Array.isArray(fetched)) {
           setEvents(fetched);
         }
-      } catch (err) {
-        console.warn("Backend API unavailable, using mock events fallback:", err);
+      } catch {
+        if (!ignore) {
+          setError("We couldn't load campus events right now.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
-    loadEvents();
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
   }, []);
+
+  const now = new Date();
+
+  const upcomingEvents = useMemo(
+    () =>
+      events
+        .filter((event) => getEventDate(event) >= now)
+        .sort((a, b) => getEventDate(a).getTime() - getEventDate(b).getTime()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [events]
+  );
+
+  const pastEvents = useMemo(
+    () =>
+      events
+        .filter((event) => getEventDate(event) < now)
+        .sort((a, b) => getEventDate(b).getTime() - getEventDate(a).getTime()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [events]
+  );
 
   function toggleRsvp(eventId: string) {
     setRsvpedEvents((current) =>
@@ -42,6 +95,7 @@ export default function EventsPage() {
 
   function handleEventCreated(newEvent: Event) {
     setEvents((current) => [newEvent, ...current]);
+    setShowCreateModal(false);
   }
 
   return (
@@ -59,53 +113,100 @@ export default function EventsPage() {
               )}
             </div>
             <p className="comic-sub">
-              Discover workshops, hackathons, cultural nights, and club activities.
+              Workshops, hackathons, cultural nights and club activities.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(true)}
-            className="comic-btn"
-          >
-            + Create Event
-          </button>
+          {canCreate && (
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="comic-btn"
+            >
+              + Create Event
+            </button>
+          )}
         </div>
 
-        {/* Loading state */}
+        {/* Loading skeleton */}
         {isLoading && (
           <div className="mb-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="comic-card h-64 animate-pulse"
-              />
+              <div key={item} className="comic-card h-64 animate-pulse" />
             ))}
           </div>
         )}
 
-        {/* Events Grid */}
-        {!isLoading && events.length === 0 ? (
+        {/* Error state */}
+        {error && !isLoading && (
+          <div className="comic-card comic-empty mb-6">
+            <p style={{ color: "var(--accent)", fontWeight: 800 }}>Failed to load events</p>
+            <p className="comic-sub">{error}</p>
+            <button
+              type="button"
+              onClick={loadEvents}
+              className="comic-btn mt-4"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !error && events.length === 0 && (
           <div className="comic-card comic-empty">
             <div className="mx-auto flex h-14 w-14 items-center justify-center text-2xl" style={{ border: "3px solid #000" }}>
               📅
             </div>
             <h2 className="stay-loop-title mt-5">No events scheduled</h2>
             <p className="comic-sub mx-auto max-w-md">
-              Be the first to schedule an upcoming workshop or activity!
+              No upcoming workshops or activities yet.
             </p>
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="comic-btn mt-5"
-            >
-              Create Event
-            </button>
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="comic-btn mt-5"
+              >
+                Create Event
+              </button>
+            )}
           </div>
-        ) : (
-          !isLoading && (
+        )}
+
+        {/* Upcoming Events */}
+        {!isLoading && upcomingEvents.length > 0 && (
+          <section className="mb-10">
+            <div className="mb-4 flex items-center gap-3">
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 20,
+                  letterSpacing: "0.06em",
+                  color: "var(--neon-cyan)",
+                  textShadow: "2px 2px 0 #000",
+                  margin: 0,
+                }}
+              >
+                Upcoming
+              </h2>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: "var(--neon-cyan)",
+                  background: "rgba(42,240,255,0.12)",
+                  border: "2px solid var(--neon-cyan)",
+                  padding: "2px 8px",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {upcomingEvents.length}
+              </span>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {events.map((event) => (
+              {upcomingEvents.map((event) => (
                 <EventCard
                   key={event.id}
                   event={event}
@@ -115,11 +216,56 @@ export default function EventsPage() {
                 />
               ))}
             </div>
-          )
+          </section>
+        )}
+
+        {/* Past Events */}
+        {!isLoading && pastEvents.length > 0 && (
+          <section>
+            <div className="mb-4 flex items-center gap-3">
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 20,
+                  letterSpacing: "0.06em",
+                  color: "var(--fg-muted)",
+                  textShadow: "1px 1px 0 #000",
+                  margin: 0,
+                }}
+              >
+                Past Events
+              </h2>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: "var(--fg-muted)",
+                  background: "rgba(154,160,208,0.12)",
+                  border: "2px solid var(--fg-muted)",
+                  padding: "2px 8px",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {pastEvents.length}
+              </span>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3" style={{ opacity: 0.7 }}>
+              {pastEvents.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  isRsvped={rsvpedEvents.includes(event.id)}
+                  onViewDetails={(ev) => setSelectedEvent(ev)}
+                  // No RSVP for past events
+                />
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Create Event Modal */}
-        {showCreateModal && (
+        {canCreate && showCreateModal && (
           <EventForm
             onClose={() => setShowCreateModal(false)}
             onEventCreated={handleEventCreated}
@@ -163,7 +309,7 @@ export default function EventsPage() {
                   </div>
                 )}
                 <div className="pt-2">
-                  <p className="mb-1 font-semibold">About the Event:</p>
+                  <p className="mb-1 font-semibold">About:</p>
                   <p className="comic-card p-4 leading-relaxed" style={{ color: "var(--fg-muted)" }}>
                     {selectedEvent.description}
                   </p>
@@ -171,13 +317,15 @@ export default function EventsPage() {
               </div>
 
               <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => toggleRsvp(selectedEvent.id)}
-                  className="comic-btn"
-                >
-                  {rsvpedEvents.includes(selectedEvent.id) ? "✓ Going" : "RSVP"}
-                </button>
+                {getEventDate(selectedEvent) >= now && (
+                  <button
+                    type="button"
+                    onClick={() => toggleRsvp(selectedEvent.id)}
+                    className="comic-btn"
+                  >
+                    {rsvpedEvents.includes(selectedEvent.id) ? "✓ Going" : "RSVP"}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setSelectedEvent(null)}

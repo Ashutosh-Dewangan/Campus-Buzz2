@@ -4,8 +4,8 @@ export const mockEvents: Event[] = [
   {
     id: "e1",
     name: "Hackathon 2026",
-    date: "Sept 15, 2026",
-    time: "10:00 AM - 8:00 PM",
+    date: "2026-09-15",
+    time: "10:00",
     venue: "Auditorium Hall A",
     description:
       "Annual inter-college 24-hour hackathon. Build amazing web and mobile apps with mentorship from industry experts.",
@@ -14,8 +14,8 @@ export const mockEvents: Event[] = [
   {
     id: "e2",
     name: "Campus Music Night",
-    date: "Sept 20, 2026",
-    time: "6:30 PM Onwards",
+    date: "2026-10-10",
+    time: "18:30",
     venue: "Open Air Theatre",
     description:
       "Live band performances, solo vocal showdowns, and DJ night. Free refreshments for all students with valid ID.",
@@ -24,14 +24,15 @@ export const mockEvents: Event[] = [
   {
     id: "e3",
     name: "Robotics & AI Workshop",
-    date: "Sept 25, 2026",
-    time: "2:00 PM - 5:00 PM",
+    date: "2026-11-05",
+    time: "14:00",
     venue: "Lab 3, Tech Building",
     description:
       "Hands-on workshop on building autonomous line-follower robots and introduction to edge AI computer vision.",
     createdBy: "Robotics Club",
   },
 ];
+
 
 export const mockComplaints: Complaint[] = [
   {

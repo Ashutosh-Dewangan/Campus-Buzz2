@@ -13,13 +13,29 @@ import { Post } from "@/types";
 const filters = [
   { label: "ALL",       value: "ALL",        cls: "tag-all"    },
   { label: "#FOODSPLIT", value: "#foodsplit", cls: "tag-food"   },
-  { label: "#CASSPLIT",  value: "#cabsplit",  cls: "tag-cab"    },
+  { label: "#CABSPLIT",  value: "#cabsplit",  cls: "tag-cab"    },
   { label: "#RESELL",    value: "#resell",    cls: "tag-resell" },
   { label: "#LOST",      value: "#lost",      cls: "tag-lost"   },
   { label: "#FOUND",     value: "#found",     cls: "tag-found"  },
 ];
 
-const rightFilters = ["CLUBS", "DEVELOPERS", "LEADS"];
+/* ---------- Remaining time helper ---------- */
+function getRemainingTime(expiresAt: string): string | null {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return null;
+
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    const remHours = hours % 24;
+    return remHours > 0 ? `${days}d ${remHours}h left` : `${days}d left`;
+  }
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  return `${minutes}m left`;
+}
 
 /* ---------- Spider web SVG ---------- */
 function SpiderWeb() {
@@ -52,6 +68,120 @@ function SpiderWeb() {
   );
 }
 
+/* ---------- Contact info modal ---------- */
+function ContactModal({
+  onClose,
+  contactName,
+  contactPhone,
+}: {
+  onClose: () => void;
+  contactName: string;
+  contactPhone: string;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.65)",
+        backdropFilter: "blur(4px)",
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="comic-modal"
+        style={{ padding: "20px 24px", maxWidth: 380 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 16,
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-display)",
+              fontSize: 20,
+              color: "var(--accent)",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Contact Info
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: 22,
+              color: "var(--fg-muted)",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "2px solid #000",
+              padding: "10px 14px",
+            }}
+          >
+            <p style={{ fontSize: 10, color: "var(--fg-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+              Name
+            </p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "var(--fg)" }}>
+              {contactName}
+            </p>
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "2px solid #000",
+              padding: "10px 14px",
+            }}
+          >
+            <p style={{ fontSize: 10, color: "var(--fg-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+              Phone
+            </p>
+            <a
+              href={`tel:${contactPhone}`}
+              style={{ fontSize: 15, fontWeight: 700, color: "var(--neon-cyan)", textDecoration: "none" }}
+            >
+              {contactPhone}
+            </a>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="retro-btn"
+          onClick={onClose}
+          style={{ marginTop: 16, width: "100%" }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Individual post card ---------- */
 function FeedCard({
   post,
@@ -65,10 +195,56 @@ function FeedCard({
     post.interactionType
   );
 
-  const minutesAgo = Math.round(
-    (Date.now() - new Date(post.createdAt).getTime()) / 60000
-  );
-  const joined = Math.floor(Math.random() * 15) + 2;
+  const [timeDisplay, setTimeDisplay] = useState(() => {
+    const now = Date.now();
+    const minutesAgo = Math.max(0, Math.round(
+      (now - new Date(post.createdAt).getTime()) / 60000
+    ));
+    const ago =
+      minutesAgo < 1 ? "just now"
+      : minutesAgo < 60 ? `${minutesAgo}m ago`
+      : minutesAgo < 1440 ? `${Math.floor(minutesAgo / 60)}h ago`
+      : `${Math.floor(minutesAgo / 1440)}d ago`;
+
+    let remaining = "";
+    let expired = false;
+    if (post.expiresAt) {
+      const r = getRemainingTime(post.expiresAt);
+      if (r) remaining = r;
+      else expired = true;
+    }
+
+    return { ago, remaining, expired };
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const minutesAgo = Math.max(0, Math.round(
+        (now - new Date(post.createdAt).getTime()) / 60000
+      ));
+      const ago =
+        minutesAgo < 1 ? "just now"
+        : minutesAgo < 60 ? `${minutesAgo}m ago`
+        : minutesAgo < 1440 ? `${Math.floor(minutesAgo / 60)}h ago`
+        : `${Math.floor(minutesAgo / 1440)}d ago`;
+
+      let remaining = "";
+      let expired = false;
+      if (post.expiresAt) {
+        const r = getRemainingTime(post.expiresAt);
+        if (r) remaining = r;
+        else expired = true;
+      }
+
+      setTimeDisplay({ ago, remaining, expired });
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [post.createdAt, post.expiresAt]);
+
+  const { ago, remaining, expired } = timeDisplay;
+  const effectivelyActive = post.status === "ACTIVE" && !expired;
 
   return (
     <div className="feed-card cb-fade-up">
@@ -76,14 +252,79 @@ function FeedCard({
       <SpiderWeb />
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Tag */}
-        <div className="feed-card-tag">{primaryTag}</div>
+        {/* Post image */}
+        {post.image && (
+          <div
+            style={{
+              width: "100%",
+              height: 160,
+              overflow: "hidden",
+              border: "2px solid #000",
+              marginBottom: 10,
+              position: "relative",
+            }}
+          >
+            <img
+              src={post.image}
+              alt={post.title}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+            {/* Tag overlay on image */}
+            <span
+              style={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                background: "rgba(10,7,24,0.85)",
+                border: "2px solid #000",
+                color: "var(--neon-cyan)",
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                padding: "2px 8px",
+              }}
+            >
+              {primaryTag}
+            </span>
+          </div>
+        )}
+
+        {/* Tag (if no image) */}
+        {!post.image && (
+          <div className="feed-card-tag">{primaryTag}</div>
+        )}
 
         {/* Title */}
         <h2 className="feed-card-title">{post.title}</h2>
 
         {/* Description */}
         <p className="feed-card-desc">{post.description}</p>
+
+        {/* All hashtags */}
+        {post.hashtags.length > 1 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+            {post.hashtags.slice(1).map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: "var(--fg-muted)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Bottom row */}
         <div
@@ -96,29 +337,35 @@ function FeedCard({
         >
           {/* Meta */}
           <div className="feed-card-meta">
-            {joined} joined · posted {minutesAgo} min ago
+            <span style={{ fontWeight: 700, color: "var(--fg)" }}>
+              {post.author}
+            </span>
+            {ago ? ` · ${ago}` : ""}
           </div>
 
           {/* Actions */}
-          {post.status === "ACTIVE" && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: 6,
-              }}
-            >
-              {isRoomPost && (
-                <span className="join-badge">
-                  {Math.floor(Math.random() * 8) + 2} John Idk
-                </span>
-              )}
-              {post.expiresAt && (
-                <span className="time-badge">
-                  {Math.floor(Math.random() * 6) + 1}h left
-                </span>
-              )}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: 6,
+            }}
+          >
+            {/* Expiry badge */}
+            {remaining && (
+              <span className="time-badge">{remaining}</span>
+            )}
+            {expired && (
+              <span
+                className="time-badge"
+                style={{ background: "var(--fg-muted)", color: "#000" }}
+              >
+                Expired
+              </span>
+            )}
+
+            {effectivelyActive && (
               <button
                 className="retro-btn"
                 onClick={() => onAction(post)}
@@ -126,8 +373,21 @@ function FeedCard({
               >
                 {isRoomPost ? "OPEN ROOM" : "VIEW CONTACT"}
               </button>
-            </div>
-          )}
+            )}
+            {!effectivelyActive && post.status === "CLOSED" && (
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  color: "var(--fg-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Closed
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -167,10 +427,17 @@ export default function BuzzPage() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [activeRightFilter, setActiveRightFilter] = useState("");
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Contact modal state
+  const [contactModal, setContactModal] = useState<{
+    contactName: string;
+    contactPhone: string;
+  } | null>(null);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState("");
 
   const loadPosts = useCallback(async () => {
     try {
@@ -187,8 +454,30 @@ export default function BuzzPage() {
   }, []);
 
   useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
+    let ignore = false;
+    async function fetchInitial() {
+      try {
+        const data = await getPosts();
+        if (!ignore) {
+          setPosts(data);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!ignore) {
+          setError("We couldn't load the campus feed right now.");
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const filteredPosts = useMemo(() => {
     if (selectedFilter === "ALL") return posts;
@@ -206,10 +495,14 @@ export default function BuzzPage() {
       case "LOST":
       case "FOUND":
         try {
+          setContactLoading(true);
+          setContactError("");
           const contact = await getPostContact(post.id);
-          alert(`Contact: ${contact.contactName}\nPhone: ${contact.contactPhone}`);
+          setContactModal(contact);
         } catch {
-          alert("Unable to retrieve contact information.");
+          setContactError("Unable to retrieve contact information. Please try again.");
+        } finally {
+          setContactLoading(false);
         }
         break;
     }
@@ -219,6 +512,18 @@ export default function BuzzPage() {
     setPosts((cur) => [newPost, ...cur]);
     setShowCreatePost(false);
   };
+
+  // Empty state label for current filter
+  const emptyLabel = useMemo(() => {
+    switch (selectedFilter) {
+      case "#foodsplit": return "No active food splits right now.";
+      case "#cabsplit": return "No active cab splits right now.";
+      case "#resell": return "Nothing listed for resale yet.";
+      case "#lost": return "No lost items reported.";
+      case "#found": return "No found items reported.";
+      default: return "No posts yet. Be the first to post!";
+    }
+  }, [selectedFilter]);
 
   return (
     <div className="buzz-layout">
@@ -245,70 +550,37 @@ export default function BuzzPage() {
         >
           <div>
             <div className="buzz-title">CAMPUS BUZZ</div>
-            <div className="buzz-subtitle">The Campus, In Real Time.</div>
+            <div className="buzz-subtitle">What&apos;s happening on campus?</div>
           </div>
         </div>
 
-        {/* Filter pills + right filter buttons */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 14,
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <div className="filter-tag-row" style={{ margin: 0, gap: 6 }}>
-            {filters.map((f) => (
-              <button
-                key={f.value}
-                className={`tag-pill ${f.cls}${selectedFilter === f.value ? " tag-pill--active" : ""}`}
-                onClick={() => setSelectedFilter(f.value)}
-                type="button"
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "var(--fg-muted)",
-              }}
+        {/* Filter pills */}
+        <div className="filter-tag-row" style={{ marginBottom: 14 }}>
+          {filters.map((f) => (
+            <button
+              key={f.value}
+              className={`tag-pill ${f.cls}${selectedFilter === f.value ? " tag-pill--active" : ""}`}
+              onClick={() => setSelectedFilter(f.value)}
+              type="button"
             >
-              FILTER
-            </span>
-            {rightFilters.map((rf) => (
-              <button
-                key={rf}
-                className={`filter-pill${activeRightFilter === rf ? " filter-pill--active" : ""}`}
-                onClick={() =>
-                  setActiveRightFilter(activeRightFilter === rf ? "" : rf)
-                }
-                type="button"
-              >
-                {rf}
-              </button>
-            ))}
-          </div>
+              {f.label}
+            </button>
+          ))}
         </div>
 
         {/* Post creator */}
         <div className="post-creator">
-          <div className="post-creator-title">What's happening on Campus?</div>
+          <div className="post-creator-title">What&apos;s on your mind?</div>
           <div className="post-creator-sub">
-            Add a photo, title, description • #hashtag
+            Add a photo · title · description · #hashtag
           </div>
           <div className="post-creator-actions">
-            <button className="retro-btn-outline" type="button">
-              📷 PHOTO
+            <button
+              className="retro-btn-outline"
+              type="button"
+              onClick={() => setShowCreatePost(true)}
+            >
+              📷 Photo
             </button>
             <button
               className="pow-btn"
@@ -319,6 +591,22 @@ export default function BuzzPage() {
             </button>
           </div>
         </div>
+
+        {/* Contact loading indicator */}
+        {contactLoading && (
+          <div className="feed-card" style={{ padding: "12px 16px", marginBottom: 8, textAlign: "center" }}>
+            <p style={{ fontSize: 12, color: "var(--fg-muted)" }}>
+              Fetching contact info…
+            </p>
+          </div>
+        )}
+        {contactError && (
+          <div className="feed-card" style={{ padding: "12px 16px", marginBottom: 8, borderColor: "var(--accent)" }}>
+            <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700 }}>
+              {contactError}
+            </p>
+          </div>
+        )}
 
         {/* Feed */}
         {isLoading ? (
@@ -349,7 +637,7 @@ export default function BuzzPage() {
               Nothing here yet
             </p>
             <p style={{ fontSize: 12, color: "var(--fg-muted)", margin: "6px 0 16px" }}>
-              Be the first to post in this category.
+              {emptyLabel}
             </p>
             <button
               className="retro-btn"
@@ -371,7 +659,7 @@ export default function BuzzPage() {
 
       {/* ===== RIGHT COLUMN ===== */}
       <div className="buzz-right">
-        <CampusPulse />
+        <CampusPulse posts={posts} />
       </div>
 
       {/* ===== CREATE POST MODAL ===== */}
@@ -446,6 +734,15 @@ export default function BuzzPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ===== CONTACT MODAL ===== */}
+      {contactModal && (
+        <ContactModal
+          contactName={contactModal.contactName}
+          contactPhone={contactModal.contactPhone}
+          onClose={() => setContactModal(null)}
+        />
       )}
     </div>
   );

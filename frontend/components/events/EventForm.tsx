@@ -56,10 +56,9 @@ export default function EventForm({
       }
 
       onEventCreated?.(created);
-      alert("Event created successfully!");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to create event");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create event");
     } finally {
       setIsSubmitting(false);
     }

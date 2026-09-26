@@ -66,10 +66,9 @@ export default function CreateOfficialPost({
       }
 
       onPostCreated?.(created);
-      alert("Official announcement posted successfully!");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to create official post");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create official post");
     } finally {
       setIsSubmitting(false);
     }

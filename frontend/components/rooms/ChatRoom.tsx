@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCurrentUser } from "@/lib/session";
 import MessageBubble from "./MessageBubble";
 
 interface Message {
@@ -10,26 +11,55 @@ interface Message {
   timestamp: string;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: "1",
-    user: "Rahul",
-    message: "Anyone ordering pizza?",
-    timestamp: "6:42 PM",
-  },
-  {
-    id: "2",
-    user: "Priya",
-    message: "Yes, I'm in!",
-    timestamp: "6:43 PM",
-  },
-];
-
 interface ChatRoomProps {
   roomName?: string;
   roomType?: string;
   memberCount?: number;
   isCreator?: boolean;
+}
+
+// Inline confirm dialog to avoid window.confirm() which blocks the thread
+// and doesn't integrate with the design system
+function InlineConfirm({
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(4px)",
+      }}
+    >
+      <div
+        className="comic-card"
+        style={{ padding: "20px 24px", maxWidth: 320, textAlign: "center" }}
+      >
+        <p style={{ fontSize: 13, color: "var(--fg)", marginBottom: 16 }}>
+          {message}
+        </p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+          <button type="button" onClick={onCancel} className="comic-btn-outline">
+            Cancel
+          </button>
+          <button type="button" onClick={onConfirm} className="comic-btn">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function ChatRoom({
@@ -38,47 +68,50 @@ export default function ChatRoom({
   memberCount = 4,
   isCreator = true,
 }: ChatRoomProps) {
-  const [messages, setMessages] =
-    useState<Message[]>(initialMessages);
-
+  // Each mount gets its own fresh message list
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [roomClosed, setRoomClosed] = useState(false);
   const [hasLeft, setHasLeft] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<null | "close" | "leave">(null);
+
+  // Resolve current user display name from session
+  const currentUser = useCurrentUser();
+  const myName = currentUser?.email ? currentUser.email.split("@")[0] : "You";
+
+  // Auto-scroll to bottom
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   function sendMessage() {
     if (!input.trim() || roomClosed || hasLeft) return;
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     setMessages((current) => [
       ...current,
       {
         id: Date.now().toString(),
-        user: "You",
+        user: myName,
         message: input.trim(),
-        timestamp: "Just now",
+        timestamp: timeStr,
       },
     ]);
 
     setInput("");
   }
 
-  function handleCloseRoom() {
-    const confirmed = window.confirm(
-      "Are you sure you want to close this room? Members will no longer be able to send messages."
-    );
-
-    if (confirmed) {
-      setRoomClosed(true);
-    }
+  function confirmCloseRoom() {
+    setRoomClosed(true);
+    setPendingConfirm(null);
   }
 
-  function handleLeaveRoom() {
-    const confirmed = window.confirm(
-      "Are you sure you want to leave this room?"
-    );
-
-    if (confirmed) {
-      setHasLeft(true);
-    }
+  function confirmLeaveRoom() {
+    setHasLeft(true);
+    setPendingConfirm(null);
   }
 
   if (hasLeft) {
@@ -93,8 +126,7 @@ export default function ChatRoom({
         </h2>
 
         <p className="comic-sub mt-2 max-w-sm">
-          You can return to the Campus Buzz feed and join the
-          conversation again whenever you want.
+          You can return to the Campus Buzz feed and join the conversation again whenever you want.
         </p>
 
         <button
@@ -109,12 +141,26 @@ export default function ChatRoom({
   }
 
   return (
-    <div className="flex h-[600px] flex-col overflow-hidden comic-card">
+    <div className="relative flex h-[600px] flex-col overflow-hidden comic-card">
+      {/* Inline confirm overlay */}
+      {pendingConfirm === "close" && (
+        <InlineConfirm
+          message="Close this room? Members will no longer be able to send messages."
+          onConfirm={confirmCloseRoom}
+          onCancel={() => setPendingConfirm(null)}
+        />
+      )}
+      {pendingConfirm === "leave" && (
+        <InlineConfirm
+          message="Leave this room? You can rejoin from the Buzz feed."
+          onConfirm={confirmLeaveRoom}
+          onCancel={() => setPendingConfirm(null)}
+        />
+      )}
 
       {/* Room Header */}
       <div className="border-b p-5" style={{ borderColor: "#000" }}>
         <div className="flex items-start justify-between gap-4">
-
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
@@ -152,7 +198,7 @@ export default function ChatRoom({
               !roomClosed ? (
                 <button
                   type="button"
-                  onClick={handleCloseRoom}
+                  onClick={() => setPendingConfirm("close")}
                   className="comic-btn"
                 >
                   Close Room
@@ -165,7 +211,7 @@ export default function ChatRoom({
             ) : (
               <button
                 type="button"
-                onClick={handleLeaveRoom}
+                onClick={() => setPendingConfirm("leave")}
                 className="comic-btn-outline"
               >
                 Leave Room
@@ -179,7 +225,7 @@ export default function ChatRoom({
       <div className="flex-1 space-y-4 overflow-y-auto p-5" style={{ background: "rgba(0,0,0,0.25)" }}>
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm" style={{ color: "var(--fg-muted)" }}>
               No messages yet. Start the conversation!
             </p>
           </div>
@@ -190,7 +236,7 @@ export default function ChatRoom({
               user={message.user}
               message={message.message}
               timestamp={message.timestamp}
-              isCurrentUser={message.user === "You"}
+              isCurrentUser={message.user === myName}
             />
           ))
         )}
@@ -200,6 +246,7 @@ export default function ChatRoom({
             This room has been closed. New messages are disabled.
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
@@ -210,31 +257,34 @@ export default function ChatRoom({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
                   sendMessage();
                 }
               }}
               placeholder="Type a message..."
               className="comic-input flex-1 px-4 py-3 text-sm outline-none"
+              aria-label="Message input"
+              disabled={hasLeft}
             />
 
             <button
               type="button"
               onClick={sendMessage}
-              disabled={!input.trim()}
+              disabled={!input.trim() || hasLeft}
               className="comic-btn disabled:opacity-40"
             >
               Send
             </button>
           </div>
 
-          <p className="mt-2 px-1 text-[11px] text-gray-400">
-            Press Enter to send
+          <p className="mt-2 px-1 text-[11px]" style={{ color: "var(--fg-muted)" }}>
+            Press Enter to send · Messages are local only
           </p>
         </div>
       ) : (
-        <div className="border-t bg-white p-4 text-center text-sm text-gray-400">
-          Messaging is disabled because this room is closed.
+        <div className="border-t p-4 text-center text-sm" style={{ borderColor: "#000", color: "var(--fg-muted)" }}>
+          Messaging is disabled — this room is closed.
         </div>
       )}
     </div>

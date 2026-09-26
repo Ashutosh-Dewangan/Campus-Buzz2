@@ -3,10 +3,11 @@ import "./globals.css";
 
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
+import MobileNav from "@/components/layout/MobileNav";
 
 export const metadata: Metadata = {
   title: "Campus Buzz",
-  description: "The campus, in real time.",
+  description: "What's happening on campus.",
 };
 
 export default function RootLayout({
@@ -42,6 +43,7 @@ export default function RootLayout({
           >
             <Navbar />
             <main style={{ flex: 1 }}>{children}</main>
+            <MobileNav />
           </div>
         </div>
       </body>

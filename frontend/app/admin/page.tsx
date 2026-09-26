@@ -1,5 +1,8 @@
 "use client";
 
+import { useCurrentUser } from "@/lib/session";
+import { isAdmin } from "@/lib/auth";
+
 function StatCard({
   label,
   value,
@@ -54,6 +57,41 @@ const dashboardSections = [
 ];
 
 export default function AdminPage() {
+  const user = useCurrentUser();
+  const isUserAdmin = user ? isAdmin(user.role) : false;
+
+  // Not an admin
+  if (!isUserAdmin) {
+    return (
+      <main className="comic-page">
+        <div className="mx-auto max-w-7xl">
+          <div className="comic-card p-12 text-center">
+            <div
+              style={{
+                fontSize: 40,
+                marginBottom: 16,
+                fontFamily: "var(--font-display)",
+                letterSpacing: "0.04em",
+                color: "var(--accent)",
+              }}
+            >
+              🚫
+            </div>
+            <h1 className="stay-loop-title" style={{ fontSize: 28 }}>
+              Access Restricted
+            </h1>
+            <p className="comic-sub mt-3 mx-auto max-w-sm">
+              This area is only accessible to administrators. If you believe this is an error, contact campus IT.
+            </p>
+            <p className="mt-4 text-xs" style={{ color: "var(--fg-muted)" }}>
+              Note: Frontend restrictions are for display only. Backend enforces actual authorization.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="comic-page">
       <div className="mx-auto max-w-7xl">
@@ -69,7 +107,7 @@ export default function AdminPage() {
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid — all dashes; no fabricated live numbers */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Users"
@@ -96,9 +134,13 @@ export default function AdminPage() {
           />
         </div>
 
+        <p className="mt-2 text-xs" style={{ color: "var(--fg-muted)" }}>
+          Statistics require a backend admin API. Connect the backend to populate these fields.
+        </p>
+
         {/* Four Dashboard Sections */}
         <div className="mt-8">
-          <h2 className="stay-loop-title">Management & Governance</h2>
+          <h2 className="stay-loop-title">Management &amp; Governance</h2>
           <p className="comic-sub">
             Manage core campus infrastructure and review pipelines.
           </p>
@@ -128,15 +170,10 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    alert(`Management interface for ${section.title} is linked to backend admin APIs.`)
-                  }
-                  className="comic-btn-outline mt-5 w-full"
-                >
-                  Manage {section.title}
-                </button>
+                {/* Management actions require dedicated backend admin UI */}
+                <p className="mt-5 text-xs" style={{ color: "var(--fg-muted)" }}>
+                  Backend admin interface required.
+                </p>
               </div>
             ))}
           </div>
