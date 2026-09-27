@@ -152,8 +152,8 @@ export async function createEvent(
     {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(event),
     }
@@ -193,8 +193,8 @@ export async function createComplaint(
     {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(
         complaint
@@ -289,8 +289,8 @@ export async function createOfficialPost(
     {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(post),
     }

@@ -28,29 +28,30 @@ export default function ComplaintCard({
       <div>
         <div className="flex items-start justify-between gap-3">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm">
+            <span
+              className="flex h-8 w-8 items-center justify-center text-sm border-2 border-black bg-[#16192b]"
+              style={{ boxShadow: "2px 2px 0 #000" }}
+            >
               🔒
             </span>
 
             <div>
-              <p className="text-sm font-semibold">
+              <p className="text-sm font-bold text-white">
                 Anonymous Student
               </p>
 
-              <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
+              <p className="text-xs" style={{ color: "var(--neon-cyan)" }}>
                 Identity protected
               </p>
             </div>
           </div>
 
           <span
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-              isResolved
-                ? "bg-green-50 text-green-700"
-                : "bg-amber-50 text-amber-700"
+            className={`tag-pill ${
+              isResolved ? "tag-found" : "tag-food"
             }`}
           >
-            {isResolved ? "Resolved" : "Open"}
+            {isResolved ? "✓ Resolved" : "● Open"}
           </span>
         </div>
 
@@ -64,7 +65,10 @@ export default function ComplaintCard({
       </div>
 
       {!isResolved && canResolve && onResolve && (
-        <div className="mt-5 pt-3 border-t border-gray-100 flex justify-end">
+        <div
+          className="mt-5 pt-3 border-t flex justify-end"
+          style={{ borderColor: "#000" }}
+        >
           <button
             type="button"
             onClick={handleResolveClick}

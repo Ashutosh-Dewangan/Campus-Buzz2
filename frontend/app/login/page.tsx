@@ -119,8 +119,15 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-              {error}
+            <div
+              className="border-2 border-black p-3 text-sm font-bold"
+              style={{
+                background: "rgba(255,45,74,0.18)",
+                color: "var(--accent)",
+                boxShadow: "2px 2px 0 #000",
+              }}
+            >
+              ⚠ {error}
             </div>
           )}
 

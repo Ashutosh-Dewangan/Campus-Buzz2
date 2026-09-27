@@ -2,8 +2,10 @@
 
 import {
   ChangeEvent,
+  DragEvent,
   FormEvent,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -19,27 +21,42 @@ const hashtagOptions = [
   {
     value: "#foodsplit",
     label: "#foodsplit",
-    description: "Find people to share a food order",
+    category: "Food Split",
+    description: "Find people to share a food order & split bills",
+    accentColor: "#ff3b4a",
+    icon: "🍕",
   },
   {
     value: "#cabsplit",
     label: "#cabsplit",
-    description: "Coordinate a shared ride",
+    category: "Cab Split",
+    description: "Coordinate a shared ride to airport, station, or city",
+    accentColor: "#2af0ff",
+    icon: "🚕",
   },
   {
     value: "#resell",
     label: "#resell",
-    description: "Buy or sell something on campus",
+    category: "Resell",
+    description: "Buy or sell books, tech, cycles, and essentials",
+    accentColor: "#b44fff",
+    icon: "🏷️",
   },
   {
     value: "#lost",
     label: "#lost",
-    description: "Report something missing",
+    category: "Lost Item",
+    description: "Report something missing on campus for recovery",
+    accentColor: "#ffe14a",
+    icon: "⚠️",
   },
   {
     value: "#found",
     label: "#found",
-    description: "Report something you've found",
+    category: "Found Item",
+    description: "Report something you found to return to a peer",
+    accentColor: "#00e5c8",
+    icon: "🔍",
   },
 ];
 
@@ -49,7 +66,7 @@ const expiryOptions = [
   { value: "1h", label: "1 hour" },
   { value: "6h", label: "6 hours" },
   { value: "12h", label: "12 hours" },
-  { value: "24h", label: "24 hours" },
+  { value: "24h", label: "24 hours (default)" },
   { value: "2d", label: "2 days" },
 ];
 
@@ -58,35 +75,26 @@ export default function CreatePostForm({
   onClose,
 }: CreatePostFormProps) {
   const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] =
-    useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] =
-    useState("");
+  const [description, setDescription] = useState("");
+  const [hashtag, setHashtag] = useState("#foodsplit");
+  const [expiry, setExpiry] = useState("24h");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
 
-  const [hashtag, setHashtag] =
-    useState("#foodsplit");
-
-  const [expiry, setExpiry] =
-    useState("24h");
-
-  const [contactName, setContactName] =
-    useState("");
-
-  const [contactPhone, setContactPhone] =
-    useState("");
-
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedHashtag = useMemo(
     () =>
       hashtagOptions.find(
         (option) => option.value === hashtag
-      ),
+      ) || hashtagOptions[0],
     [hashtag]
   );
 
@@ -99,15 +107,7 @@ export default function CreatePostForm({
     hashtag === "#foodsplit" ||
     hashtag === "#cabsplit";
 
-  const handleImageChange = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
+  const processFile = (file: File) => {
     if (file.type !== "image/jpeg" && file.type !== "image/png") {
       setError("Only PNG and JPEG images are allowed.");
       return;
@@ -120,26 +120,52 @@ export default function CreatePostForm({
 
     setError("");
     setImage(file);
-
-    const previewUrl =
-      URL.createObjectURL(file);
-
+    const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
+  };
+
+  const handleImageChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
   };
 
   const removeImage = () => {
     setImage(null);
     setImagePreview("");
-
-    const fileInput =
-      document.getElementById(
-        "buzz-image"
-      ) as HTMLInputElement | null;
-
-    if (fileInput) {
-      fileInput.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
+
+  const formattedFileSize = useMemo(() => {
+    if (!image) return "";
+    const sizeInKb = image.size / 1024;
+    if (sizeInKb >= 1024) {
+      return `${(sizeInKb / 1024).toFixed(1)} MB`;
+    }
+    return `${Math.round(sizeInKb)} KB`;
+  }, [image]);
 
   const isValid = useMemo(() => {
     if (!image) return false;
@@ -241,306 +267,343 @@ export default function CreatePostForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-      {/* Intro */}
-      <div className="comic-form-note">
-        <div className="flex gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center text-sm" style={{ border: "3px solid #000", background: "var(--accent)" }}>
-            ✦
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">
-              Start a campus conversation
-            </p>
-
-            <p className="mt-1 text-xs leading-5" style={{ color: "var(--fg-muted)" }}>
-              Choose a hashtag carefully — it determines
-              what happens when other students interact
-              with your post.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Image */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label
-            htmlFor="buzz-image"
-            className="text-sm font-semibold"
-          >
-            Image
-            <span className="ml-1 text-orange-500">
-              *
-            </span>
-          </label>
-
-          <span className="text-[11px] text-gray-400">
-            Max 5MB
+    <form onSubmit={handleSubmit} className="space-y-5 text-left">
+      {/* ---------------- SECTION 1: POST DETAILS ---------------- */}
+      <div className="space-y-3.5">
+        <div className="flex items-center gap-2 border-b border-black/40 pb-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--accent)] text-[10px] font-black text-white shadow-[1px_1px_0_#000]">
+            1
+          </span>
+          <span className="text-[11px] font-black tracking-wider text-[var(--fg-muted)] uppercase">
+            Post Details
           </span>
         </div>
 
-        {imagePreview ? (
-          <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-            <img
-              src={imagePreview}
-              alt="Selected post preview"
-              className="max-h-64 w-full object-cover"
-            />
-
-            <button
-              type="button"
-              onClick={removeImage}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/75 text-sm text-white backdrop-blur transition hover:bg-black"
-              aria-label="Remove selected image"
-            >
-              ×
-            </button>
-          </div>
-        ) : (
-          <label
-            htmlFor="buzz-image"
-            className="flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 px-5 py-8 text-center transition hover:border-gray-400 hover:bg-gray-100"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-lg shadow-sm">
-              ↑
-            </span>
-
-            <span className="mt-3 text-sm font-semibold text-gray-700">
-              Upload an image
-            </span>
-
-            <span className="mt-1 text-xs text-gray-400">
-              JPG, PNG, WEBP up to 5MB
-            </span>
-          </label>
-        )}
-
-        <input
-          id="buzz-image"
-          type="file"
-          accept="image/png,image/jpeg"
-          onChange={handleImageChange}
-          className="sr-only"
-        />
-      </div>
-
-      {/* Title */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label
-            htmlFor="buzz-title"
-            className="text-sm font-semibold"
-          >
-            Title
-            <span className="ml-1 text-orange-500">
-              *
-            </span>
-          </label>
-
-          <span className="text-[11px] text-gray-400">
-            {title.length}/100
-          </span>
-        </div>
-
-        <input
-          id="buzz-title"
-          type="text"
-          value={title}
-          maxLength={100}
-          onChange={(event) =>
-            setTitle(event.target.value)
-          }
-          placeholder="What do you want campus to know?"
-          className="comic-input w-full px-4 py-3 text-sm outline-none"
-        />
-      </div>
-
-      {/* Description */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label
-            htmlFor="buzz-description"
-            className="text-sm font-semibold"
-          >
-            Description
-            <span className="ml-1 text-orange-500">
-              *
-            </span>
-          </label>
-
-          <span className="text-[11px] text-gray-400">
-            {description.length}/1000
-          </span>
-        </div>
-
-        <textarea
-          id="buzz-description"
-          value={description}
-          maxLength={1000}
-          rows={5}
-          onChange={(event) =>
-            setDescription(event.target.value)
-          }
-          placeholder="Add the details students need..."
-          className="comic-input w-full resize-none px-4 py-3 text-sm leading-6 outline-none"
-        />
-      </div>
-
-      {/* Hashtag */}
-      <div>
-        <label
-          htmlFor="buzz-hashtag"
-          className="mb-2 block text-sm font-semibold"
-        >
-          Hashtag
-          <span className="ml-1 text-orange-500">
-            *
-          </span>
-        </label>
-
-        <select
-          id="buzz-hashtag"
-          value={hashtag}
-          onChange={(event) =>
-            setHashtag(event.target.value)
-          }
-          className="comic-input w-full px-4 py-3 text-sm outline-none"
-        >
-          {hashtagOptions.map((option) => (
-            <option
-              key={option.value}
-              value={option.value}
-            >
-              {option.label}
-            </option>
-          ))}
-        </select>
-
-        {selectedHashtag && (
-          <div className="mt-2 rounded-lg bg-gray-50 px-3 py-2">
-            <p className="text-[11px] leading-5 text-gray-500">
-              {selectedHashtag.description}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Expiry */}
-      {needsExpiry && (
+        {/* Image Upload Area */}
         <div>
-          <label
-            htmlFor="buzz-expiry"
-            className="mb-2 block text-sm font-semibold"
-          >
-            Coordination expiry
-            <span className="ml-1 text-orange-500">
-              *
+          <div className="mb-1.5 flex items-center justify-between text-xs">
+            <span className="font-bold text-[var(--fg)]">
+              Photo <span className="text-[var(--accent)]">*</span>
             </span>
+            <span className="text-[10px] text-[var(--fg-muted)]">PNG or JPG, max 5MB</span>
+          </div>
+
+          {imagePreview ? (
+            <div className="relative overflow-hidden rounded-sm border-2 border-black bg-[var(--bg-terminal)] shadow-[3px_3px_0_#000]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imagePreview}
+                alt="Selected post preview"
+                className="max-h-48 w-full object-cover"
+              />
+              <div className="flex items-center justify-between border-t border-black bg-[rgba(8,6,20,0.92)] px-3 py-2 text-xs">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-semibold text-[var(--fg)]">
+                    {image?.name || "Selected image"}
+                  </span>
+                  {formattedFileSize && (
+                    <span className="shrink-0 rounded-sm bg-black/60 px-1.5 py-0.5 text-[10px] text-[var(--neon-cyan)]">
+                      {formattedFileSize}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="cursor-pointer text-[11px] font-bold text-[var(--neon-cyan)] hover:underline"
+                  >
+                    Replace
+                  </button>
+                  <span className="text-white/30">|</span>
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="cursor-pointer text-[11px] font-bold text-[var(--accent)] hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`flex min-h-[110px] cursor-pointer flex-col items-center justify-center rounded-sm border-2 border-dashed p-4 text-center transition-all ${
+                isDragging
+                  ? "border-[var(--neon-cyan)] bg-[rgba(42,240,255,0.08)] shadow-[0_0_12px_rgba(42,240,255,0.25)]"
+                  : "border-black/60 bg-[rgba(10,6,24,0.6)] shadow-[2px_2px_0_#000] hover:border-[var(--neon-cyan)] hover:bg-[rgba(10,6,24,0.85)]"
+              }`}
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-black bg-[var(--accent)] text-white shadow-[2px_2px_0_#000]">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p className="mt-2 text-xs font-bold text-[var(--fg)]">
+                {isDragging ? "Drop image here" : "Click to select or drag photo here"}
+              </p>
+              <p className="mt-0.5 text-[10px] text-[var(--fg-muted)]">
+                Required for student feed visibility
+              </p>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            id="buzz-image"
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={handleImageChange}
+            className="sr-only"
+          />
+        </div>
+
+        {/* Title */}
+        <div>
+          <div className="mb-1 flex items-center justify-between text-xs">
+            <label htmlFor="buzz-title" className="font-bold text-[var(--fg)]">
+              Title <span className="text-[var(--accent)]">*</span>
+            </label>
+            <span
+              className={`text-[10px] ${
+                title.length > 90 ? "text-[var(--accent)] font-bold" : "text-[var(--fg-muted)]"
+              }`}
+            >
+              {title.length}/100
+            </span>
+          </div>
+          <input
+            id="buzz-title"
+            type="text"
+            value={title}
+            maxLength={100}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g., Domino's 2-pizza offer split at Hall 4 / Cab to Airport 6 AM"
+            className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <div className="mb-1 flex items-center justify-between text-xs">
+            <label htmlFor="buzz-description" className="font-bold text-[var(--fg)]">
+              Description <span className="text-[var(--accent)]">*</span>
+            </label>
+            <span
+              className={`text-[10px] ${
+                description.length > 950 ? "text-[var(--accent)] font-bold" : "text-[var(--fg-muted)]"
+              }`}
+            >
+              {description.length}/1000
+            </span>
+          </div>
+          <textarea
+            id="buzz-description"
+            value={description}
+            maxLength={1000}
+            rows={3}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add relevant specifics: pickup spot, luggage room, timing, price split, item details..."
+            className="comic-input w-full resize-none px-3 py-2 text-xs leading-relaxed text-[var(--fg)] outline-none"
+          />
+        </div>
+      </div>
+
+      {/* ---------------- SECTION 2: INTENT & HASHTAG ---------------- */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 border-b border-black/40 pb-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--neon-cyan)] text-[10px] font-black text-black shadow-[1px_1px_0_#000]">
+            2
+          </span>
+          <span className="text-[11px] font-black tracking-wider text-[var(--fg-muted)] uppercase">
+            Interaction Intent
+          </span>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-bold text-[var(--fg)]">
+            Select Category <span className="text-[var(--accent)]">*</span>
           </label>
 
-          <select
-            id="buzz-expiry"
-            value={expiry}
-            onChange={(event) =>
-              setExpiry(event.target.value)
-            }
-            className="comic-input w-full px-4 py-3 text-sm outline-none"
-          >
-            {expiryOptions.map((option) => (
-              <option
-                key={option.value}
-                value={option.value}
+          {/* Interactive Hashtag Tiles */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {hashtagOptions.map((opt) => {
+              const isSelected = hashtag === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setHashtag(opt.value)}
+                  style={{
+                    borderColor: isSelected ? opt.accentColor : "black",
+                    boxShadow: isSelected ? `2px 2px 0 #000, 0 0 10px ${opt.accentColor}44` : "2px 2px 0 #000",
+                  }}
+                  className={`relative flex flex-col items-start rounded-sm border-2 p-2 text-left transition-all ${
+                    isSelected
+                      ? "bg-[rgba(18,12,36,0.95)]"
+                      : "bg-[rgba(10,6,24,0.65)] hover:border-white/40"
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <span className="text-xs">{opt.icon}</span>
+                    <span
+                      style={{ color: opt.accentColor }}
+                      className="text-[10px] font-black tracking-wider uppercase"
+                    >
+                      {opt.value}
+                    </span>
+                  </div>
+                  <p className="mt-1 line-clamp-1 text-[10px] text-[var(--fg-muted)]">
+                    {opt.category}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Helper Note for Selected Hashtag */}
+          <div className="mt-2.5 flex items-start gap-2 rounded-sm border border-black/60 bg-[rgba(14,10,32,0.85)] p-2.5 text-left shadow-[2px_2px_0_#000]">
+            <span
+              style={{ color: selectedHashtag.accentColor }}
+              className="mt-0.5 text-xs font-black"
+            >
+              ✦
+            </span>
+            <div className="text-[11px] leading-tight">
+              <p className="font-bold text-[var(--fg)]">
+                Your hashtag determines how students respond to this post.
+              </p>
+              <p className="mt-0.5 text-[var(--fg-muted)]">
+                {selectedHashtag.description}.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------- SECTION 3: WHEN NEEDED (EXPIRY / CONTACT) ---------------- */}
+      {(needsExpiry || needsContact) && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-black/40 pb-1.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--neon-yellow)] text-[10px] font-black text-black shadow-[1px_1px_0_#000]">
+              3
+            </span>
+            <span className="text-[11px] font-black tracking-wider text-[var(--fg-muted)] uppercase">
+              Coordination Settings
+            </span>
+          </div>
+
+          {/* Expiry Selector (Food & Cab Split) */}
+          {needsExpiry && (
+            <div className="rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <label htmlFor="buzz-expiry" className="font-bold text-[var(--fg)]">
+                  Coordination Expiry <span className="text-[var(--accent)]">*</span>
+                </label>
+                <span className="text-[10px] text-[var(--neon-yellow)]">
+                  ⏱ #foodsplit and #cabsplit posts automatically expire.
+                </span>
+              </div>
+
+              <select
+                id="buzz-expiry"
+                value={expiry}
+                onChange={(e) => setExpiry(e.target.value)}
+                className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
               >
-                {option.label}
-              </option>
-            ))}
-          </select>
+                {expiryOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          <p className="mt-2 text-[11px] leading-5 text-gray-400">
-            The post will automatically expire after
-            this duration.
-          </p>
+          {/* Contact Details (Lost, Found, Resell) */}
+          {needsContact && (
+            <div className="space-y-2.5 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
+              <div>
+                <p className="text-xs font-bold text-[var(--neon-cyan)]">
+                  Poster Contact Information
+                </p>
+                <p className="mt-0.5 text-[10px] text-[var(--fg-muted)]">
+                  Students will see your contact details when they open this post.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="buzz-contact-name"
+                    className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                  >
+                    Contact Name <span className="text-[var(--accent)]">*</span>
+                  </label>
+                  <input
+                    id="buzz-contact-name"
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="e.g., Alex / Room 302"
+                    className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="buzz-contact-phone"
+                    className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                  >
+                    Contact Phone <span className="text-[var(--accent)]">*</span>
+                  </label>
+                  <input
+                    id="buzz-contact-phone"
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="e.g., +91 9876543210"
+                    className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Contact */}
-      {needsContact && (
-        <div className="space-y-4 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
-          <div>
-            <p className="text-sm font-semibold">
-              Contact information
-            </p>
-
-            <p className="mt-1 text-xs leading-5 text-gray-500">
-              This information will be shown to students
-              who tap your lost/found post.
-            </p>
-          </div>
-
-          <div>
-            <label
-              htmlFor="buzz-contact-name"
-              className="mb-2 block text-xs font-semibold text-gray-700"
-            >
-              Contact name
-            </label>
-
-            <input
-              id="buzz-contact-name"
-              type="text"
-              value={contactName}
-              onChange={(event) =>
-                setContactName(event.target.value)
-              }
-              placeholder="Your name"
-              className="comic-input w-full px-4 py-3 text-sm outline-none"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="buzz-contact-phone"
-              className="mb-2 block text-xs font-semibold text-gray-700"
-            >
-              Contact phone
-            </label>
-
-            <input
-              id="buzz-contact-phone"
-              type="tel"
-              value={contactPhone}
-              onChange={(event) =>
-                setContactPhone(event.target.value)
-              }
-              placeholder="Your phone number"
-              className="comic-input w-full px-4 py-3 text-sm outline-none"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Error */}
+      {/* Error Banner */}
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="flex items-center gap-2 rounded-sm border-2 border-black bg-[rgba(255,45,74,0.18)] p-2.5 text-xs font-bold text-[var(--accent)] shadow-[2px_2px_0_#000]"
         >
-          {error}
+          <span>⚠</span>
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end gap-2.5 border-t border-black/40 pt-4">
         <button
           type="button"
           onClick={onClose}
           disabled={isSubmitting}
-          className="comic-btn-outline disabled:opacity-50"
+          className="retro-btn-outline cursor-pointer disabled:opacity-50"
         >
           Cancel
         </button>
@@ -548,11 +611,16 @@ export default function CreatePostForm({
         <button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="comic-btn disabled:opacity-50"
+          className="retro-btn cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting
-            ? "Posting..."
-            : "Publish Buzz"}
+          {isSubmitting ? (
+            <span className="flex items-center gap-1.5">
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Publishing...
+            </span>
+          ) : (
+            "Publish Buzz ↗"
+          )}
         </button>
       </div>
     </form>

@@ -57,6 +57,7 @@ export default function PostCard({
       {/* Post image */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
         {post.image ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={post.image}
             alt={post.title}

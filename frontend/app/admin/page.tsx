@@ -1,24 +1,31 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useCurrentUser } from "@/lib/session";
 import { isAdmin } from "@/lib/auth";
+import { getComplaints, getEvents, getPosts, resolveComplaint } from "@/lib/api";
+import { parseEventDate } from "@/lib/date";
+import { Complaint, Event, Post } from "@/types";
 
 function StatCard({
   label,
   value,
   description,
+  accent,
 }: {
   label: string;
-  value: string;
+  value: string | number;
   description: string;
+  accent?: string;
 }) {
   return (
     <div className="comic-card p-5">
-      <p className="text-sm font-medium" style={{ color: "var(--fg-muted)" }}>
+      <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: accent || "var(--fg-muted)" }}>
         {label}
       </p>
 
-      <p className="mt-2 text-3xl font-bold">
+      <p className="mt-2 text-3xl font-extrabold tracking-tight text-white">
         {value}
       </p>
 
@@ -29,36 +36,88 @@ function StatCard({
   );
 }
 
-const dashboardSections = [
-  {
-    title: "Users",
-    description: "Manage campus accounts, verify student rolls, and assign roles.",
-    icon: "👥",
-    badge: "Access control",
-  },
-  {
-    title: "Complaints",
-    description: "Review and resolve anonymous hostel, mess, and facility issues.",
-    icon: "📢",
-    badge: "Action required",
-  },
-  {
-    title: "Moderation",
-    description: "Inspect reported posts, abusive content, and chat room flags.",
-    icon: "🛡️",
-    badge: "Review queue",
-  },
-  {
-    title: "Events",
-    description: "Oversee campus activities, hackathons, and organizer approvals.",
-    icon: "📅",
-    badge: "Scheduling",
-  },
-];
-
 export default function AdminPage() {
   const user = useCurrentUser();
   const isUserAdmin = user ? isAdmin(user.role) : false;
+
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [triageMessage, setTriageMessage] = useState("");
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [complaintData, eventData, postData] = await Promise.allSettled([
+        getComplaints(),
+        getEvents(),
+        getPosts(),
+      ]);
+
+      if (complaintData.status === "fulfilled" && Array.isArray(complaintData.value)) {
+        setComplaints(complaintData.value);
+      }
+      if (eventData.status === "fulfilled" && Array.isArray(eventData.value)) {
+        setEvents(eventData.value);
+      }
+      if (postData.status === "fulfilled" && Array.isArray(postData.value)) {
+        setPosts(postData.value);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isUserAdmin) return;
+    let ignore = false;
+
+    async function fetchInitial() {
+      try {
+        const [complaintData, eventData, postData] = await Promise.allSettled([
+          getComplaints(),
+          getEvents(),
+          getPosts(),
+        ]);
+
+        if (!ignore) {
+          if (complaintData.status === "fulfilled" && Array.isArray(complaintData.value)) {
+            setComplaints(complaintData.value);
+          }
+          if (eventData.status === "fulfilled" && Array.isArray(eventData.value)) {
+            setEvents(eventData.value);
+          }
+          if (postData.status === "fulfilled" && Array.isArray(postData.value)) {
+            setPosts(postData.value);
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
+  }, [isUserAdmin]);
+
+  async function handleQuickResolve(id: string) {
+    try {
+      await resolveComplaint(id);
+      setComplaints((current) =>
+        current.map((c) => (c.id === id ? { ...c, status: "RESOLVED" } : c))
+      );
+      setTriageMessage("Complaint marked as resolved.");
+      setTimeout(() => setTriageMessage(""), 3000);
+    } catch {
+      setTriageMessage("Failed to resolve complaint.");
+      setTimeout(() => setTriageMessage(""), 3000);
+    }
+  }
 
   // Not an admin
   if (!isUserAdmin) {
@@ -81,10 +140,10 @@ export default function AdminPage() {
               Access Restricted
             </h1>
             <p className="comic-sub mt-3 mx-auto max-w-sm">
-              This area is only accessible to administrators. If you believe this is an error, contact campus IT.
+              This area is restricted to administrators. Only accounts with the ADMIN role can access governance tools.
             </p>
             <p className="mt-4 text-xs" style={{ color: "var(--fg-muted)" }}>
-              Note: Frontend restrictions are for display only. Backend enforces actual authorization.
+              Current account: {user?.email ?? "Guest (not signed in)"} · Role: {user?.role ?? "NONE"}
             </p>
           </div>
         </div>
@@ -92,90 +151,182 @@ export default function AdminPage() {
     );
   }
 
+  const openComplaints = complaints.filter((c) => c.status === "OPEN");
+  const now = new Date();
+  const upcomingEvents = events.filter((e) => {
+    const d = parseEventDate(e.date, e.time);
+    return Number.isNaN(d.getTime()) ? true : d >= now;
+  });
+  const activePosts = posts.filter((p) => p.status === "ACTIVE");
+
   return (
     <main className="comic-page">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-7">
-          <div className="flex items-center gap-2">
-            <h1 className="comic-title">Admin Dashboard</h1>
-            <span className="tag-pill tag-food">Restricted</span>
+        <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="comic-title">Admin Dashboard</h1>
+              <span className="tag-pill tag-food">Restricted · Live</span>
+            </div>
+
+            <p className="comic-sub">
+              System governance, complaint resolution triage, and campus activity oversight.
+            </p>
           </div>
 
-          <p className="comic-sub">
-            System overview and campus governance controls.
-          </p>
+          <button
+            type="button"
+            onClick={loadData}
+            disabled={isLoading}
+            className="comic-btn-outline text-xs self-start sm:self-auto"
+          >
+            {isLoading ? "Refreshing..." : "↻ Refresh Live Data"}
+          </button>
         </div>
 
-        {/* Stats Grid — all dashes; no fabricated live numbers */}
+        {/* Feedback Alert */}
+        {triageMessage && (
+          <div
+            className="mb-4 border-2 border-black px-4 py-2.5 text-xs font-bold"
+            style={{ background: "rgba(0,229,200,0.15)", color: "var(--tag-found)" }}
+          >
+            ✓ {triageMessage}
+          </div>
+        )}
+
+        {/* Live Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="Users"
-            value="—"
-            description="Verified campus accounts"
+            label="Open Complaints"
+            value={isLoading ? "..." : openComplaints.length}
+            description={`${complaints.length} total submitted`}
+            accent="var(--accent)"
           />
 
           <StatCard
-            label="Open complaints"
-            value="—"
-            description="Awaiting resolution"
+            label="Upcoming Events"
+            value={isLoading ? "..." : upcomingEvents.length}
+            description={`${events.length} total scheduled`}
+            accent="var(--neon-cyan)"
           />
 
           <StatCard
-            label="Reports"
-            value="—"
-            description="Content requiring review"
+            label="Active Buzz Posts"
+            value={isLoading ? "..." : activePosts.length}
+            description={`${posts.length} total posts`}
+            accent="var(--neon-yellow)"
           />
 
           <StatCard
-            label="Events"
+            label="Moderation Queue"
             value="—"
-            description="Upcoming campus events"
+            description="Reports API pending backend"
+            accent="var(--fg-muted)"
           />
         </div>
 
-        <p className="mt-2 text-xs" style={{ color: "var(--fg-muted)" }}>
-          Statistics require a backend admin API. Connect the backend to populate these fields.
-        </p>
-
-        {/* Four Dashboard Sections */}
+        {/* Open Complaints Triage Section */}
         <div className="mt-8">
-          <h2 className="stay-loop-title">Management &amp; Governance</h2>
-          <p className="comic-sub">
-            Manage core campus infrastructure and review pipelines.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="stay-loop-title" style={{ fontSize: 22 }}>
+                Complaint Triage Queue
+              </h2>
+              <p className="comic-sub">
+                Open student complaints awaiting resolution.
+              </p>
+            </div>
+            <Link href="/complaints" className="comic-btn text-xs">
+              View All Complaints →
+            </Link>
+          </div>
 
-          <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {dashboardSections.map((section) => (
-              <div
-                key={section.title}
-                className="comic-card flex flex-col justify-between p-5"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex h-10 w-10 items-center justify-center text-xl" style={{ border: "3px solid #000" }}>
-                      {section.icon}
-                    </span>
-                    <span className="tag-pill tag-cab">
-                      {section.badge}
-                    </span>
+          {openComplaints.length === 0 ? (
+            <div className="comic-card comic-empty mt-4 p-8">
+              <p className="text-sm font-bold" style={{ color: "var(--tag-found)" }}>
+                ✓ All complaints are resolved!
+              </p>
+              <p className="comic-sub text-xs mt-1">
+                No open student issues requiring administrative action.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {openComplaints.slice(0, 6).map((complaint) => (
+                <div key={complaint.id} className="comic-card flex flex-col justify-between p-4">
+                  <div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-white">🔒 Anonymous Student</span>
+                      <span className="tag-pill tag-food text-[10px]">Open</span>
+                    </div>
+
+                    <h3 className="mt-2 text-base font-bold text-white">
+                      {complaint.title}
+                    </h3>
+
+                    <p className="mt-1 line-clamp-2 text-xs leading-5" style={{ color: "var(--fg-muted)" }}>
+                      {complaint.description}
+                    </p>
                   </div>
 
-                  <h3 className="mt-4 font-bold">
-                    {section.title}
-                  </h3>
-
-                  <p className="mt-1 text-xs leading-5" style={{ color: "var(--fg-muted)" }}>
-                    {section.description}
-                  </p>
+                  <div className="mt-4 border-t pt-3 flex justify-end" style={{ borderColor: "#000" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickResolve(complaint.id)}
+                      className="comic-btn text-xs py-1.5 px-3"
+                    >
+                      ✓ Mark Resolved
+                    </button>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                {/* Management actions require dedicated backend admin UI */}
-                <p className="mt-5 text-xs" style={{ color: "var(--fg-muted)" }}>
-                  Backend admin interface required.
-                </p>
+        {/* Governance Surfaces */}
+        <div className="mt-10">
+          <h2 className="stay-loop-title" style={{ fontSize: 22 }}>
+            Campus Governance Surfaces
+          </h2>
+          <p className="comic-sub">
+            Direct navigation to campus moderation and publishing channels.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Link href="/official" className="comic-card p-5 transition hover:scale-[1.01] block">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">📢</span>
+                <span className="tag-pill tag-cab text-[10px]">Publisher</span>
               </div>
-            ))}
+              <h3 className="mt-3 text-base font-bold text-white">Official Notices</h3>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--fg-muted)" }}>
+                Publish announcements, registration links, and verified institutional notices.
+              </p>
+            </Link>
+
+            <Link href="/events" className="comic-card p-5 transition hover:scale-[1.01] block">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">📅</span>
+                <span className="tag-pill tag-cab text-[10px]">Schedule</span>
+              </div>
+              <h3 className="mt-3 text-base font-bold text-white">Event Oversight</h3>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--fg-muted)" }}>
+                Schedule workshops, hackathons, and cultural nights across campus.
+              </p>
+            </Link>
+
+            <Link href="/buzz" className="comic-card p-5 transition hover:scale-[1.01] block">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">📣</span>
+                <span className="tag-pill tag-found text-[10px]">Feed</span>
+              </div>
+              <h3 className="mt-3 text-base font-bold text-white">Buzz Feed</h3>
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--fg-muted)" }}>
+                Monitor active peer-to-peer student coordination, splits, and lost &amp; found posts.
+              </p>
+            </Link>
           </div>
         </div>
       </div>

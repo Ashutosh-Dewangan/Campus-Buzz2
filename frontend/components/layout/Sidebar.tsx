@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCurrentUser, CurrentUser } from "@/lib/session";
+import { useCurrentUser, CurrentUser, clearSession } from "@/lib/session";
+import { isAdmin } from "@/lib/auth";
 
 const primaryNav = [
   {
@@ -31,7 +32,7 @@ const primaryNav = [
   },
 ];
 
-const secondaryNav = [
+const secondaryNavBase = [
   {
     label: "Official Campus",
     href: "/official",
@@ -79,6 +80,19 @@ function getRoleLabel(user: CurrentUser): string {
 export default function Sidebar() {
   const pathname = usePathname();
   const user = useCurrentUser();
+  const isUserAdmin = user ? isAdmin(user.role) : false;
+
+  const secondaryNav = isUserAdmin
+    ? [
+        ...secondaryNavBase,
+        {
+          label: "Admin Dashboard",
+          href: "/admin",
+          icon: "🛡️",
+          img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=500&q=60",
+        },
+      ]
+    : secondaryNavBase;
 
   return (
     <aside className="cb-sidebar">
@@ -126,12 +140,36 @@ export default function Sidebar() {
           <div className="cb-id-avatar">
             {user ? getUserInitials(user) : "?"}
           </div>
-          <div>
-            <div className="cb-id-name">
+          <div className="flex-1 overflow-hidden">
+            <div className="cb-id-name truncate">
               {user ? user.email.split("@")[0] : "Guest"}
             </div>
-            <div className="cb-id-role">
-              {user ? getRoleLabel(user) : "Not signed in"}
+            <div className="flex items-center justify-between gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 truncate">
+                <span className="cb-id-role">
+                  {user ? getRoleLabel(user) : "Not signed in"}
+                </span>
+                {user?.role === "ADMIN" && (
+                  <span className="tag-pill tag-food text-[9px] px-1 py-0 leading-tight">Admin</span>
+                )}
+                {user?.role === "STUDENT" && (
+                  <span className="tag-pill tag-found text-[9px] px-1 py-0 leading-tight">Verified</span>
+                )}
+              </div>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => clearSession()}
+                  className="text-[10px] text-[var(--fg-muted)] hover:text-[var(--accent)] underline shrink-0 cursor-pointer"
+                  title="Sign out of your session"
+                >
+                  Sign out
+                </button>
+              ) : (
+                <Link href="/login" className="text-[10px] text-[var(--neon-cyan)] hover:underline shrink-0">
+                  Sign in ↗
+                </Link>
+              )}
             </div>
           </div>
         </div>

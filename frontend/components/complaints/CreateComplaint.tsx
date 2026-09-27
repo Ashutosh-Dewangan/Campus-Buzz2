@@ -34,21 +34,10 @@ export default function CreateComplaint({
 
     setIsSubmitting(true);
     try {
-      let created: Complaint;
-      try {
-        created = await createComplaint({
-          title: title.trim(),
-          description: description.trim(),
-        });
-      } catch {
-        created = {
-          id: `c_${Date.now()}`,
-          title: title.trim(),
-          description: description.trim(),
-          status: "OPEN",
-          createdAt: new Date().toISOString(),
-        };
-      }
+      const created = await createComplaint({
+        title: title.trim(),
+        description: description.trim(),
+      });
 
       onComplaintCreated?.(created);
       onClose();
@@ -60,75 +49,103 @@ export default function CreateComplaint({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="comic-modal p-6">
-        <div className="mb-6 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+      <div className="comic-modal w-full max-w-lg p-6">
+        <div className="mb-6 flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
           <div>
-            <h2 className="stay-loop-title">File a Complaint</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              🔒 Your identity is kept strictly confidential & anonymous.
+            <h2 className="stay-loop-title" style={{ fontSize: 24 }}>
+              File a Complaint
+            </h2>
+            <p className="mt-1 text-xs" style={{ color: "var(--neon-cyan)" }}>
+              🔒 Protected Anonymous Channel · Real Campus Triage
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-lg p-1 text-xl text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
+            aria-label="Close"
+            className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+            style={{ boxShadow: "2px 2px 0 #000" }}
           >
-            ×
+            ✕
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
-            {error}
+          <div
+            className="mb-4 border-2 border-black p-3 text-sm font-bold"
+            style={{
+              background: "rgba(255,45,74,0.18)",
+              color: "var(--accent)",
+              boxShadow: "2px 2px 0 #000",
+            }}
+          >
+            ⚠ {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="complaint-title" className="mb-1 block text-sm font-medium text-gray-700">
-              Complaint Subject / Title *
+            <label
+              htmlFor="complaint-title"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
+              Subject / Title *
             </label>
             <input
               id="complaint-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Broken water purifier in Hostel 2, Wi-Fi outage"
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-2.5 text-sm"
+              required
             />
           </div>
 
           <div>
-            <label htmlFor="complaint-desc" className="mb-1 block text-sm font-medium text-gray-700">
-              Description & Location Details *
+            <label
+              htmlFor="complaint-desc"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
+              Description &amp; Location Details *
             </label>
             <textarea
               id="complaint-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              placeholder="Describe the issue, exact floor/room, and duration..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="Describe the issue, exact wing/floor/room, and duration..."
+              className="comic-input w-full px-4 py-2.5 text-sm"
+              required
             />
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3.5 text-xs text-gray-600">
-            🛡️ <strong>Privacy notice:</strong> Only the student administration will review the complaint for resolution. The feed will only display <em>Anonymous Student</em>.
+          <div
+            className="border-2 border-black p-3.5 text-xs leading-relaxed"
+            style={{
+              background: "rgba(42,240,255,0.08)",
+              color: "var(--fg-muted)",
+              boxShadow: "2px 2px 0 #000",
+            }}
+          >
+            <strong style={{ color: "var(--neon-cyan)" }}>🛡️ Privacy Notice:</strong> The public feed only displays <em style={{ color: "#fff" }}>Anonymous Student</em>. No student identity or roll number is publicly shown.
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="comic-btn-outline"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cursor-pointer rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50"
+              className="comic-btn disabled:opacity-50"
             >
               {isSubmitting ? "Submitting..." : "Submit Complaint"}
             </button>

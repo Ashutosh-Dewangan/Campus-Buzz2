@@ -606,28 +606,22 @@ a { color: inherit; text-decoration: none; }
   z-index: 1;
 }
 
-.buzz-layout::after {
-  content: "ZAP!";
-  position: fixed;
-  right: 18%;
-  bottom: 12%;
-  font-family: var(--font-display);
-  font-size: clamp(42px, 6vw, 90px);
-  color: rgba(42, 240, 255, 0.5);
-  text-shadow: 3px 3px 0 rgba(0,0,0,0.85);
-  transform: rotate(-14deg);
-  pointer-events: none;
-  z-index: 0;
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .buzz-title {
   font-family: var(--font-display);
-  font-size: 42px;
+  font-size: clamp(28px, 4vw, 40px);
   color: #ff2d4a;
   letter-spacing: 0.03em;
-  line-height: 0.9;
-  text-shadow: 4px 4px 0 #000, 0 0 18px rgba(255,45,74,0.5);
-  transform: rotate(-1.5deg);
+  line-height: 1;
+  text-shadow: 3px 3px 0 #000, 0 0 16px rgba(255, 45, 74, 0.4);
+  transform: rotate(-1deg);
 }
 
 .buzz-subtitle {
@@ -638,102 +632,18 @@ a { color: inherit; text-decoration: none; }
   color: #c9c4ff;
 }
 
-.filter-tag-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-
-.post-creator {
-  background:
-    radial-gradient(#c9a86a 0.7px, transparent 0.8px),
-    linear-gradient(180deg, #f6e7c4, #ecd7a8);
-  background-size: 4px 4px, auto;
-  border: 4px solid #000;
-  box-shadow: 6px 6px 0 #000;
-  padding: 16px 18px;
-  margin-bottom: 16px;
-  transform: rotate(-0.4deg);
-  color: var(--fg-ink);
-}
-.post-creator-title {
-  font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 0.04em;
-  color: #1a0c18;
-}
-.post-creator-sub {
-  font-size: 12px;
-  color: #5a3d2a;
-  margin: 2px 0 12px;
-  font-weight: 600;
-}
-.post-creator-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.pow-btn {
-  position: relative;
-  font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: radial-gradient(circle at 30% 30%, #ff5a6a, #d10f2e 70%);
-  border: 3px solid #000;
-  padding: 10px 22px;
-  clip-path: polygon(
-    12% 0%, 22% 8%, 38% 0%, 50% 10%, 64% 0%, 78% 9%, 90% 0%,
-    100% 18%, 92% 32%, 100% 48%, 90% 62%, 100% 78%, 86% 100%,
-    70% 90%, 54% 100%, 40% 91%, 24% 100%, 10% 88%, 0% 70%,
-    8% 54%, 0% 38%, 10% 22%
-  );
-  text-shadow: 2px 2px 0 #000;
-  box-shadow: 0 0 18px rgba(255, 45, 74, 0.55);
-  transform: rotate(-6deg);
-}
-.pow-btn:hover { filter: brightness(1.1) saturate(1.1); }
-
 .feed-card {
   background:
-    linear-gradient(125deg, rgba(31, 20, 65, 0.94), rgba(11, 14, 37, 0.88)),
-    rgba(18, 12, 36, 0.78);
+    radial-gradient(rgba(205, 181, 255, 0.06) 0.6px, transparent 0.7px),
+    linear-gradient(135deg, rgba(24, 16, 46, 0.96), rgba(12, 10, 28, 0.94));
+  background-size: 4px 4px, auto;
   border: 3px solid #000;
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 12px;
   position: relative;
-  overflow: hidden;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(4px);
-}
-.feed-card-tag {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--neon-cyan);
-  margin-bottom: 4px;
-}
-.feed-card-title {
-  font-family: var(--font-display);
-  font-size: 26px;
-  color: #fff;
-  line-height: 1.05;
-  margin-bottom: 4px;
-  letter-spacing: 0.03em;
-  text-shadow: 2px 2px 0 #000;
-}
-.feed-card-desc {
-  font-size: 13px;
-  color: var(--fg-muted);
-  margin-bottom: 10px;
-}
-.feed-card-meta {
-  font-size: 11px;
-  color: var(--fg-muted);
+  backdrop-filter: blur(6px);
+  border-radius: 2px;
 }
 
 /* ============================================================
@@ -965,16 +875,10 @@ a { color: inherit; text-decoration: none; }
   .buzz-center { padding: 16px 14px 32px; }
   .filter-tag-row { gap: 5px; }
   .tag-pill { padding: 4px 9px; font-size: 10px; }
-  .buzz-wordcloud span { display: none; }
-  .buzz-layout::after { right: 8%; bottom: 6%; opacity: 0.5; }
-
   /* Prevent cards overflowing viewport */
   .feed-card { overflow-x: hidden; }
   .comic-card { overflow-x: hidden; }
   .comic-modal { width: calc(100vw - 32px) !important; }
-
-  /* Event/complaint grids: single column */
-  .grid { grid-template-columns: 1fr !important; }
 }
 
 /* Ensure modal is scrollable on small screens */

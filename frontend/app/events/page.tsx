@@ -7,11 +7,10 @@ import { Event } from "@/types";
 import { getEvents } from "@/lib/api";
 import { canCreateEvent } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/session";
+import { parseEventDate } from "@/lib/date";
 
 function getEventDate(event: Event): Date {
-  const dateTime = `${event.date}T${event.time}`;
-  const parsed = new Date(dateTime);
-  return Number.isNaN(parsed.getTime()) ? new Date(event.date) : parsed;
+  return parseEventDate(event.date, event.time);
 }
 
 export default function EventsPage() {
@@ -283,9 +282,11 @@ export default function EventsPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedEvent(null)}
-                  className="cursor-pointer rounded-lg p-1 text-xl text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
+                  aria-label="Close"
+                  className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+                  style={{ boxShadow: "2px 2px 0 #000" }}
                 >
-                  ×
+                  ✕
                 </button>
               </div>
 

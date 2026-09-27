@@ -46,24 +46,12 @@ export default function CreateOfficialPost({
 
     setIsSubmitting(true);
     try {
-      let created: OfficialPost;
-      try {
-        created = await createOfficialPost({
-          organization: organization.trim(),
-          content: content.trim(),
-          formUrl: formUrl.trim() || undefined,
-          eventName: eventName.trim() || undefined,
-        });
-      } catch {
-        created = {
-          id: `o_${Date.now()}`,
-          organization: organization.trim(),
-          content: content.trim(),
-          formUrl: formUrl.trim() || undefined,
-          eventName: eventName.trim() || undefined,
-          createdAt: new Date().toISOString(),
-        };
-      }
+      const created = await createOfficialPost({
+        organization: organization.trim(),
+        content: content.trim(),
+        formUrl: formUrl.trim() || undefined,
+        eventName: eventName.trim() || undefined,
+      });
 
       onPostCreated?.(created);
       onClose();
@@ -75,36 +63,49 @@ export default function CreateOfficialPost({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="comic-modal p-6">
-        <div className="mb-6 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+      <div className="comic-modal w-full max-w-lg p-6">
+        <div className="mb-6 flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
           <div>
-            <h2 className="stay-loop-title">
+            <h2 className="stay-loop-title" style={{ fontSize: 24 }}>
               Create Official Notice
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Authorized student bodies & faculty announcements.
+            <p className="mt-1 text-xs" style={{ color: "var(--neon-cyan)" }}>
+              Authorized Student Bodies &amp; Campus Announcements
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-lg p-1 text-xl text-gray-400 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
+            aria-label="Close"
+            className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+            style={{ boxShadow: "2px 2px 0 #000" }}
           >
-            ×
+            ✕
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
-            {error}
+          <div
+            className="mb-4 border-2 border-black p-3 text-sm font-bold"
+            style={{
+              background: "rgba(255,45,74,0.18)",
+              color: "var(--accent)",
+              boxShadow: "2px 2px 0 #000",
+            }}
+          >
+            ⚠ {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="official-org" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="official-org"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
               Publishing Body / Organization *
             </label>
             <input
@@ -112,8 +113,9 @@ export default function CreateOfficialPost({
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
               list="org-list"
-              placeholder="Select or enter organization name"
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              placeholder="e.g. Placement Cell, Student Council, Coding Club"
+              className="comic-input w-full px-4 py-2 text-sm"
+              required
             />
             <datalist id="org-list">
               {commonOrgs.map((org) => (
@@ -123,8 +125,12 @@ export default function CreateOfficialPost({
           </div>
 
           <div>
-            <label htmlFor="official-content" className="mb-1 block text-sm font-medium text-gray-700">
-              Announcement / Notice Content *
+            <label
+              htmlFor="official-content"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
+              Notice Content *
             </label>
             <textarea
               id="official-content"
@@ -132,12 +138,17 @@ export default function CreateOfficialPost({
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="Important notice details, instructions, deadlines..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-2 text-sm"
+              required
             />
           </div>
 
           <div>
-            <label htmlFor="official-form-url" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="official-form-url"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
               Form / Registration URL (Optional)
             </label>
             <input
@@ -146,12 +157,16 @@ export default function CreateOfficialPost({
               onChange={(e) => setFormUrl(e.target.value)}
               type="url"
               placeholder="https://forms.google.com/..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-2 text-sm"
             />
           </div>
 
           <div>
-            <label htmlFor="official-event-name" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="official-event-name"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
               Linked Event Name (Optional)
             </label>
             <input
@@ -159,22 +174,22 @@ export default function CreateOfficialPost({
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
               placeholder="e.g. Placement Drive 2026, Annual Elections"
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 outline-none transition focus:border-black focus:ring-2 focus:ring-black"
+              className="comic-input w-full px-4 py-2 text-sm"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="comic-btn-outline"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="cursor-pointer rounded-xl bg-black px-5 py-2.5 font-semibold text-white transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:opacity-50"
+              className="comic-btn disabled:opacity-50"
             >
               {isSubmitting ? "Publishing..." : "Publish Notice"}
             </button>
