@@ -190,7 +190,17 @@ function FeedCard({
   post: Post;
   onAction: (post: Post) => void;
 }) {
-  const primaryTag = post.hashtags[0] || "#campus";
+  const interactionTags: Record<string, string> = {
+    FOOD_SPLIT: "#foodsplit",
+    CAB_SPLIT: "#cabsplit",
+    RESELL: "#resell",
+    LOST: "#lost",
+    FOUND: "#found",
+  };
+  const primaryTag =
+    interactionTags[post.interactionType ?? ""] ||
+    post.hashtags[0] ||
+    "#campus";
   const isRoomPost = ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
     post.interactionType
   );
@@ -306,10 +316,19 @@ function FeedCard({
         {/* Description */}
         <p className="feed-card-desc">{post.description}</p>
 
-        {/* All hashtags */}
-        {post.hashtags.length > 1 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
-            {post.hashtags.slice(1).map((tag) => (
+      {/* All hashtags */}
+      {post.hashtags.length > 1 && (
+      <div
+      style={{
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 4,
+      marginBottom: 8,
+      }}
+      >
+      {post.hashtags
+      .filter((tag) => tag !== primaryTag)
+      .map((tag) => (
               <span
                 key={tag}
                 style={{

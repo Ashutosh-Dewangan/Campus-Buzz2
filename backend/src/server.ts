@@ -1,8 +1,18 @@
 import "dotenv/config";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import app from "./app";
-
+import { registerSocketServer } from "./socket";
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Campus Buzz API running on http://localhost:${PORT}`);
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
+registerSocketServer(io);
+httpServer.listen(PORT, () => {
+  console.log(
+    `Campus Buzz API running on http://localhost:${PORT}`,
+  );
 });

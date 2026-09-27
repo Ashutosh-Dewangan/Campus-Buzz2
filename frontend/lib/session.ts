@@ -38,8 +38,10 @@ export function getSession(): Session | null {
 export function getCurrentUser(): CurrentUser | null {
   return getSession()?.user ?? null;
 }
-
-export function setCurrentUser(user: CurrentUser, token: string = "session-token") {
+export function setCurrentUser(
+  user: CurrentUser,
+  token: string
+) {
   setSession({ token, user });
 }
 

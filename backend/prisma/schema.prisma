@@ -9,7 +9,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 // ================================
 // ENUMS
 // ================================
@@ -29,68 +28,70 @@ enum MembershipStatus {
   INACTIVE
 }
 
-
 // ================================
 // USER
 // ================================
 
 model User {
-  id              String       @id @default(uuid())
-  name            String
-  rollNumber      String       @unique
-  instituteEmail  String       @unique
-  passwordHash    String
+  id             String @id @default(uuid())
+  name           String
+  rollNumber     String @unique
+  instituteEmail String @unique
+  passwordHash   String
 
-  role            PlatformRole @default(STUDENT)
+  role PlatformRole @default(STUDENT)
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   memberships     Membership[]
   chatMemberships ChatMember[]
   posts           Post[]
   complaints      Complaint[]
   createdEvents   Event[]
-
+  messages        Message[]
 }
+
 // ================================
 // ORGANIZATION
 // ================================
 
 model Organization {
-  id              String           @id @default(uuid())
-  name            String           @unique
-  type            OrganizationType
-  description     String?
+  id          String           @id @default(uuid())
+  name        String           @unique
+  type        OrganizationType
+  description String?
 
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  memberships     Membership[]
-  posts           Post[]
-  events          Event[]
+  memberships Membership[]
+  posts       Post[]
+  events      Event[]
 }
+
 // ================================
 // MEMBERSHIP
 // ================================
 
 model Membership {
-  id              String           @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId          String
-  organizationId  String
+  userId         String
+  organizationId String
 
-  position        String?
-  status          MembershipStatus @default(ACTIVE)
+  position String?
+  status   MembershipStatus @default(ACTIVE)
 
-  joinedAt        DateTime         @default(now())
-  leftAt          DateTime?
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
 
-  user            User             @relation(fields: [userId], references: [id])
-  organization    Organization     @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@unique([userId, organizationId])
 }
+
 enum FeedType {
   CAMPUS_BUZZ
   OFFICIAL
@@ -103,120 +104,144 @@ enum InteractionType {
   LOST
   FOUND
 }
+
 model Post {
-  id                 String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  title              String
-  description        String
-  imageUrl           String
+  title       String
+  description String
+  imageUrl    String
 
-  feedType           FeedType        @default(CAMPUS_BUZZ)
-  interactionType    InteractionType?
+  feedType        FeedType         @default(CAMPUS_BUZZ)
+  interactionType InteractionType?
 
-  authorId            String
-  organizationId      String?
+  authorId       String
+  organizationId String?
 
-  contactName         String?
-  contactPhone        String?
+  contactName  String?
+  contactPhone String?
 
-  expiresAt           DateTime?
-  status              PostStatus @default(ACTIVE)
+  expiresAt DateTime?
+  status    PostStatus @default(ACTIVE)
 
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  author              User            @relation(fields: [authorId], references: [id])
-  organization        Organization?   @relation(fields: [organizationId], references: [id])
+  author       User          @relation(fields: [authorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
 
-  hashtags            PostHashtag[]
-  chatRoom            ChatRoom?
-  linkedEvent         Event?
+  hashtags    PostHashtag[]
+  chatRoom    ChatRoom?
+  linkedEvent Event?
 }
+
 model Hashtag {
-  id        String        @id @default(uuid())
-  name      String        @unique
+  id   String @id @default(uuid())
+  name String @unique
 
-  posts     PostHashtag[]
+  posts PostHashtag[]
 
-  createdAt DateTime      @default(now())
+  createdAt DateTime @default(now())
 }
+
 model PostHashtag {
   postId    String
   hashtagId String
 
-  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  hashtag   Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
 
   @@id([postId, hashtagId])
 }
+
 model ChatRoom {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  postId    String   @unique
+  postId String @unique
 
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
   closedAt  DateTime?
   status    ChatRoomStatus @default(OPEN)
 
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  members   ChatMember[]
+  post     Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  members  ChatMember[]
+  messages Message[]
 }
+
 model ChatMember {
-  id         String   @id @default(uuid())
+  id String @id @default(uuid())
 
   chatRoomId String
   userId     String
 
-  joinedAt   DateTime @default(now())
-  leftAt     DateTime?
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
 
-  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([chatRoomId, userId])
 }
+
 enum ChatRoomStatus {
   OPEN
   CLOSED
 }
+
 enum ComplaintStatus {
   OPEN
   RESOLVED
 }
+
 model Complaint {
-  id          String          @id @default(uuid())
+  id String @id @default(uuid())
 
   userId      String
   title       String
   description String
 
-  status      ComplaintStatus @default(OPEN)
+  status ComplaintStatus @default(OPEN)
 
-  createdAt   DateTime        @default(now())
-  resolvedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
 
-  user        User            @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
+
 model Event {
-  id              String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  name            String
-  description     String
-  startAt         DateTime
-  venue           String
+  name        String
+  description String
+  startAt     DateTime
+  venue       String
 
-  createdById     String
-  organizationId  String?
-  linkedPostId    String?       @unique
+  createdById    String
+  organizationId String?
+  linkedPostId   String? @unique
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdBy       User          @relation(fields: [createdById], references: [id])
-  organization    Organization? @relation(fields: [organizationId], references: [id])
-  linkedPost      Post?         @relation(fields: [linkedPostId], references: [id])
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  linkedPost   Post?         @relation(fields: [linkedPostId], references: [id])
 }
+
 enum PostStatus {
   ACTIVE
   CLOSED
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([chatRoomId, createdAt])
 }

@@ -89,3 +89,8 @@ export type Complaint = Prisma.ComplaintModel
  * 
  */
 export type Event = Prisma.EventModel
+/**
+ * Model Message
+ * 
+ */
+export type Message = Prisma.MessageModel

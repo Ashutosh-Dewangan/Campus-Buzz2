@@ -184,6 +184,7 @@ export type ChatRoomWhereInput = {
   status?: Prisma.EnumChatRoomStatusFilter<"ChatRoom"> | $Enums.ChatRoomStatus
   post?: Prisma.XOR<Prisma.PostScalarRelationFilter, Prisma.PostWhereInput>
   members?: Prisma.ChatMemberListRelationFilter
+  messages?: Prisma.MessageListRelationFilter
 }
 
 export type ChatRoomOrderByWithRelationInput = {
@@ -194,6 +195,7 @@ export type ChatRoomOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   post?: Prisma.PostOrderByWithRelationInput
   members?: Prisma.ChatMemberOrderByRelationAggregateInput
+  messages?: Prisma.MessageOrderByRelationAggregateInput
 }
 
 export type ChatRoomWhereUniqueInput = Prisma.AtLeast<{
@@ -207,6 +209,7 @@ export type ChatRoomWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumChatRoomStatusFilter<"ChatRoom"> | $Enums.ChatRoomStatus
   post?: Prisma.XOR<Prisma.PostScalarRelationFilter, Prisma.PostWhereInput>
   members?: Prisma.ChatMemberListRelationFilter
+  messages?: Prisma.MessageListRelationFilter
 }, "id" | "postId">
 
 export type ChatRoomOrderByWithAggregationInput = {
@@ -238,6 +241,7 @@ export type ChatRoomCreateInput = {
   status?: $Enums.ChatRoomStatus
   post: Prisma.PostCreateNestedOneWithoutChatRoomInput
   members?: Prisma.ChatMemberCreateNestedManyWithoutChatRoomInput
+  messages?: Prisma.MessageCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomUncheckedCreateInput = {
@@ -247,6 +251,7 @@ export type ChatRoomUncheckedCreateInput = {
   closedAt?: Date | string | null
   status?: $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberUncheckedCreateNestedManyWithoutChatRoomInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomUpdateInput = {
@@ -256,6 +261,7 @@ export type ChatRoomUpdateInput = {
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
   post?: Prisma.PostUpdateOneRequiredWithoutChatRoomNestedInput
   members?: Prisma.ChatMemberUpdateManyWithoutChatRoomNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutChatRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateInput = {
@@ -265,6 +271,7 @@ export type ChatRoomUncheckedUpdateInput = {
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberUncheckedUpdateManyWithoutChatRoomNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutChatRoomNestedInput
 }
 
 export type ChatRoomCreateManyInput = {
@@ -374,12 +381,27 @@ export type ChatRoomUpdateOneRequiredWithoutMembersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChatRoomUpdateToOneWithWhereWithoutMembersInput, Prisma.ChatRoomUpdateWithoutMembersInput>, Prisma.ChatRoomUncheckedUpdateWithoutMembersInput>
 }
 
+export type ChatRoomCreateNestedOneWithoutMessagesInput = {
+  create?: Prisma.XOR<Prisma.ChatRoomCreateWithoutMessagesInput, Prisma.ChatRoomUncheckedCreateWithoutMessagesInput>
+  connectOrCreate?: Prisma.ChatRoomCreateOrConnectWithoutMessagesInput
+  connect?: Prisma.ChatRoomWhereUniqueInput
+}
+
+export type ChatRoomUpdateOneRequiredWithoutMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.ChatRoomCreateWithoutMessagesInput, Prisma.ChatRoomUncheckedCreateWithoutMessagesInput>
+  connectOrCreate?: Prisma.ChatRoomCreateOrConnectWithoutMessagesInput
+  upsert?: Prisma.ChatRoomUpsertWithoutMessagesInput
+  connect?: Prisma.ChatRoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChatRoomUpdateToOneWithWhereWithoutMessagesInput, Prisma.ChatRoomUpdateWithoutMessagesInput>, Prisma.ChatRoomUncheckedUpdateWithoutMessagesInput>
+}
+
 export type ChatRoomCreateWithoutPostInput = {
   id?: string
   createdAt?: Date | string
   closedAt?: Date | string | null
   status?: $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberCreateNestedManyWithoutChatRoomInput
+  messages?: Prisma.MessageCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomUncheckedCreateWithoutPostInput = {
@@ -388,6 +410,7 @@ export type ChatRoomUncheckedCreateWithoutPostInput = {
   closedAt?: Date | string | null
   status?: $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberUncheckedCreateNestedManyWithoutChatRoomInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomCreateOrConnectWithoutPostInput = {
@@ -412,6 +435,7 @@ export type ChatRoomUpdateWithoutPostInput = {
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberUpdateManyWithoutChatRoomNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutChatRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateWithoutPostInput = {
@@ -420,6 +444,7 @@ export type ChatRoomUncheckedUpdateWithoutPostInput = {
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
   members?: Prisma.ChatMemberUncheckedUpdateManyWithoutChatRoomNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutChatRoomNestedInput
 }
 
 export type ChatRoomCreateWithoutMembersInput = {
@@ -428,6 +453,7 @@ export type ChatRoomCreateWithoutMembersInput = {
   closedAt?: Date | string | null
   status?: $Enums.ChatRoomStatus
   post: Prisma.PostCreateNestedOneWithoutChatRoomInput
+  messages?: Prisma.MessageCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomUncheckedCreateWithoutMembersInput = {
@@ -436,6 +462,7 @@ export type ChatRoomUncheckedCreateWithoutMembersInput = {
   createdAt?: Date | string
   closedAt?: Date | string | null
   status?: $Enums.ChatRoomStatus
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutChatRoomInput
 }
 
 export type ChatRoomCreateOrConnectWithoutMembersInput = {
@@ -460,6 +487,7 @@ export type ChatRoomUpdateWithoutMembersInput = {
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
   post?: Prisma.PostUpdateOneRequiredWithoutChatRoomNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutChatRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateWithoutMembersInput = {
@@ -468,6 +496,59 @@ export type ChatRoomUncheckedUpdateWithoutMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutChatRoomNestedInput
+}
+
+export type ChatRoomCreateWithoutMessagesInput = {
+  id?: string
+  createdAt?: Date | string
+  closedAt?: Date | string | null
+  status?: $Enums.ChatRoomStatus
+  post: Prisma.PostCreateNestedOneWithoutChatRoomInput
+  members?: Prisma.ChatMemberCreateNestedManyWithoutChatRoomInput
+}
+
+export type ChatRoomUncheckedCreateWithoutMessagesInput = {
+  id?: string
+  postId: string
+  createdAt?: Date | string
+  closedAt?: Date | string | null
+  status?: $Enums.ChatRoomStatus
+  members?: Prisma.ChatMemberUncheckedCreateNestedManyWithoutChatRoomInput
+}
+
+export type ChatRoomCreateOrConnectWithoutMessagesInput = {
+  where: Prisma.ChatRoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChatRoomCreateWithoutMessagesInput, Prisma.ChatRoomUncheckedCreateWithoutMessagesInput>
+}
+
+export type ChatRoomUpsertWithoutMessagesInput = {
+  update: Prisma.XOR<Prisma.ChatRoomUpdateWithoutMessagesInput, Prisma.ChatRoomUncheckedUpdateWithoutMessagesInput>
+  create: Prisma.XOR<Prisma.ChatRoomCreateWithoutMessagesInput, Prisma.ChatRoomUncheckedCreateWithoutMessagesInput>
+  where?: Prisma.ChatRoomWhereInput
+}
+
+export type ChatRoomUpdateToOneWithWhereWithoutMessagesInput = {
+  where?: Prisma.ChatRoomWhereInput
+  data: Prisma.XOR<Prisma.ChatRoomUpdateWithoutMessagesInput, Prisma.ChatRoomUncheckedUpdateWithoutMessagesInput>
+}
+
+export type ChatRoomUpdateWithoutMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
+  post?: Prisma.PostUpdateOneRequiredWithoutChatRoomNestedInput
+  members?: Prisma.ChatMemberUpdateManyWithoutChatRoomNestedInput
+}
+
+export type ChatRoomUncheckedUpdateWithoutMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  postId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumChatRoomStatusFieldUpdateOperationsInput | $Enums.ChatRoomStatus
+  members?: Prisma.ChatMemberUncheckedUpdateManyWithoutChatRoomNestedInput
 }
 
 
@@ -477,10 +558,12 @@ export type ChatRoomUncheckedUpdateWithoutMembersInput = {
 
 export type ChatRoomCountOutputType = {
   members: number
+  messages: number
 }
 
 export type ChatRoomCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | ChatRoomCountOutputTypeCountMembersArgs
+  messages?: boolean | ChatRoomCountOutputTypeCountMessagesArgs
 }
 
 /**
@@ -500,6 +583,13 @@ export type ChatRoomCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Type
   where?: Prisma.ChatMemberWhereInput
 }
 
+/**
+ * ChatRoomCountOutputType without action
+ */
+export type ChatRoomCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageWhereInput
+}
+
 
 export type ChatRoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -509,6 +599,7 @@ export type ChatRoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   status?: boolean
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
   members?: boolean | Prisma.ChatRoom$membersArgs<ExtArgs>
+  messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["chatRoom"]>
 
@@ -542,6 +633,7 @@ export type ChatRoomOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type ChatRoomInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
   members?: boolean | Prisma.ChatRoom$membersArgs<ExtArgs>
+  messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ChatRoomIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -556,6 +648,7 @@ export type $ChatRoomPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     post: Prisma.$PostPayload<ExtArgs>
     members: Prisma.$ChatMemberPayload<ExtArgs>[]
+    messages: Prisma.$MessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -959,6 +1052,7 @@ export interface Prisma__ChatRoomClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   post<T extends Prisma.PostDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PostDefaultArgs<ExtArgs>>): Prisma.Prisma__PostClient<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   members<T extends Prisma.ChatRoom$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  messages<T extends Prisma.ChatRoom$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1415,6 +1509,30 @@ export type ChatRoom$membersArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.ChatMemberScalarFieldEnum | Prisma.ChatMemberScalarFieldEnum[]
+}
+
+/**
+ * ChatRoom.messages
+ */
+export type ChatRoom$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Message
+   */
+  select?: Prisma.MessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Message
+   */
+  omit?: Prisma.MessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageInclude<ExtArgs> | null
+  where?: Prisma.MessageWhereInput
+  orderBy?: Prisma.MessageOrderByWithRelationInput | Prisma.MessageOrderByWithRelationInput[]
+  cursor?: Prisma.MessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageScalarFieldEnum | Prisma.MessageScalarFieldEnum[]
 }
 
 /**

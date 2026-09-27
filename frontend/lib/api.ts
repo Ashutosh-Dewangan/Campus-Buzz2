@@ -62,7 +62,10 @@ interface BackendPost {
 function mapPost(post: BackendPost): Post {
   return {
     id: post.id,
-    image: post.imageUrl,
+    image:
+    post.imageUrl.startsWith("http")
+    ? post.imageUrl
+    : `${API_URL}${post.imageUrl}`,
     title: post.title,
     description: post.description,
     hashtags:
@@ -292,12 +295,150 @@ export async function createOfficialPost(
       body: JSON.stringify(post),
     }
   );
-
   if (!response.ok) {
     throw new Error(
       await getErrorMessage(response)
     );
   }
-
   return response.json();
+}
+export interface ChatRoom {
+  id: string;
+  postId: string;
+  createdAt: string;
+  closedAt: string | null;
+  status: "OPEN" | "CLOSED";
+  memberCount: number;
+  isMember: boolean;
+  isCreator: boolean;
+  post: {
+    id: string;
+    authorId: string;
+    interactionType:
+      | "FOOD_SPLIT"
+      | "CAB_SPLIT"
+      | "RESELL"
+      | "LOST"
+      | "FOUND"
+      | null;
+    status: "ACTIVE" | "CLOSED";
+    expiresAt: string | null;
+  };
+}
+export interface ChatMessage {
+  id: string;
+  chatRoomId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+  };
+}
+export async function getChatRoomByPost(
+  postId: string
+): Promise<ChatRoom> {
+  const response = await fetch(
+    `${API_URL}/api/chat/post/${encodeURIComponent(postId)}`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+  return response.json();
+}
+export async function joinChatRoom(
+  roomId: string
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/chat/${encodeURIComponent(roomId)}/join`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+}
+export async function leaveChatRoom(
+  roomId: string
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/chat/${encodeURIComponent(roomId)}/leave`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+}
+export async function getChatMessages(
+  roomId: string
+): Promise<ChatMessage[]> {
+  const response = await fetch(
+    `${API_URL}/api/chat/${encodeURIComponent(roomId)}/messages`,
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+      cache: "no-store",
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+  return response.json();
+}
+export async function sendChatMessage(
+  roomId: string,
+  content: string
+): Promise<ChatMessage> {
+  const response = await fetch(
+    `${API_URL}/api/chat/${encodeURIComponent(roomId)}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ content }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+  const data = await response.json();
+  return data.message;
+}
+export async function closeChatRoom(
+  roomId: string
+): Promise<ChatRoom> {
+  const response = await fetch(
+    `${API_URL}/api/chat/${encodeURIComponent(roomId)}/close`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response));
+  }
+  const data = await response.json();
+  return data.room;
 }
