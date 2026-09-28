@@ -50,6 +50,7 @@ model User {
   complaints      Complaint[]
   createdEvents   Event[]
   messages        Message[]
+  officialPosts   OfficialPost[]
 }
 
 // ================================
@@ -65,9 +66,33 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships Membership[]
-  posts       Post[]
-  events      Event[]
+  memberships   Membership[]
+  posts         Post[]
+  events        Event[]
+  officialPosts OfficialPost[]
+}
+
+// ================================
+// OFFICIAL POST
+// ================================
+
+model OfficialPost {
+  id String @id @default(uuid())
+
+  title   String
+  content String
+
+  link    String?
+  formUrl String?
+
+  authorId       String
+  organizationId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author       User         @relation(fields: [authorId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 }
 
 // ================================

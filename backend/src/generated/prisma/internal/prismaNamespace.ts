@@ -399,6 +399,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  OfficialPost: 'OfficialPost',
   Membership: 'Membership',
   Post: 'Post',
   Hashtag: 'Hashtag',
@@ -423,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "membership" | "post" | "hashtag" | "postHashtag" | "chatRoom" | "chatMember" | "complaint" | "event" | "message"
+    modelProps: "user" | "organization" | "officialPost" | "membership" | "post" | "hashtag" | "postHashtag" | "chatRoom" | "chatMember" | "complaint" | "event" | "message"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -572,6 +573,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganizationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
+        }
+      }
+    }
+    OfficialPost: {
+      payload: Prisma.$OfficialPostPayload<ExtArgs>
+      fields: Prisma.OfficialPostFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OfficialPostFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OfficialPostFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        findFirst: {
+          args: Prisma.OfficialPostFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OfficialPostFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        findMany: {
+          args: Prisma.OfficialPostFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>[]
+        }
+        create: {
+          args: Prisma.OfficialPostCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        createMany: {
+          args: Prisma.OfficialPostCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OfficialPostCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>[]
+        }
+        delete: {
+          args: Prisma.OfficialPostDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        update: {
+          args: Prisma.OfficialPostUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        deleteMany: {
+          args: Prisma.OfficialPostDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OfficialPostUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OfficialPostUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>[]
+        }
+        upsert: {
+          args: Prisma.OfficialPostUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficialPostPayload>
+        }
+        aggregate: {
+          args: Prisma.OfficialPostAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOfficialPost>
+        }
+        groupBy: {
+          args: Prisma.OfficialPostGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OfficialPostGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OfficialPostCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OfficialPostCountAggregateOutputType> | number
         }
       }
     }
@@ -1306,6 +1381,21 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
+export const OfficialPostScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  link: 'link',
+  formUrl: 'formUrl',
+  authorId: 'authorId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OfficialPostScalarFieldEnum = (typeof OfficialPostScalarFieldEnum)[keyof typeof OfficialPostScalarFieldEnum]
+
+
 export const MembershipScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1754,6 +1844,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   organization?: Prisma.OrganizationOmit
+  officialPost?: Prisma.OfficialPostOmit
   membership?: Prisma.MembershipOmit
   post?: Prisma.PostOmit
   hashtag?: Prisma.HashtagOmit

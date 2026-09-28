@@ -5,6 +5,7 @@ import testRoutes from "./routes/test.routes";
 import postRoutes from "./routes/post.routes";
 import path from "node:path";
 import chatRoutes from "./routes/chat.routes";
+import officialPostRoutes from "./routes/official-post.routes";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(
 );
 app.use("/api/posts", postRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/official", officialPostRoutes);
 
 interface EventItem {
   id: string;
@@ -35,15 +37,6 @@ interface ComplaintItem {
   title: string;
   description: string;
   status: "OPEN" | "RESOLVED";
-  createdAt: string;
-}
-
-interface OfficialPostItem {
-  id: string;
-  organization: string;
-  content: string;
-  formUrl?: string;
-  eventName?: string;
   createdAt: string;
 }
 
@@ -81,23 +74,6 @@ let complaints: ComplaintItem[] = [
     title: "Cafeteria water dispenser filter replacement",
     description: "Water dispenser near the cafeteria entrance is showing a red filter replacement warning light.",
     status: "OPEN",
-    createdAt: new Date().toISOString(),
-  },
-];
-
-let officialPosts: OfficialPostItem[] = [
-  {
-    id: "o1",
-    organization: "Placement Cell",
-    content: "Registration for Google Campus Recruitment Drive is now live. All final year students are eligible.",
-    formUrl: "https://forms.google.com/example-placement-drive",
-    eventName: "Campus Placement Drive 2026",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "o2",
-    organization: "Dean of Student Affairs",
-    content: "Campus library hours have been extended to 11:00 PM for the upcoming mid-term examinations.",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -172,32 +148,6 @@ app.patch("/api/complaints/:id/resolve", (req, res) => {
 
   complaint.status = "RESOLVED";
   res.json(complaint);
-});
-
-// ========================
-// OFFICIAL POSTS API
-// ========================
-app.get("/api/official", (_req, res) => {
-  res.json(officialPosts);
-});
-
-app.post("/api/official", (req, res) => {
-  const { organization, content, formUrl, eventName } = req.body;
-  if (!organization || !content) {
-    return res.status(400).json({ error: "Organization and content are required." });
-  }
-
-  const newOfficialPost: OfficialPostItem = {
-    id: `o_${Date.now()}`,
-    organization: String(organization).trim(),
-    content: String(content).trim(),
-    formUrl: formUrl ? String(formUrl).trim() : undefined,
-    eventName: eventName ? String(eventName).trim() : undefined,
-    createdAt: new Date().toISOString(),
-  };
-
-  officialPosts = [newOfficialPost, ...officialPosts];
-  res.status(201).json(newOfficialPost);
 });
 
 export default app;

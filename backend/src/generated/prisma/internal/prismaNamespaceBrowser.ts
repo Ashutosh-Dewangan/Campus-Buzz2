@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  OfficialPost: 'OfficialPost',
   Membership: 'Membership',
   Post: 'Post',
   Hashtag: 'Hashtag',
@@ -104,6 +105,21 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const OfficialPostScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  link: 'link',
+  formUrl: 'formUrl',
+  authorId: 'authorId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OfficialPostScalarFieldEnum = (typeof OfficialPostScalarFieldEnum)[keyof typeof OfficialPostScalarFieldEnum]
 
 
 export const MembershipScalarFieldEnum = {

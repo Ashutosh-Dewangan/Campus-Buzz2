@@ -212,6 +212,7 @@ export type UserWhereInput = {
   complaints?: Prisma.ComplaintListRelationFilter
   createdEvents?: Prisma.EventListRelationFilter
   messages?: Prisma.MessageListRelationFilter
+  officialPosts?: Prisma.OfficialPostListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -229,6 +230,7 @@ export type UserOrderByWithRelationInput = {
   complaints?: Prisma.ComplaintOrderByRelationAggregateInput
   createdEvents?: Prisma.EventOrderByRelationAggregateInput
   messages?: Prisma.MessageOrderByRelationAggregateInput
+  officialPosts?: Prisma.OfficialPostOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -249,6 +251,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   complaints?: Prisma.ComplaintListRelationFilter
   createdEvents?: Prisma.EventListRelationFilter
   messages?: Prisma.MessageListRelationFilter
+  officialPosts?: Prisma.OfficialPostListRelationFilter
 }, "id" | "rollNumber" | "instituteEmail">
 
 export type UserOrderByWithAggregationInput = {
@@ -294,6 +297,7 @@ export type UserCreateInput = {
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -311,6 +315,7 @@ export type UserUncheckedCreateInput = {
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUpdateInput = {
@@ -328,6 +333,7 @@ export type UserUpdateInput = {
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -345,6 +351,7 @@ export type UserUncheckedUpdateInput = {
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -428,6 +435,20 @@ export type EnumPlatformRoleFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutOfficialPostsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficialPostsInput, Prisma.UserUncheckedCreateWithoutOfficialPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficialPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOfficialPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficialPostsInput, Prisma.UserUncheckedCreateWithoutOfficialPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficialPostsInput
+  upsert?: Prisma.UserUpsertWithoutOfficialPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOfficialPostsInput, Prisma.UserUpdateWithoutOfficialPostsInput>, Prisma.UserUncheckedUpdateWithoutOfficialPostsInput>
 }
 
 export type UserCreateNestedOneWithoutMembershipsInput = {
@@ -514,6 +535,90 @@ export type UserUpdateOneRequiredWithoutMessagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutMessagesInput, Prisma.UserUpdateWithoutMessagesInput>, Prisma.UserUncheckedUpdateWithoutMessagesInput>
 }
 
+export type UserCreateWithoutOfficialPostsInput = {
+  id?: string
+  name: string
+  rollNumber: string
+  instituteEmail: string
+  passwordHash: string
+  role?: $Enums.PlatformRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  chatMemberships?: Prisma.ChatMemberCreateNestedManyWithoutUserInput
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
+  createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutOfficialPostsInput = {
+  id?: string
+  name: string
+  rollNumber: string
+  instituteEmail: string
+  passwordHash: string
+  role?: $Enums.PlatformRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  chatMemberships?: Prisma.ChatMemberUncheckedCreateNestedManyWithoutUserInput
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
+  createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutOfficialPostsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOfficialPostsInput, Prisma.UserUncheckedCreateWithoutOfficialPostsInput>
+}
+
+export type UserUpsertWithoutOfficialPostsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOfficialPostsInput, Prisma.UserUncheckedUpdateWithoutOfficialPostsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOfficialPostsInput, Prisma.UserUncheckedCreateWithoutOfficialPostsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOfficialPostsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOfficialPostsInput, Prisma.UserUncheckedUpdateWithoutOfficialPostsInput>
+}
+
+export type UserUpdateWithoutOfficialPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  rollNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  instituteEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  chatMemberships?: Prisma.ChatMemberUpdateManyWithoutUserNestedInput
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
+  createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOfficialPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  rollNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  instituteEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumPlatformRoleFieldUpdateOperationsInput | $Enums.PlatformRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  chatMemberships?: Prisma.ChatMemberUncheckedUpdateManyWithoutUserNestedInput
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
+  createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+}
+
 export type UserCreateWithoutMembershipsInput = {
   id?: string
   name: string
@@ -528,6 +633,7 @@ export type UserCreateWithoutMembershipsInput = {
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutMembershipsInput = {
@@ -544,6 +650,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutMembershipsInput = {
@@ -576,6 +683,7 @@ export type UserUpdateWithoutMembershipsInput = {
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembershipsInput = {
@@ -592,6 +700,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutPostsInput = {
@@ -608,6 +717,7 @@ export type UserCreateWithoutPostsInput = {
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutPostsInput = {
@@ -624,6 +734,7 @@ export type UserUncheckedCreateWithoutPostsInput = {
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutPostsInput = {
@@ -656,6 +767,7 @@ export type UserUpdateWithoutPostsInput = {
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPostsInput = {
@@ -672,6 +784,7 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutChatMembershipsInput = {
@@ -688,6 +801,7 @@ export type UserCreateWithoutChatMembershipsInput = {
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutChatMembershipsInput = {
@@ -704,6 +818,7 @@ export type UserUncheckedCreateWithoutChatMembershipsInput = {
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutChatMembershipsInput = {
@@ -736,6 +851,7 @@ export type UserUpdateWithoutChatMembershipsInput = {
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutChatMembershipsInput = {
@@ -752,6 +868,7 @@ export type UserUncheckedUpdateWithoutChatMembershipsInput = {
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutComplaintsInput = {
@@ -768,6 +885,7 @@ export type UserCreateWithoutComplaintsInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutComplaintsInput = {
@@ -784,6 +902,7 @@ export type UserUncheckedCreateWithoutComplaintsInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutComplaintsInput = {
@@ -816,6 +935,7 @@ export type UserUpdateWithoutComplaintsInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutComplaintsInput = {
@@ -832,6 +952,7 @@ export type UserUncheckedUpdateWithoutComplaintsInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutCreatedEventsInput = {
@@ -848,6 +969,7 @@ export type UserCreateWithoutCreatedEventsInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutCreatedEventsInput = {
@@ -864,6 +986,7 @@ export type UserUncheckedCreateWithoutCreatedEventsInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutUserInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutCreatedEventsInput = {
@@ -896,6 +1019,7 @@ export type UserUpdateWithoutCreatedEventsInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedEventsInput = {
@@ -912,6 +1036,7 @@ export type UserUncheckedUpdateWithoutCreatedEventsInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutUserNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutMessagesInput = {
@@ -928,6 +1053,7 @@ export type UserCreateWithoutMessagesInput = {
   posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
   complaints?: Prisma.ComplaintCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventCreateNestedManyWithoutCreatedByInput
+  officialPosts?: Prisma.OfficialPostCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutMessagesInput = {
@@ -944,6 +1070,7 @@ export type UserUncheckedCreateWithoutMessagesInput = {
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
   complaints?: Prisma.ComplaintUncheckedCreateNestedManyWithoutUserInput
   createdEvents?: Prisma.EventUncheckedCreateNestedManyWithoutCreatedByInput
+  officialPosts?: Prisma.OfficialPostUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutMessagesInput = {
@@ -976,6 +1103,7 @@ export type UserUpdateWithoutMessagesInput = {
   posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
   complaints?: Prisma.ComplaintUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUpdateManyWithoutCreatedByNestedInput
+  officialPosts?: Prisma.OfficialPostUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMessagesInput = {
@@ -992,6 +1120,7 @@ export type UserUncheckedUpdateWithoutMessagesInput = {
   posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
   complaints?: Prisma.ComplaintUncheckedUpdateManyWithoutUserNestedInput
   createdEvents?: Prisma.EventUncheckedUpdateManyWithoutCreatedByNestedInput
+  officialPosts?: Prisma.OfficialPostUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 
@@ -1006,6 +1135,7 @@ export type UserCountOutputType = {
   complaints: number
   createdEvents: number
   messages: number
+  officialPosts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1015,6 +1145,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   complaints?: boolean | UserCountOutputTypeCountComplaintsArgs
   createdEvents?: boolean | UserCountOutputTypeCountCreatedEventsArgs
   messages?: boolean | UserCountOutputTypeCountMessagesArgs
+  officialPosts?: boolean | UserCountOutputTypeCountOfficialPostsArgs
 }
 
 /**
@@ -1069,6 +1200,13 @@ export type UserCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.MessageWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOfficialPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OfficialPostWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1085,6 +1223,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   complaints?: boolean | Prisma.User$complaintsArgs<ExtArgs>
   createdEvents?: boolean | Prisma.User$createdEventsArgs<ExtArgs>
   messages?: boolean | Prisma.User$messagesArgs<ExtArgs>
+  officialPosts?: boolean | Prisma.User$officialPostsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1129,6 +1268,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   complaints?: boolean | Prisma.User$complaintsArgs<ExtArgs>
   createdEvents?: boolean | Prisma.User$createdEventsArgs<ExtArgs>
   messages?: boolean | Prisma.User$messagesArgs<ExtArgs>
+  officialPosts?: boolean | Prisma.User$officialPostsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1143,6 +1283,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     complaints: Prisma.$ComplaintPayload<ExtArgs>[]
     createdEvents: Prisma.$EventPayload<ExtArgs>[]
     messages: Prisma.$MessagePayload<ExtArgs>[]
+    officialPosts: Prisma.$OfficialPostPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1553,6 +1694,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   complaints<T extends Prisma.User$complaintsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$complaintsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdEvents<T extends Prisma.User$createdEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messages<T extends Prisma.User$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  officialPosts<T extends Prisma.User$officialPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$officialPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OfficialPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2124,6 +2266,30 @@ export type User$messagesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.MessageScalarFieldEnum | Prisma.MessageScalarFieldEnum[]
+}
+
+/**
+ * User.officialPosts
+ */
+export type User$officialPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OfficialPost
+   */
+  select?: Prisma.OfficialPostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OfficialPost
+   */
+  omit?: Prisma.OfficialPostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OfficialPostInclude<ExtArgs> | null
+  where?: Prisma.OfficialPostWhereInput
+  orderBy?: Prisma.OfficialPostOrderByWithRelationInput | Prisma.OfficialPostOrderByWithRelationInput[]
+  cursor?: Prisma.OfficialPostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OfficialPostScalarFieldEnum | Prisma.OfficialPostScalarFieldEnum[]
 }
 
 /**

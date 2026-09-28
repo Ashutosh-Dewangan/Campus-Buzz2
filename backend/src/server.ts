@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import app from "./app";
 import { registerSocketServer } from "./socket";
+import { startPostExpiryJob } from "./jobs/post-expiry.job";
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -11,6 +12,7 @@ const io = new Server(httpServer, {
   },
 });
 registerSocketServer(io);
+startPostExpiryJob();
 httpServer.listen(PORT, () => {
   console.log(
     `Campus Buzz API running on http://localhost:${PORT}`,

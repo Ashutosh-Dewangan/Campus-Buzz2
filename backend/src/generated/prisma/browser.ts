@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model OfficialPost
+ * 
+ */
+export type OfficialPost = Prisma.OfficialPostModel
+/**
  * Model Membership
  * 
  */

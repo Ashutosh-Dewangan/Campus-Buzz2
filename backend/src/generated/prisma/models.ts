@@ -10,6 +10,7 @@
  */
 export type * from './models/User'
 export type * from './models/Organization'
+export type * from './models/OfficialPost'
 export type * from './models/Membership'
 export type * from './models/Post'
 export type * from './models/Hashtag'
