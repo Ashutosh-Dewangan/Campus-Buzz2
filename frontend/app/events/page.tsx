@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import EventCard from "@/components/events/EventCard";
 import EventForm from "@/components/events/EventForm";
+import { CalendarIcon } from "@/components/ui/Icons";
 import { Event } from "@/types";
-import { getEvents } from "@/lib/api";
-import { canCreateEvent } from "@/lib/auth";
+import { getEvents, getUserRsvps, rsvpEvent, deleteEvent } from "@/lib/api";
+import { canCreateEvent, isAdmin } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/session";
 import { parseEventDate } from "@/lib/date";
 
@@ -23,6 +25,7 @@ export default function EventsPage() {
 
   const user = useCurrentUser();
   const canCreate = user ? canCreateEvent(user.role) : false;
+  const isUserAdmin = user ? isAdmin(user.role) : false;
 
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
@@ -43,9 +46,13 @@ export default function EventsPage() {
     let ignore = false;
     async function fetchInitial() {
       try {
-        const fetched = await getEvents();
+        const [fetched, rsvps] = await Promise.all([
+          getEvents(),
+          Promise.resolve(getUserRsvps()),
+        ]);
         if (!ignore && Array.isArray(fetched)) {
           setEvents(fetched);
+          setRsvpedEvents(rsvps);
         }
       } catch {
         if (!ignore) {
@@ -84,12 +91,21 @@ export default function EventsPage() {
     [events]
   );
 
-  function toggleRsvp(eventId: string) {
+  async function toggleRsvp(eventId: string) {
+    const isNowGoing = await rsvpEvent(eventId);
     setRsvpedEvents((current) =>
-      current.includes(eventId)
-        ? current.filter((id) => id !== eventId)
-        : [...current, eventId]
+      isNowGoing
+        ? [...current, eventId]
+        : current.filter((id) => id !== eventId)
     );
+  }
+
+  async function handleDeleteEvent(eventId: string) {
+    await deleteEvent(eventId);
+    setEvents((current) => current.filter((e) => e.id !== eventId));
+    if (selectedEvent?.id === eventId) {
+      setSelectedEvent(null);
+    }
   }
 
   function handleEventCreated(newEvent: Event) {
@@ -116,15 +132,24 @@ export default function EventsPage() {
             </p>
           </div>
 
-          {canCreate && (
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="comic-btn"
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/official/calendar"
+              className="retro-btn-outline text-xs"
             >
-              + Create Event
-            </button>
-          )}
+              Month Calendar View →
+            </Link>
+
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="comic-btn text-xs"
+              >
+                + Create Event
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading skeleton */}
@@ -144,30 +169,30 @@ export default function EventsPage() {
             <button
               type="button"
               onClick={loadEvents}
-              className="comic-btn mt-4"
+              className="comic-btn mt-4 cursor-pointer"
             >
-              Try again
+              Try again ⟳
             </button>
           </div>
         )}
 
         {/* Empty state */}
         {!isLoading && !error && events.length === 0 && (
-          <div className="comic-card comic-empty">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center text-2xl" style={{ border: "3px solid #000" }}>
-              📅
+          <div className="comic-card comic-empty p-10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-black bg-black/40">
+              <CalendarIcon className="h-6 w-6 text-[var(--neon-yellow)]" />
             </div>
             <h2 className="stay-loop-title mt-5">No events scheduled</h2>
             <p className="comic-sub mx-auto max-w-md">
-              No upcoming workshops or activities yet.
+              No upcoming workshops or campus activities right now. Check back soon!
             </p>
             {canCreate && (
               <button
                 type="button"
                 onClick={() => setShowCreateModal(true)}
-                className="comic-btn mt-5"
+                className="comic-btn mt-5 cursor-pointer"
               >
-                Create Event
+                + Create Event
               </button>
             )}
           </div>
@@ -249,14 +274,13 @@ export default function EventsPage() {
               </span>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3" style={{ opacity: 0.7 }}>
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 opacity-75">
               {pastEvents.map((event) => (
                 <EventCard
                   key={event.id}
                   event={event}
                   isRsvped={rsvpedEvents.includes(event.id)}
                   onViewDetails={(ev) => setSelectedEvent(ev)}
-                  // No RSVP for past events
                 />
               ))}
             </div>
@@ -273,10 +297,10 @@ export default function EventsPage() {
 
         {/* View Event Details Modal */}
         {selectedEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="comic-modal p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+            <div className="comic-modal p-6 rounded-sm max-w-md w-full">
               <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
-                <h2 className="stay-loop-title">
+                <h2 className="stay-loop-title" style={{ fontSize: 22 }}>
                   {selectedEvent.name}
                 </h2>
                 <button
@@ -292,48 +316,62 @@ export default function EventsPage() {
 
               <div className="my-5 space-y-3 text-sm" style={{ color: "var(--fg)" }}>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">📅 Date:</span>
+                  <span className="font-semibold text-[var(--neon-yellow)]">Date:</span>
                   <span>{selectedEvent.date}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">🕐 Time:</span>
+                  <span className="font-semibold text-[var(--neon-yellow)]">Time:</span>
                   <span>{selectedEvent.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">📍 Venue:</span>
+                  <span className="font-semibold text-[var(--neon-yellow)]">Venue:</span>
                   <span>{selectedEvent.venue}</span>
                 </div>
                 {selectedEvent.createdBy && (
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">🏛 Organizer:</span>
+                    <span className="font-semibold text-[var(--neon-yellow)]">Organizer:</span>
                     <span>{selectedEvent.createdBy}</span>
                   </div>
                 )}
                 <div className="pt-2">
-                  <p className="mb-1 font-semibold">About:</p>
-                  <p className="comic-card p-4 leading-relaxed" style={{ color: "var(--fg-muted)" }}>
+                  <p className="mb-1 font-semibold text-white">About Event:</p>
+                  <p className="comic-card font-readable p-3 text-sm leading-relaxed" style={{ color: "var(--fg-muted)" }}>
                     {selectedEvent.description}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3">
-                {getEventDate(selectedEvent) >= now && (
+              <div className="flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: "#000" }}>
+                <div>
+                  {(isUserAdmin || (canCreate && selectedEvent.createdBy?.includes(user?.email?.split("@")[0] || ""))) && (
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteEvent(selectedEvent.id)}
+                      className="text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer"
+                    >
+                      Delete Event
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {getEventDate(selectedEvent) >= now && (
+                    <button
+                      type="button"
+                      onClick={() => toggleRsvp(selectedEvent.id)}
+                      className="comic-btn text-xs"
+                    >
+                      {rsvpedEvents.includes(selectedEvent.id) ? "✓ RSVP Confirmed" : "RSVP Now ↗"}
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => toggleRsvp(selectedEvent.id)}
-                    className="comic-btn"
+                    onClick={() => setSelectedEvent(null)}
+                    className="comic-btn-outline text-xs"
                   >
-                    {rsvpedEvents.includes(selectedEvent.id) ? "✓ Going" : "RSVP"}
+                    Close
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSelectedEvent(null)}
-                  className="comic-btn-outline"
-                >
-                  Close
-                </button>
+                </div>
               </div>
             </div>
           </div>

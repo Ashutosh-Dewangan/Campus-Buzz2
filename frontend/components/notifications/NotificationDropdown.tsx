@@ -1,51 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/lib/api/notifications";
+import { NotificationItem } from "@/types";
 
-interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  unread: boolean;
-}
-
-const initialNotifications: NotificationItem[] = [
-  {
-    id: "1",
-    title: "New room message",
-    description: "Someone replied in Food Split.",
-    time: "2m ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    title: "Event reminder",
-    description: "Tech Fest starts tomorrow.",
-    time: "1h ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    title: "Complaint resolved",
-    description: "Your hostel Wi-Fi issue has been marked resolved.",
-    time: "3h ago",
-    unread: false,
-  },
-  {
-    id: "4",
-    title: "Post expiring soon",
-    description: "Your food split post expires in 30 minutes.",
-    time: "5h ago",
-    unread: false,
-  },
-];
+import { BellIcon } from "@/components/ui/Icons";
 
 export default function NotificationDropdown() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] =
-    useState<NotificationItem[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function load() {
+      const items = await getNotifications();
+      setNotifications(items);
+    }
+    load();
+  }, []);
 
   const unreadCount = notifications.filter(
     (notification) => notification.unread
@@ -69,18 +47,20 @@ export default function NotificationDropdown() {
     };
   }, [isOpen]);
 
-  function markAllAsRead() {
-    setNotifications((current) =>
-      current.map((item) => ({ ...item, unread: false }))
-    );
+  async function handleMarkAllAsRead() {
+    const updated = await markAllNotificationsRead();
+    setNotifications(updated);
   }
 
-  function toggleNotificationRead(id: string) {
-    setNotifications((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, unread: !item.unread } : item
-      )
-    );
+  async function handleItemClick(item: NotificationItem) {
+    if (item.unread) {
+      const updated = await markNotificationRead(item.id);
+      setNotifications(updated);
+    }
+    setIsOpen(false);
+    if (item.link) {
+      router.push(item.link);
+    }
   }
 
   return (
@@ -89,16 +69,14 @@ export default function NotificationDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label="Campus notifications"
+        aria-label="Campus alerts"
         aria-expanded={isOpen}
-        className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+        className="relative flex h-9 w-9 min-h-[36px] min-w-[36px] cursor-pointer items-center justify-center rounded-sm border-2 border-black bg-[var(--accent)] text-white shadow-[2px_2px_0_#000] hover:bg-[var(--accent-hover)] transition"
       >
-        <span className="text-lg" aria-hidden="true">
-          🔔
-        </span>
+        <BellIcon className="h-4 w-4" />
 
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1.5 text-[10px] font-bold text-white ring-2 ring-white">
+          <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-black bg-[var(--neon-cyan)] px-1 text-[9px] font-black text-black shadow-[1px_1px_0_#000]">
             {unreadCount}
           </span>
         )}
@@ -106,12 +84,15 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-12 z-50 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl">
-          <div className="flex items-center justify-between border-b pb-3">
+        <div className="comic-modal absolute right-0 top-11 z-50 w-80 sm:w-[400px] max-w-[calc(100vw-24px)] rounded-sm p-4 sm:p-5 shadow-[6px_6px_0_#000]">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b-2 border-black pb-3">
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-gray-900">Notifications</h2>
+              <h2 className="text-xs font-black uppercase tracking-wider text-white">
+                Campus Alerts
+              </h2>
               {unreadCount > 0 && (
-                <span className="rounded-full bg-black px-2 py-0.5 text-[11px] font-semibold text-white">
+                <span className="rounded-sm border border-black bg-[var(--accent)] px-1.5 py-0.2 text-[9px] font-black text-white">
                   {unreadCount} new
                 </span>
               )}
@@ -120,53 +101,69 @@ export default function NotificationDropdown() {
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={markAllAsRead}
-                className="cursor-pointer text-xs font-semibold text-gray-500 hover:text-black focus:outline-none"
+                onClick={handleMarkAllAsRead}
+                className="cursor-pointer text-[10px] font-bold text-[var(--neon-cyan)] hover:underline"
               >
-                Mark all read
+                Mark all as read
               </button>
             )}
           </div>
 
-          <div className="mt-2 divide-y divide-gray-100 max-h-80 overflow-y-auto">
-            {notifications.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => toggleNotificationRead(item.id)}
-                className={`flex cursor-pointer items-start justify-between gap-3 py-3 transition hover:bg-gray-50 px-2 rounded-xl ${
-                  item.unread ? "bg-gray-50/60" : ""
-                }`}
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p
-                      className={`text-sm ${
-                        item.unread
-                          ? "font-semibold text-gray-900"
-                          : "font-medium text-gray-700"
-                      }`}
-                    >
-                      {item.title}
+          {/* Notifications List */}
+          <div className="mt-3 space-y-2 max-h-80 overflow-y-auto pr-0.5">
+            {notifications.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[var(--fg-muted)]">
+                No notifications right now.
+              </div>
+            ) : (
+              notifications.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleItemClick(item)}
+                  className={`flex cursor-pointer items-start justify-between gap-3 p-3 transition rounded-sm ${
+                    item.unread
+                      ? "border-2 border-black border-l-4 border-l-[var(--neon-cyan)] bg-[rgba(26,18,52,0.95)] shadow-[2px_2px_0_#000] hover:bg-[rgba(32,22,64,0.98)]"
+                      : "border border-black/40 bg-[rgba(10,8,22,0.6)] opacity-80 hover:opacity-100 hover:bg-[rgba(18,14,36,0.85)]"
+                  }`}
+                >
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p
+                        className={`text-xs ${
+                          item.unread
+                            ? "font-black text-white"
+                            : "font-bold text-[var(--fg)]"
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                      {item.unread && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-cyan)] shrink-0 shadow-[0_0_4px_#2af0ff]" />
+                      )}
+                    </div>
+
+                    <p className="font-readable text-xs text-[var(--fg-muted)] leading-relaxed">
+                      {item.description}
                     </p>
-                    {item.unread && (
-                      <span className="h-2 w-2 rounded-full bg-blue-600" />
-                    )}
+
+                    <p className="text-[10px] text-[var(--fg-muted)] pt-0.5">
+                      {item.time}
+                    </p>
                   </div>
 
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {item.description}
-                  </p>
-
-                  <p className="text-[10px] text-gray-400">{item.time}</p>
+                  {item.link && (
+                    <span className="text-xs text-[var(--neon-cyan)] shrink-0 self-center">
+                      ↗
+                    </span>
+                  )}
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          <div className="mt-3 border-t pt-2 text-center">
-            <p className="text-[11px] text-gray-400">
-              Campus Buzz activity notifications
-            </p>
+          {/* Footer note */}
+          <div className="mt-3 border-t border-black/40 pt-2 text-center text-[10px] text-[var(--fg-muted)]">
+            Verified real-time alerts
           </div>
         </div>
       )}

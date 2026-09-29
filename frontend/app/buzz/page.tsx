@@ -5,9 +5,19 @@ import { useRouter } from "next/navigation";
 
 import CreatePostForm from "@/components/buzz/CreatePostForm";
 import CampusPulse from "@/components/buzz/CampusPulse";
+import PostCard from "@/components/buzz/PostCard";
 
-import { getPostContact, getPosts } from "@/lib/api";
+import { getPostContact, getPosts, getTrendingTags } from "@/lib/api";
 import { Post } from "@/types";
+import {
+  AlertCircleIcon,
+  CarIcon,
+  SearchIcon,
+  SparkIcon,
+  TagIcon,
+  UserIcon,
+  UtensilsIcon,
+} from "@/components/ui/Icons";
 
 /* ---------- Filter config ---------- */
 const filters = [
@@ -18,90 +28,6 @@ const filters = [
   { label: "#LOST",      value: "#lost",      tag: "#lost"      },
   { label: "#FOUND",     value: "#found",     tag: "#found"     },
 ];
-
-/* ---------- Interaction Category Config ---------- */
-const interactionConfig: Record<
-  string,
-  { tag: string; label: string; color: string; bg: string; icon: string }
-> = {
-  FOOD_SPLIT: {
-    tag: "#foodsplit",
-    label: "Food Split",
-    color: "var(--tag-food)",
-    bg: "rgba(255, 59, 74, 0.15)",
-    icon: "🍕",
-  },
-  CAB_SPLIT: {
-    tag: "#cabsplit",
-    label: "Cab Split",
-    color: "var(--tag-cab)",
-    bg: "rgba(58, 208, 255, 0.15)",
-    icon: "🚕",
-  },
-  RESELL: {
-    tag: "#resell",
-    label: "Resell",
-    color: "var(--tag-resell)",
-    bg: "rgba(180, 79, 255, 0.15)",
-    icon: "🏷️",
-  },
-  LOST: {
-    tag: "#lost",
-    label: "Lost Item",
-    color: "var(--tag-lost)",
-    bg: "rgba(255, 225, 74, 0.15)",
-    icon: "⚠️",
-  },
-  FOUND: {
-    tag: "#found",
-    label: "Found Item",
-    color: "var(--tag-found)",
-    bg: "rgba(0, 229, 200, 0.15)",
-    icon: "🔍",
-  },
-};
-
-/* ---------- Expiry Status & Progressive Urgency ---------- */
-interface ExpiryStatus {
-  label: string;
-  expired: boolean;
-  tier: "normal" | "approaching" | "urgent" | "expired";
-}
-
-function getExpiryStatus(expiresAt: string): ExpiryStatus | null {
-  const ms = new Date(expiresAt).getTime() - Date.now();
-  if (ms <= 0) {
-    return { label: "Expired", expired: true, tier: "expired" };
-  }
-
-  const totalMinutes = Math.floor(ms / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  let timeString = "";
-  if (hours >= 24) {
-    const days = Math.floor(hours / 24);
-    const remHours = hours % 24;
-    timeString = remHours > 0 ? `${days}d ${remHours}h` : `${days}d`;
-  } else if (hours > 0) {
-    timeString = minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
-  } else {
-    timeString = `${Math.max(1, minutes)}m`;
-  }
-
-  let tier: "normal" | "approaching" | "urgent" = "normal";
-  if (totalMinutes <= 15) {
-    tier = "urgent";
-  } else if (totalMinutes <= 60) {
-    tier = "approaching";
-  }
-
-  return {
-    label: `Expires in ${timeString}`,
-    expired: false,
-    tier,
-  };
-}
 
 /* ---------- Contact info modal ---------- */
 function ContactModal({
@@ -135,8 +61,8 @@ function ContactModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-black/40 pb-3">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-sm border-2 border-black bg-[var(--neon-cyan)] text-xs font-black text-black shadow-[2px_2px_0_#000]">
-              👤
+            <span className="flex h-7 w-7 items-center justify-center rounded-sm border-2 border-black bg-[var(--neon-cyan)] text-black shadow-[2px_2px_0_#000]">
+              <UserIcon className="h-4 w-4" />
             </span>
             <div>
               <h2 className="text-sm font-black uppercase tracking-wider text-white">
@@ -162,7 +88,7 @@ function ContactModal({
           {/* Name */}
           <div className="rounded-sm border-2 border-black bg-[rgba(8,6,20,0.85)] p-3 shadow-[2px_2px_0_#000]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
-              Poster Name
+              Poster Name / Location
             </p>
             <p className="mt-1 text-sm font-bold text-white">
               {contactName || "Campus Student"}
@@ -173,7 +99,7 @@ function ContactModal({
           <div className="rounded-sm border-2 border-black bg-[rgba(8,6,20,0.85)] p-3 shadow-[2px_2px_0_#000]">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
-                Phone Number
+                Phone / WhatsApp
               </p>
               <button
                 type="button"
@@ -192,8 +118,8 @@ function ContactModal({
           </div>
 
           {/* Campus safety note */}
-          <div className="rounded-sm border border-black/60 bg-amber-500/10 p-2.5 text-[11px] text-amber-200/90 leading-tight">
-            <span className="font-bold">Campus Safety:</span> For item handoffs, meet in public, well-lit campus spots such as the student center, library, or dining hall.
+          <div className="font-readable rounded-sm border border-black/60 bg-amber-500/10 p-2.5 text-[11px] text-amber-200/90 leading-tight">
+            <span className="font-bold">Campus Safety:</span> For item handoffs, meet in public, well-lit campus spots such as the student center, library lawn, or dining hall.
           </div>
         </div>
 
@@ -203,7 +129,7 @@ function ContactModal({
             href={`tel:${contactPhone}`}
             className="retro-btn flex-1 text-center text-xs font-black"
           >
-            Call Poster 📞
+            Call Poster ↗
           </a>
           <button
             type="button"
@@ -218,257 +144,10 @@ function ContactModal({
   );
 }
 
-/* ---------- Individual post card ---------- */
-function FeedCard({
-  post,
-  onAction,
-}: {
-  post: Post;
-  onAction: (post: Post) => void;
-}) {
-  const config =
-    interactionConfig[post.interactionType ?? ""] || {
-      tag: post.hashtags[0] || "#campus",
-      label: "Campus",
-      color: "var(--neon-cyan)",
-      bg: "rgba(42, 240, 255, 0.12)",
-      icon: "⚡",
-    };
-
-  const primaryTag = config.tag;
-  const isRoomPost = ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
-    post.interactionType
-  );
-
-  const [timeDisplay, setTimeDisplay] = useState(() => {
-    const now = Date.now();
-    const minutesAgo = Math.max(
-      0,
-      Math.round((now - new Date(post.createdAt).getTime()) / 60000)
-    );
-    const ago =
-      minutesAgo < 1
-        ? "just now"
-        : minutesAgo < 60
-        ? `${minutesAgo}m ago`
-        : minutesAgo < 1440
-        ? `${Math.floor(minutesAgo / 60)}h ago`
-        : `${Math.floor(minutesAgo / 1440)}d ago`;
-
-    let expiryStatus: ExpiryStatus | null = null;
-    let expired = false;
-    if (post.expiresAt) {
-      expiryStatus = getExpiryStatus(post.expiresAt);
-      if (expiryStatus?.expired) {
-        expired = true;
-      }
-    }
-
-    return { ago, expiryStatus, expired };
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const minutesAgo = Math.max(
-        0,
-        Math.round((now - new Date(post.createdAt).getTime()) / 60000)
-      );
-      const ago =
-        minutesAgo < 1
-          ? "just now"
-          : minutesAgo < 60
-          ? `${minutesAgo}m ago`
-          : minutesAgo < 1440
-          ? `${Math.floor(minutesAgo / 60)}h ago`
-          : `${Math.floor(minutesAgo / 1440)}d ago`;
-
-      let expiryStatus: ExpiryStatus | null = null;
-      let expired = false;
-      if (post.expiresAt) {
-        expiryStatus = getExpiryStatus(post.expiresAt);
-        if (expiryStatus?.expired) {
-          expired = true;
-        }
-      }
-
-      setTimeDisplay({ ago, expiryStatus, expired });
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [post.createdAt, post.expiresAt]);
-
-  const { ago, expiryStatus, expired } = timeDisplay;
-  const effectivelyActive = post.status === "ACTIVE" && !expired;
-  const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : "?";
-
-  return (
-    <article className="group feed-card cb-fade-up transition-all duration-200 hover:-translate-y-0.5">
-      {/* Author & Header Metadata */}
-      <div className="mb-3 flex items-center justify-between border-b border-black/40 pb-2.5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-sm border-2 border-black bg-gradient-to-br from-[var(--accent)] to-[#8b0018] text-xs font-black text-white shadow-[1px_1px_0_#000]">
-            {authorInitial}
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 leading-none">
-            <span className="text-xs font-bold text-white sm:text-sm">
-              {post.author}
-            </span>
-            <span className="inline-flex items-center gap-0.5 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-400">
-              ✓ Student
-            </span>
-            <span className="text-[11px] text-[var(--fg-muted)]">
-              · {ago}
-            </span>
-          </div>
-        </div>
-
-        {/* Status Pill */}
-        <div>
-          {post.status === "CLOSED" ? (
-            <span className="rounded-sm border border-black bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
-              Closed
-            </span>
-          ) : expired ? (
-            <span className="rounded-sm border border-black bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-              Expired
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-sm border border-black bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Active
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Post Image */}
-      {post.image ? (
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-sm border-2 border-black bg-black/80">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={post.image}
-            alt={post.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-          {/* Category Tag Overlay */}
-          <div
-            className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.92)] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#000]"
-            style={{ color: config.color }}
-          >
-            <span>{config.icon}</span>
-            <span>{primaryTag}</span>
-          </div>
-        </div>
-      ) : (
-        <div className="mb-2 flex items-center">
-          <div
-            className="flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.9)] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#000]"
-            style={{ color: config.color }}
-          >
-            <span>{config.icon}</span>
-            <span>{primaryTag}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="mt-3">
-        {/* Title */}
-        <h2 className="text-base font-bold leading-snug tracking-tight text-white line-clamp-2 sm:text-lg">
-          {post.title}
-        </h2>
-
-        {/* Description */}
-        <p className="mt-1.5 text-xs leading-relaxed text-[var(--fg-muted)] line-clamp-3 sm:text-sm">
-          {post.description}
-        </p>
-
-        {/* Secondary Hashtags */}
-        {post.hashtags.length > 1 && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {post.hashtags
-              .filter(
-                (tag) => tag.toLowerCase() !== primaryTag.toLowerCase()
-              )
-              .map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-sm border border-black/60 bg-black/40 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--fg-muted)]"
-                >
-                  {tag.startsWith("#") ? tag : `#${tag}`}
-                </span>
-              ))}
-          </div>
-        )}
-
-        {/* Bottom Row: Expiry & Primary Action */}
-        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5 border-t border-black/40 pt-3">
-          {/* Expiry indicator if applicable */}
-          <div className="flex items-center gap-2">
-            {expiryStatus && !expiryStatus.expired && (
-              <span
-                className={`inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[10px] font-bold tracking-wide shadow-[1px_1px_0_#000] ${
-                  expiryStatus.tier === "urgent"
-                    ? "border-2 border-[var(--accent)] bg-[rgba(255,45,74,0.18)] text-[var(--accent)]"
-                    : expiryStatus.tier === "approaching"
-                    ? "border-2 border-amber-500 bg-amber-500/15 text-amber-300"
-                    : "border-2 border-black bg-black/60 text-[var(--neon-cyan)]"
-                }`}
-              >
-                <span>⏱</span>
-                <span>{expiryStatus.label}</span>
-              </span>
-            )}
-            {expired && (
-              <span className="inline-flex items-center rounded-sm border-2 border-black bg-white/10 px-2 py-0.5 text-[10px] font-bold text-[var(--fg-muted)]">
-                Expired
-              </span>
-            )}
-          </div>
-
-          {/* Primary Action Button */}
-          {effectivelyActive ? (
-            <button
-              type="button"
-              onClick={() => onAction(post)}
-              className="retro-btn cursor-pointer text-xs font-black tracking-wider transition-all duration-150"
-              style={{
-                padding: "6px 14px",
-              }}
-            >
-              {isRoomPost ? (
-                <span className="flex items-center gap-1.5">
-                  <span>OPEN ROOM</span>
-                  <span className="text-sm">↗</span>
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <span>VIEW CONTACT</span>
-                  <span className="text-sm">👤</span>
-                </span>
-              )}
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled
-              className="cursor-not-allowed rounded-sm border-2 border-black bg-black/40 px-3 py-1.5 text-xs font-bold text-white/30 shadow-[1px_1px_0_#000]"
-            >
-              {post.status === "CLOSED" ? "Post Closed" : "Expired"}
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
 /* ---------- Skeleton loader ---------- */
 function SkeletonCard() {
   return (
     <div className="feed-card animate-pulse space-y-3 p-4 sm:p-5">
-      {/* Author meta row */}
       <div className="flex items-center justify-between border-b border-black/40 pb-2.5">
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-sm border-2 border-black bg-white/10" />
@@ -480,22 +159,18 @@ function SkeletonCard() {
         <div className="h-4 w-14 rounded-sm bg-white/10" />
       </div>
 
-      {/* Image block */}
       <div className="aspect-[16/9] w-full rounded-sm border-2 border-black bg-white/5" />
 
-      {/* Title block */}
       <div className="space-y-1.5 pt-1">
         <div className="h-4 w-4/5 rounded-sm bg-white/15" />
         <div className="h-4 w-1/2 rounded-sm bg-white/10" />
       </div>
 
-      {/* Description lines */}
       <div className="space-y-1.5 pt-1">
         <div className="h-3 w-full rounded-sm bg-white/10" />
         <div className="h-3 w-3/4 rounded-sm bg-white/10" />
       </div>
 
-      {/* Footer row */}
       <div className="flex items-center justify-between border-t border-black/40 pt-3">
         <div className="h-5 w-24 rounded-sm bg-white/10" />
         <div className="h-7 w-28 rounded-sm border-2 border-black bg-white/15" />
@@ -510,9 +185,11 @@ export default function BuzzPage() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [activeTrendingTag, setActiveTrendingTag] = useState<string | null>(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
 
   // Contact modal state
   const [contactModal, setContactModal] = useState<{
@@ -562,10 +239,29 @@ export default function BuzzPage() {
     };
   }, []);
 
+  const trendingTags = useMemo(() => {
+    return getTrendingTags(posts);
+  }, [posts]);
+
   const filteredPosts = useMemo(() => {
-    if (selectedFilter === "ALL") return posts;
-    return posts.filter((p) => p.hashtags.includes(selectedFilter));
-  }, [posts, selectedFilter]);
+    let result = posts;
+
+    // Apply main hashtag filter if set
+    if (selectedFilter !== "ALL") {
+      result = result.filter((p) => p.hashtags.includes(selectedFilter));
+    }
+
+    // Apply trending tag filter if active
+    if (activeTrendingTag) {
+      result = result.filter((p) =>
+        p.hashtags.some(
+          (t) => t.toLowerCase() === activeTrendingTag.toLowerCase()
+        )
+      );
+    }
+
+    return result;
+  }, [posts, selectedFilter, activeTrendingTag]);
 
   const handlePostAction = async (post: Post) => {
     if (post.status === "CLOSED") return;
@@ -594,11 +290,14 @@ export default function BuzzPage() {
   const handlePostCreated = (newPost: Post) => {
     setPosts((cur) => [newPost, ...cur]);
     setShowCreatePost(false);
+    setToastMessage("✓ Buzz posted! Your coordination is live on campus.");
+    setTimeout(() => setToastMessage(""), 4000);
   };
 
-  // Empty state label for current filter
-  // Empty state label for current filter
   const emptyLabel = useMemo(() => {
+    if (activeTrendingTag) {
+      return `No active posts matching ${activeTrendingTag}.`;
+    }
     switch (selectedFilter) {
       case "#foodsplit":
         return "No food splits right now.";
@@ -613,7 +312,7 @@ export default function BuzzPage() {
       default:
         return "No campus buzz yet. Be the first to start something.";
     }
-  }, [selectedFilter]);
+  }, [selectedFilter, activeTrendingTag]);
 
   return (
     <div className="buzz-layout">
@@ -637,7 +336,7 @@ export default function BuzzPage() {
         {/* Filter Navigation Bar (Horizontally scrollable on mobile) */}
         <nav
           aria-label="Feed filters"
-          className="mb-4 overflow-x-auto pb-1 text-xs scrollbar-none"
+          className="mb-3 overflow-x-auto pb-1 text-xs scrollbar-none"
         >
           <div className="flex min-w-max items-center gap-2">
             {filters.map((f) => {
@@ -651,7 +350,10 @@ export default function BuzzPage() {
                 <button
                   key={f.value}
                   type="button"
-                  onClick={() => setSelectedFilter(f.value)}
+                  onClick={() => {
+                    setSelectedFilter(f.value);
+                    setActiveTrendingTag(null);
+                  }}
                   style={{
                     borderColor: isActive ? "black" : "rgba(0,0,0,0.8)",
                     boxShadow: isActive ? "3px 3px 0 #000" : "1px 1px 0 #000",
@@ -680,18 +382,69 @@ export default function BuzzPage() {
           </div>
         </nav>
 
+        {/* Trending Tags Strip */}
+        {trendingTags.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--neon-yellow)]">
+              Trending:
+            </span>
+            {trendingTags.map(({ tag, count }) => {
+              const isSelected = activeTrendingTag === tag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() =>
+                    setActiveTrendingTag((cur) => (cur === tag ? null : tag))
+                  }
+                  className={`cursor-pointer rounded-sm border px-2 py-0.5 text-[10px] font-bold transition-all ${
+                    isSelected
+                      ? "border-[var(--neon-cyan)] bg-[var(--neon-cyan)] text-black shadow-[1px_1px_0_#000]"
+                      : "border-black/60 bg-black/40 text-[var(--fg-muted)] hover:border-white/40 hover:text-white"
+                  }`}
+                >
+                  {tag} <span className="opacity-60">({count})</span>
+                </button>
+              );
+            })}
+            {activeTrendingTag && (
+              <button
+                type="button"
+                onClick={() => setActiveTrendingTag(null)}
+                className="cursor-pointer text-[10px] font-bold text-[var(--accent)] hover:underline ml-1"
+              >
+                ✕ Clear tag
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Success Toast */}
+        {toastMessage && (
+          <div className="mb-4 flex items-center justify-between rounded-sm border-2 border-black bg-[rgba(0,229,200,0.15)] p-3 text-xs font-bold text-emerald-300 shadow-[3px_3px_0_#000]">
+            <span>{toastMessage}</span>
+            <button
+              type="button"
+              onClick={() => setToastMessage("")}
+              className="text-white/60 hover:text-white cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Post Creator Action Bar */}
         <div className="mb-4 rounded-sm border-3 border-black bg-gradient-to-r from-[rgba(26,18,52,0.95)] to-[rgba(14,10,32,0.95)] p-3.5 shadow-[4px_4px_0_#000]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border-2 border-black bg-[var(--accent)] text-lg shadow-[2px_2px_0_#000]">
-                ⚡
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border-2 border-black bg-[var(--accent)] shadow-[2px_2px_0_#000]">
+                <SparkIcon className="h-5 w-5 text-white" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">
                   Coordinate with campus peers
                 </p>
-                <p className="text-xs text-[var(--fg-muted)]">
+                <p className="font-readable text-xs text-[var(--fg-muted)]">
                   Need a cab partner, food split, item buyer, or lost property?
                 </p>
               </div>
@@ -736,12 +489,12 @@ export default function BuzzPage() {
         ) : error ? (
           <div className="feed-card rounded-sm border-2 border-[var(--accent)] p-8 text-center sm:p-10">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-black bg-[rgba(255,45,74,0.2)] text-xl text-[var(--accent)] shadow-[2px_2px_0_#000]">
-              ⚠
+              <AlertCircleIcon className="h-6 w-6" />
             </div>
             <p className="text-base font-bold text-white">
               Unable to load campus buzz
             </p>
-            <p className="mx-auto mt-1 max-w-sm text-xs text-[var(--fg-muted)]">
+            <p className="font-readable mx-auto mt-1 max-w-sm text-xs text-[var(--fg-muted)]">
               {error ||
                 "We couldn't connect to the campus feed. Please check your connection and try again."}
             </p>
@@ -757,23 +510,25 @@ export default function BuzzPage() {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="feed-card rounded-sm p-8 text-center sm:p-12">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-sm border-2 border-black bg-[rgba(255,45,74,0.15)] text-2xl shadow-[2px_2px_0_#000]">
-              {selectedFilter === "#foodsplit"
-                ? "🍕"
-                : selectedFilter === "#cabsplit"
-                ? "🚕"
-                : selectedFilter === "#resell"
-                ? "🏷️"
-                : selectedFilter === "#lost"
-                ? "⚠️"
-                : selectedFilter === "#found"
-                ? "🔍"
-                : "✦"}
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-sm border-2 border-black bg-[rgba(255,45,74,0.15)] shadow-[2px_2px_0_#000]">
+              {selectedFilter === "#foodsplit" ? (
+                <UtensilsIcon className="h-7 w-7 text-[var(--tag-food)]" />
+              ) : selectedFilter === "#cabsplit" ? (
+                <CarIcon className="h-7 w-7 text-[var(--tag-cab)]" />
+              ) : selectedFilter === "#resell" ? (
+                <TagIcon className="h-7 w-7 text-[var(--tag-resell)]" />
+              ) : selectedFilter === "#lost" ? (
+                <AlertCircleIcon className="h-7 w-7 text-[var(--tag-lost)]" />
+              ) : selectedFilter === "#found" ? (
+                <SearchIcon className="h-7 w-7 text-[var(--tag-found)]" />
+              ) : (
+                <SparkIcon className="h-7 w-7 text-[var(--neon-yellow)]" />
+              )}
             </div>
             <p className="text-base font-bold text-white sm:text-lg">
               {emptyLabel}
             </p>
-            <p className="mt-1 text-xs text-[var(--fg-muted)]">
+            <p className="font-readable mt-1 text-xs text-[var(--fg-muted)]">
               {selectedFilter === "ALL"
                 ? "Start a split, list an item for sale, or report lost property for verified campus students."
                 : `Have something related to ${selectedFilter}? Post it to connect with campus.`}
@@ -791,7 +546,7 @@ export default function BuzzPage() {
         ) : (
           <div className="space-y-3">
             {filteredPosts.map((post) => (
-              <FeedCard
+              <PostCard
                 key={post.id}
                 post={post}
                 onAction={handlePostAction}

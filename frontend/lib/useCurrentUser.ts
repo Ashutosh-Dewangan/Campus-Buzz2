@@ -1,26 +1,9 @@
-// ============================================================
-// REPLACED PART
-// frontend/lib/useCurrentUser.ts
-//
-// Reads the current session without synchronously calling
-// setState inside an effect.
-// ============================================================
-
 "use client";
 
-import { useState } from "react";
+import { useCurrentUser as useSessionUser } from "@/lib/session";
 
-import {
-  getCurrentUser,
-  type CurrentUser,
-} from "@/lib/session";
-
-// Read the session lazily during initial state creation.
-// This avoids the React 19 set-state-in-effect warning.
 export function useCurrentUser() {
-  const [user] = useState<CurrentUser | null>(
-    () => getCurrentUser()
-  );
+  const user = useSessionUser();
 
   return {
     user,

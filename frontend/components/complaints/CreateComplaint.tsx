@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Complaint } from "@/types";
+import { Complaint, ComplaintCategory } from "@/types";
 import { createComplaint } from "@/lib/api";
 
 interface CreateComplaintProps {
@@ -9,12 +9,22 @@ interface CreateComplaintProps {
   onComplaintCreated?: (newComplaint: Complaint) => void;
 }
 
+const categories: ComplaintCategory[] = [
+  "Hostel",
+  "Mess / Cafeteria",
+  "Campus Wi-Fi",
+  "Library / Facilities",
+  "Academic",
+  "Other",
+];
+
 export default function CreateComplaint({
   onClose,
   onComplaintCreated,
 }: CreateComplaintProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<ComplaintCategory>("Hostel");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +47,7 @@ export default function CreateComplaint({
       const created = await createComplaint({
         title: title.trim(),
         description: description.trim(),
+        category,
       });
 
       onComplaintCreated?.(created);
@@ -57,7 +68,7 @@ export default function CreateComplaint({
               File a Complaint
             </h2>
             <p className="mt-1 text-xs" style={{ color: "var(--neon-cyan)" }}>
-              🔒 Protected Anonymous Channel · Real Campus Triage
+              Protected Anonymous Channel · Real Campus Triage
             </p>
           </div>
 
@@ -81,11 +92,33 @@ export default function CreateComplaint({
               boxShadow: "2px 2px 0 #000",
             }}
           >
-            ⚠ {error}
+            {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="complaint-cat"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
+              Category *
+            </label>
+            <select
+              id="complaint-cat"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
+              className="comic-input w-full px-4 py-2.5 text-xs text-[var(--fg)] outline-none"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label
               htmlFor="complaint-title"
@@ -99,7 +132,7 @@ export default function CreateComplaint({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Broken water purifier in Hostel 2, Wi-Fi outage"
-              className="comic-input w-full px-4 py-2.5 text-sm"
+              className="comic-input font-readable w-full px-4 py-2.5 text-xs"
               required
             />
           </div>
@@ -118,20 +151,20 @@ export default function CreateComplaint({
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Describe the issue, exact wing/floor/room, and duration..."
-              className="comic-input w-full px-4 py-2.5 text-sm"
+              className="comic-input font-readable w-full px-4 py-2.5 text-xs leading-relaxed"
               required
             />
           </div>
 
           <div
-            className="border-2 border-black p-3.5 text-xs leading-relaxed"
+            className="font-readable border-2 border-black p-3.5 text-xs leading-relaxed"
             style={{
               background: "rgba(42,240,255,0.08)",
               color: "var(--fg-muted)",
               boxShadow: "2px 2px 0 #000",
             }}
           >
-            <strong style={{ color: "var(--neon-cyan)" }}>🛡️ Privacy Notice:</strong> The public feed only displays <em style={{ color: "#fff" }}>Anonymous Student</em>. No student identity or roll number is publicly shown.
+            <strong style={{ color: "var(--neon-cyan)" }}>Privacy Notice:</strong> The public feed only displays <em style={{ color: "#fff" }}>Anonymous Student</em>. No student identity or roll number is publicly shown.
           </div>
 
           <div className="flex justify-end gap-3 pt-3">

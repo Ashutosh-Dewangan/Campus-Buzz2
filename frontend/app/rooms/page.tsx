@@ -1,38 +1,46 @@
 "use client";
 
-import {
-  Suspense,
-  useEffect,
-  useState,
-} from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import ChatRoom from "@/components/rooms/ChatRoom";
-import { getPosts } from "@/lib/api";
-import type { Post } from "@/types";
+import { getPosts, getRooms } from "@/lib/api";
+import type { Post, Room } from "@/types";
+import {
+  AlertCircleIcon,
+  CarIcon,
+  TagIcon,
+  UsersIcon,
+  UtensilsIcon,
+} from "@/components/ui/Icons";
 
 const roomTypeConfig: Record<
   string,
-  { tag: string; label: string; color: string; icon: string }
+  {
+    tag: string;
+    label: string;
+    color: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   FOOD_SPLIT: {
     tag: "#foodsplit",
     label: "Food Split",
     color: "var(--tag-food)",
-    icon: "🍕",
+    icon: UtensilsIcon,
   },
   CAB_SPLIT: {
     tag: "#cabsplit",
     label: "Cab Split",
     color: "var(--tag-cab)",
-    icon: "🚕",
+    icon: CarIcon,
   },
   RESELL: {
     tag: "#resell",
     label: "Resell",
     color: "var(--tag-resell)",
-    icon: "🏷️",
+    icon: TagIcon,
   },
 };
 
@@ -42,6 +50,8 @@ function RoomsContent() {
 
   const [post, setPost] = useState<Post | null>(null);
   const [allRoomPosts, setAllRoomPosts] = useState<Post[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,10 +60,12 @@ function RoomsContent() {
 
     async function fetchRooms() {
       try {
-        const posts = await getPosts();
+        const [postsData, roomsData] = await Promise.all([getPosts(), getRooms()]);
         if (ignore) return;
 
-        const activeRooms = posts.filter(
+        setRooms(roomsData);
+
+        const activeRooms = postsData.filter(
           (item) =>
             ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(item.interactionType) &&
             item.status === "ACTIVE"
@@ -61,7 +73,7 @@ function RoomsContent() {
         setAllRoomPosts(activeRooms);
 
         if (postId) {
-          const found = posts.find((item) => item.id === postId);
+          const found = postsData.find((item) => item.id === postId);
           if (!found) {
             setError("The selected coordination room could not be found.");
           } else {
@@ -91,6 +103,11 @@ function RoomsContent() {
     };
   }, [postId]);
 
+  const filteredRoomPosts = useMemo(() => {
+    if (roomFilter === "ALL") return allRoomPosts;
+    return allRoomPosts.filter((p) => p.hashtags.includes(roomFilter));
+  }, [allRoomPosts, roomFilter]);
+
   // Loading skeleton
   if (loading) {
     return (
@@ -98,8 +115,8 @@ function RoomsContent() {
         <div className="mx-auto max-w-4xl py-6">
           <div className="comic-card animate-pulse p-8 text-center">
             <div className="mx-auto mb-4 h-8 w-48 rounded-sm bg-white/10" />
-            <p className="text-xs font-semibold text-[var(--fg-muted)]">
-              Connecting to campus rooms...
+            <p className="text-xs font-semibold text-[var(--neon-cyan)]">
+              Connecting to campus coordination rooms...
             </p>
           </div>
         </div>
@@ -120,12 +137,12 @@ function RoomsContent() {
       tag: roomType,
       label: "Room",
       color: "var(--neon-cyan)",
-      icon: "👥",
+      icon: UsersIcon,
     };
 
     return (
       <main className="comic-page">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           {/* Navigation & Header */}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -146,30 +163,8 @@ function RoomsContent() {
               className="flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.9)] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider shadow-[2px_2px_0_#000]"
               style={{ color: config.color }}
             >
-              <span>{config.icon}</span>
+              <config.icon className="h-3.5 w-3.5" />
               <span>{config.tag}</span>
-            </div>
-          </div>
-
-          {/* Post Header Card */}
-          <div className="comic-card mb-4 p-4">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--fg-muted)]">
-                  Coordinating Post
-                </p>
-                <h1 className="text-base font-bold text-white sm:text-lg">
-                  {post.title}
-                </h1>
-                <p className="mt-0.5 line-clamp-2 text-xs text-[var(--fg-muted)]">
-                  {post.description}
-                </p>
-              </div>
-              <div className="shrink-0 text-left sm:text-right">
-                <span className="text-xs font-semibold text-[var(--fg-muted)]">
-                  Posted by <span className="font-bold text-white">{post.author}</span>
-                </span>
-              </div>
             </div>
           </div>
 
@@ -191,7 +186,7 @@ function RoomsContent() {
         <div className="mx-auto max-w-xl py-12">
           <div className="comic-card p-8 text-center">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border-2 border-black bg-[rgba(255,45,74,0.2)] text-xl text-[var(--accent)] shadow-[2px_2px_0_#000]">
-              ⚠
+              <AlertCircleIcon className="h-6 w-6" />
             </div>
             <h2 className="text-base font-bold text-white">
               Room Unavailable
@@ -213,7 +208,7 @@ function RoomsContent() {
     );
   }
 
-  // Default / Direct Navigation to /rooms (No postId selected)
+  // Default Navigation to /rooms (List of All Active Rooms)
   return (
     <main className="comic-page">
       <div className="mx-auto max-w-5xl">
@@ -241,16 +236,37 @@ function RoomsContent() {
           </div>
         </header>
 
+        {/* Filter Pills */}
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+          {[
+            { label: "All Rooms", value: "ALL" },
+            { label: "Food Splits", value: "#foodsplit" },
+            { label: "Cab Splits", value: "#cabsplit" },
+            { label: "Resell Rooms", value: "#resell" },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setRoomFilter(tab.value)}
+              className={`filter-pill cursor-pointer ${
+                roomFilter === tab.value ? "filter-pill--active" : ""
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {/* List of active coordination rooms */}
-        {allRoomPosts.length === 0 ? (
+        {filteredRoomPosts.length === 0 ? (
           <div className="comic-card p-10 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-sm border-2 border-black bg-[rgba(42,240,255,0.12)] text-2xl text-[var(--neon-cyan)] shadow-[2px_2px_0_#000]">
-              👥
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-sm border-2 border-black bg-[rgba(42,240,255,0.12)] text-[var(--neon-cyan)] shadow-[2px_2px_0_#000]">
+              <UsersIcon className="h-7 w-7" />
             </div>
             <h2 className="text-base font-bold text-white sm:text-lg">
-              No Active Rooms Right Now
+              No Active Rooms in this Category
             </h2>
-            <p className="mx-auto mt-1 max-w-md text-xs text-[var(--fg-muted)]">
+            <p className="font-readable mx-auto mt-1 max-w-md text-xs text-[var(--fg-muted)]">
               Coordination rooms open automatically when students publish a #foodsplit, #cabsplit, or #resell post on Campus Buzz.
             </p>
             <div className="mt-5">
@@ -261,13 +277,19 @@ function RoomsContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {allRoomPosts.map((rPost) => {
+            {filteredRoomPosts.map((rPost) => {
               const config = roomTypeConfig[rPost.interactionType] || {
                 tag: rPost.hashtags[0] || "#room",
                 label: "Room",
                 color: "var(--neon-cyan)",
-                icon: "👥",
+                icon: UsersIcon,
               };
+
+              const matchedRoom = rooms.find(
+                (r) => r.postId === rPost.id || r.id === `r-${rPost.id}`
+              );
+              const participantCount =
+                matchedRoom?.participants?.length || matchedRoom?.members?.length || 2;
 
               return (
                 <div
@@ -281,27 +303,46 @@ function RoomsContent() {
                         className="flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.9)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-[1px_1px_0_#000]"
                         style={{ color: config.color }}
                       >
-                        <span>{config.icon}</span>
+                        <config.icon className="h-3 w-3" />
                         <span>{config.tag}</span>
                       </div>
-                      <span className="text-[11px] text-[var(--fg-muted)]">
-                        By {rPost.author}
-                      </span>
+                      <div className="flex items-center gap-2 text-[11px] text-[var(--fg-muted)]">
+                        <span className="inline-flex items-center gap-1">
+                          <UsersIcon className="h-3 w-3" />
+                          <span>{participantCount} joined</span>
+                        </span>
+                        <span>· By {rPost.author}</span>
+                      </div>
                     </div>
 
                     {/* Title & Description */}
                     <h3 className="mt-2.5 line-clamp-2 text-sm font-bold text-white">
                       {rPost.title}
                     </h3>
-                    <p className="mt-1 line-clamp-2 text-xs text-[var(--fg-muted)]">
+                    <p className="font-readable mt-1 line-clamp-2 text-xs text-[var(--fg-muted)] leading-relaxed">
                       {rPost.description}
                     </p>
+
+                    {/* Specific preview attributes */}
+                    {rPost.departureTime && (
+                      <p className="mt-2 text-[11px] font-bold text-[var(--neon-cyan)] inline-flex items-center gap-1">
+                        <CarIcon className="h-3 w-3 shrink-0" />
+                        <span>Departs: {rPost.departureTime}</span>
+                      </p>
+                    )}
+                    {rPost.price && (
+                      <p className="mt-2 text-[11px] font-bold text-[var(--neon-green)] inline-flex items-center gap-1">
+                        <TagIcon className="h-3 w-3 shrink-0" />
+                        <span>Asking: {rPost.price}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Action */}
                   <div className="mt-4 flex items-center justify-between border-t border-black/40 pt-3">
-                    <span className="text-[10px] font-bold text-emerald-400">
-                      ● Active Coordination
+                    <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live Coordination
                     </span>
                     <Link
                       href={`/rooms?postId=${rPost.id}`}

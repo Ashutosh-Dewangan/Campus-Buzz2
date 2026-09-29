@@ -84,7 +84,7 @@ export default function EventForm({
               boxShadow: "2px 2px 0 #000",
             }}
           >
-            ⚠ {error}
+            {error}
           </div>
         )}
 
@@ -194,7 +194,7 @@ export default function EventForm({
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Describe the event, rules, schedule, prizes..."
-              className="comic-input w-full px-4 py-2 text-sm"
+              className="comic-input font-readable w-full px-4 py-2 text-sm leading-relaxed"
               required
             />
           </div>

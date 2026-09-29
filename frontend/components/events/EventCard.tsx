@@ -1,4 +1,5 @@
 import { Event } from "@/types";
+import { CalendarIcon, ClockIcon, PinIcon } from "@/components/ui/Icons";
 
 interface EventCardProps {
   event: Event;
@@ -27,16 +28,27 @@ export default function EventCard({
           )}
         </div>
 
-        <div className="mt-3 space-y-1 text-sm" style={{ color: "var(--fg-muted)" }}>
-          <p>📅 {event.date}</p>
-          <p>🕐 {event.time}</p>
-          <p>📍 {event.venue}</p>
+        <div className="mt-3 space-y-1.5 text-xs font-semibold text-[var(--fg-muted)]">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-3.5 w-3.5 text-[var(--neon-yellow)] shrink-0" />
+            <span>{event.date}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ClockIcon className="h-3.5 w-3.5 text-[var(--neon-yellow)] shrink-0" />
+            <span>{event.time}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <PinIcon className="h-3.5 w-3.5 text-[var(--neon-yellow)] shrink-0" />
+            <span>{event.venue}</span>
+          </div>
           {event.createdBy && (
-            <p className="text-xs" style={{ color: "var(--fg-muted)" }}>🏛 By {event.createdBy}</p>
+            <div className="pt-0.5 text-[11px] text-[var(--fg-muted)]">
+              Organized by <strong className="text-white">{event.createdBy}</strong>
+            </div>
           )}
         </div>
 
-        <p className="mt-4 line-clamp-3 text-sm leading-6" style={{ color: "var(--fg-muted)" }}>
+        <p className="font-readable mt-3.5 line-clamp-3 text-sm leading-relaxed text-[var(--fg-muted)]">
           {event.description}
         </p>
       </div>

@@ -95,7 +95,7 @@ export default function CreateOfficialPost({
               boxShadow: "2px 2px 0 #000",
             }}
           >
-            ⚠ {error}
+            {error}
           </div>
         )}
 
@@ -114,7 +114,7 @@ export default function CreateOfficialPost({
               onChange={(e) => setOrganization(e.target.value)}
               list="org-list"
               placeholder="e.g. Placement Cell, Student Council, Coding Club"
-              className="comic-input w-full px-4 py-2 text-sm"
+              className="comic-input font-readable w-full px-4 py-2 text-sm"
               required
             />
             <datalist id="org-list">
@@ -138,7 +138,7 @@ export default function CreateOfficialPost({
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="Important notice details, instructions, deadlines..."
-              className="comic-input w-full px-4 py-2 text-sm"
+              className="comic-input font-readable w-full px-4 py-2 text-sm leading-relaxed"
               required
             />
           </div>

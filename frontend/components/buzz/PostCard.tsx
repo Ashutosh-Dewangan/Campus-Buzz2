@@ -1,229 +1,365 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { Post } from "@/types";
+import {
+  UtensilsIcon,
+  CarIcon,
+  TagIcon,
+  AlertCircleIcon,
+  SearchIcon,
+  SparkIcon,
+  ClockIcon,
+} from "@/components/ui/Icons";
 
 interface PostCardProps {
   post: Post;
   onAction: (post: Post) => void;
 }
 
-export default function PostCard({
-  post,
-  onAction,
-}: PostCardProps) {
-  const primaryHashtag =
-    post.hashtags[0] || "#campus";
+const interactionConfig: Record<
+  string,
+  { tag: string; label: string; color: string; bg: string; icon: ReactNode }
+> = {
+  FOOD_SPLIT: {
+    tag: "#foodsplit",
+    label: "Food Split",
+    color: "var(--tag-food)",
+    bg: "rgba(255, 59, 74, 0.15)",
+    icon: <UtensilsIcon className="h-3 w-3" />,
+  },
+  CAB_SPLIT: {
+    tag: "#cabsplit",
+    label: "Cab Split",
+    color: "var(--tag-cab)",
+    bg: "rgba(58, 208, 255, 0.15)",
+    icon: <CarIcon className="h-3 w-3" />,
+  },
+  RESELL: {
+    tag: "#resell",
+    label: "Resell",
+    color: "var(--tag-resell)",
+    bg: "rgba(180, 79, 255, 0.15)",
+    icon: <TagIcon className="h-3 w-3" />,
+  },
+  LOST: {
+    tag: "#lost",
+    label: "Lost Item",
+    color: "var(--tag-lost)",
+    bg: "rgba(255, 225, 74, 0.15)",
+    icon: <AlertCircleIcon className="h-3 w-3" />,
+  },
+  FOUND: {
+    tag: "#found",
+    label: "Found Item",
+    color: "var(--tag-found)",
+    bg: "rgba(0, 229, 200, 0.15)",
+    icon: <SearchIcon className="h-3 w-3" />,
+  },
+};
 
-  const isRoomPost = useMemo(
-    () =>
-      ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
-        post.interactionType
-      ),
-    [post.interactionType]
+interface ExpiryStatus {
+  label: string;
+  expired: boolean;
+  tier: "normal" | "warning" | "urgent" | "expired";
+}
+
+function getExpiryStatus(expiresAt: string): ExpiryStatus | null {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) {
+    return { label: "Expired", expired: true, tier: "expired" };
+  }
+
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  let timeString = "";
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24);
+    const remHours = hours % 24;
+    timeString = remHours > 0 ? `${days}d ${remHours}h` : `${days}d`;
+  } else if (hours > 0) {
+    timeString = minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  } else {
+    timeString = `${Math.max(1, minutes)}m`;
+  }
+
+  let tier: "normal" | "warning" | "urgent" = "normal";
+  if (totalMinutes <= 15) {
+    tier = "urgent";
+  } else if (totalMinutes <= 60) {
+    tier = "warning";
+  }
+
+  return {
+    label: `Expires in ${timeString}`,
+    expired: false,
+    tier,
+  };
+}
+
+export default function PostCard({ post, onAction }: PostCardProps) {
+  const config =
+    interactionConfig[post.interactionType ?? ""] || {
+      tag: post.hashtags[0] || "#campus",
+      label: "Campus",
+      color: "var(--neon-cyan)",
+      bg: "rgba(42, 240, 255, 0.12)",
+      icon: <SparkIcon className="h-3 w-3" />,
+    };
+
+  const primaryTag = config.tag;
+  const isRoomPost = ["FOOD_SPLIT", "CAB_SPLIT", "RESELL"].includes(
+    post.interactionType
   );
 
-  const actionLabel = useMemo(() => {
-    switch (post.interactionType) {
-      case "FOOD_SPLIT":
-        return "Join food coordination";
+  const [timeDisplay, setTimeDisplay] = useState(() => {
+    const now = Date.now();
+    const minutesAgo = Math.max(
+      0,
+      Math.round((now - new Date(post.createdAt).getTime()) / 60000)
+    );
+    const ago =
+      minutesAgo < 1
+        ? "just now"
+        : minutesAgo < 60
+        ? `${minutesAgo}m ago`
+        : minutesAgo < 1440
+        ? `${Math.floor(minutesAgo / 60)}h ago`
+        : `${Math.floor(minutesAgo / 1440)}d ago`;
 
-      case "CAB_SPLIT":
-        return "Join cab coordination";
-
-      case "RESELL":
-        return "Join buyer room";
-
-      case "LOST":
-      case "FOUND":
-        return "View contact";
-
-      default:
-        return "View post";
+    let expiryStatus: ExpiryStatus | null = null;
+    let expired = false;
+    if (post.expiresAt) {
+      expiryStatus = getExpiryStatus(post.expiresAt);
+      if (expiryStatus?.expired) {
+        expired = true;
+      }
     }
-  }, [post.interactionType]);
 
-  const actionIcon = isRoomPost ? "↗" : "→";
-
-  const formattedDate = new Date(
-    post.createdAt
-  ).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
+    return { ago, expiryStatus, expired };
   });
 
-  return (
-    <article className="cb-card cb-card-hover cb-fade-up overflow-hidden">
-      {/* Post image */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
-        {post.image ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={post.image}
-            alt={post.title}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gray-100 text-sm text-gray-400">
-            No image available
-          </div>
-        )}
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const minutesAgo = Math.max(
+        0,
+        Math.round((now - new Date(post.createdAt).getTime()) / 60000)
+      );
+      const ago =
+        minutesAgo < 1
+          ? "just now"
+          : minutesAgo < 60
+          ? `${minutesAgo}m ago`
+          : minutesAgo < 1440
+          ? `${Math.floor(minutesAgo / 60)}h ago`
+          : `${Math.floor(minutesAgo / 1440)}d ago`;
 
-        {/* Primary hashtag */}
-        <div className="absolute left-4 top-4">
-          <span className="rounded-full border border-white/60 bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm backdrop-blur">
-            {primaryHashtag}
-          </span>
+      let expiryStatus: ExpiryStatus | null = null;
+      let expired = false;
+      if (post.expiresAt) {
+        expiryStatus = getExpiryStatus(post.expiresAt);
+        if (expiryStatus?.expired) {
+          expired = true;
+        }
+      }
+
+      setTimeDisplay({ ago, expiryStatus, expired });
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [post.createdAt, post.expiresAt]);
+
+  const { ago, expiryStatus, expired } = timeDisplay;
+  const effectivelyActive = post.status === "ACTIVE" && !expired;
+  const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : "?";
+
+  return (
+    <article className="group feed-card cb-fade-up transition-all duration-200 hover:-translate-y-0.5">
+      {/* Author & Header Metadata */}
+      <div className="mb-3 flex items-center justify-between border-b border-black/40 pb-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-sm border-2 border-black bg-gradient-to-br from-[var(--accent)] to-[#8b0018] text-xs font-black text-white shadow-[1px_1px_0_#000]">
+            {authorInitial}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 leading-none">
+            <span className="text-xs font-bold text-white sm:text-sm">
+              {post.author}
+            </span>
+            <span className="inline-flex items-center gap-0.5 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-400">
+              ✓ Verified Student
+            </span>
+            <span className="text-[11px] text-[var(--fg-muted)]">
+              · {ago}
+            </span>
+          </div>
         </div>
 
-        {/* Active / closed status */}
-        <div className="absolute bottom-4 right-4">
-          <span
-            className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold shadow-sm backdrop-blur ${
-              post.status === "ACTIVE"
-                ? "border-white/40 bg-black/75 text-white"
-                : "border-gray-200 bg-white/90 text-gray-600"
-            }`}
-          >
-            {post.status === "ACTIVE"
-              ? "● Active"
-              : "Closed"}
-          </span>
+        {/* Status Pill */}
+        <div>
+          {post.status === "CLOSED" ? (
+            <span className="rounded-sm border border-black bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
+              Closed
+            </span>
+          ) : expired ? (
+            <span className="rounded-sm border border-black bg-black/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+              Expired
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-sm border border-black bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Active
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-5 sm:p-6">
-        {/* Metadata */}
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-xs font-medium text-gray-400">
-            Campus Buzz
-          </span>
-
-          <time
-            dateTime={post.createdAt}
-            className="text-xs text-gray-400"
+      {/* Post Image */}
+      {post.image ? (
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-sm border-2 border-black bg-black/80">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={post.image}
+            alt={post.title}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+          {/* Category Tag Overlay */}
+          <div
+            className="absolute left-2.5 top-2.5 flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.92)] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#000]"
+            style={{ color: config.color }}
           >
-            {formattedDate}
-          </time>
-        </div>
+            <span>{config.icon}</span>
+            <span>{primaryTag}</span>
+          </div>
 
+          {/* Quick Resell Price Badge if present */}
+          {post.price && (
+            <div className="absolute right-2.5 top-2.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.95)] px-2.5 py-1 text-xs font-black text-[var(--neon-green)] shadow-[2px_2px_0_#000]">
+              {post.price}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mb-2 flex items-center justify-between">
+          <div
+            className="flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(10,6,24,0.9)] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0_#000]"
+            style={{ color: config.color }}
+          >
+            <span>{config.icon}</span>
+            <span>{primaryTag}</span>
+          </div>
+
+          {post.price && (
+            <span className="text-xs font-black text-[var(--neon-green)]">
+              {post.price}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="mt-3">
         {/* Title */}
-        <h2 className="mt-3 text-lg font-bold leading-7 tracking-tight text-gray-950 sm:text-xl">
+        <h2 className="text-base font-bold leading-snug tracking-tight text-white line-clamp-2 sm:text-lg">
           {post.title}
         </h2>
 
         {/* Description */}
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-600">
+        <p className="font-readable mt-2 text-sm leading-relaxed text-[var(--fg-muted)] line-clamp-3">
           {post.description}
         </p>
 
-        {/* Author */}
-        <div className="mt-4 flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-950 text-[10px] font-bold text-white">
-            {post.author
-              ? post.author.charAt(0).toUpperCase()
-              : "?"}
-          </div>
-
-          <span className="text-xs font-medium text-gray-500">
-            {post.author}
-          </span>
-        </div>
-
-        {/* Hashtags */}
-        {post.hashtags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {post.hashtags.map((hashtag) => (
-              <span
-                key={hashtag}
-                className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-600"
-              >
-                {hashtag}
-              </span>
-            ))}
+        {/* Dynamic Context Snippets */}
+        {post.departureTime && (
+          <div className="mt-2 flex items-center gap-2 text-[11px] font-bold text-[var(--neon-cyan)]">
+            <span>Departs: {post.departureTime}</span>
+            {post.pickupLocation && <span>· Pickup: {post.pickupLocation}</span>}
           </div>
         )}
 
-        {/* Expiry */}
-        {post.expiresAt &&
-          post.status === "ACTIVE" && (
-            <div className="mt-4 flex items-center gap-2 rounded-xl border border-orange-100 bg-orange-50 px-3.5 py-2.5">
-              <span className="text-sm">⏱</span>
+        {post.itemCondition && (
+          <div className="mt-2 text-[11px] font-bold text-[var(--neon-yellow)]">
+            <span>Condition: {post.itemCondition}</span>
+          </div>
+        )}
 
-              <div>
-                <p className="text-[11px] font-semibold text-orange-800">
-                  Coordination expires
-                </p>
+        {/* Secondary Hashtags */}
+        {post.hashtags.length > 1 && (
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {post.hashtags
+              .filter(
+                (tag) => tag.toLowerCase() !== primaryTag.toLowerCase()
+              )
+              .map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-sm border border-black/60 bg-black/40 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--fg-muted)]"
+                >
+                  {tag.startsWith("#") ? tag : `#${tag}`}
+                </span>
+              ))}
+          </div>
+        )}
 
-                <p className="text-[10px] text-orange-600">
-                  {new Date(
-                    post.expiresAt
-                  ).toLocaleString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </div>
-          )}
-
-        {/* Divider */}
-        <div className="my-5 h-px bg-gray-100" />
-
-        {/* Action */}
-        <button
-          type="button"
-          onClick={() => onAction(post)}
-          disabled={post.status === "CLOSED"}
-          className={`group flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
-            post.status === "CLOSED"
-              ? "cursor-not-allowed border-gray-200 bg-gray-50 opacity-60"
-              : "border-gray-200 bg-white hover:border-gray-950 hover:bg-gray-950"
-          }`}
-        >
-          <div>
-            <p
-              className={`text-sm font-semibold ${
-                post.status === "CLOSED"
-                  ? "text-gray-500"
-                  : "text-gray-900 group-hover:text-white"
-              }`}
-            >
-              {post.status === "CLOSED"
-                ? "Post closed"
-                : actionLabel}
-            </p>
-
-            <p
-              className={`mt-0.5 text-[11px] ${
-                post.status === "CLOSED"
-                  ? "text-gray-400"
-                  : "text-gray-400 group-hover:text-gray-400"
-              }`}
-            >
-              {post.status === "CLOSED"
-                ? "This coordination is no longer active"
-                : isRoomPost
-                  ? "Coordinate with students"
-                  : "Connect directly with the poster"}
-            </p>
+        {/* Bottom Row: Expiry & Primary Action */}
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5 border-t border-black/40 pt-3">
+          {/* Expiry indicator if applicable */}
+          <div className="flex items-center gap-2">
+            {expiryStatus && !expiryStatus.expired && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-[10px] font-bold tracking-wide shadow-[1px_1px_0_#000] ${
+                  expiryStatus.tier === "urgent"
+                    ? "border-2 border-[var(--accent)] bg-[rgba(255,45,74,0.18)] text-[var(--accent)] animate-pulse"
+                    : expiryStatus.tier === "warning"
+                    ? "border-2 border-amber-500 bg-amber-500/15 text-amber-300"
+                    : "border-2 border-black bg-black/60 text-[var(--neon-cyan)]"
+                }`}
+              >
+                <ClockIcon className="h-3 w-3" />
+                <span>{expiryStatus.label}</span>
+              </span>
+            )}
+            {expired && (
+              <span className="inline-flex items-center rounded-sm border-2 border-black bg-white/10 px-2 py-0.5 text-[10px] font-bold text-[var(--fg-muted)]">
+                Expired
+              </span>
+            )}
           </div>
 
-          <span
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
-              post.status === "CLOSED"
-                ? "bg-gray-100 text-gray-400"
-                : "bg-gray-100 text-gray-700 group-hover:bg-white/10 group-hover:text-white"
-            }`}
-          >
-            {post.status === "CLOSED"
-              ? "×"
-              : actionIcon}
-          </span>
-        </button>
+          {/* Primary Action Button */}
+          {effectivelyActive ? (
+            <button
+              type="button"
+              onClick={() => onAction(post)}
+              className="retro-btn cursor-pointer text-xs font-black tracking-wider transition-all duration-150"
+              style={{
+                padding: "6px 14px",
+              }}
+            >
+              {isRoomPost ? (
+                <span className="flex items-center gap-1.5">
+                  <span>OPEN ROOM</span>
+                  <span className="text-sm">↗</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <span>VIEW CONTACT</span>
+                  <span className="text-sm">↗</span>
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="cursor-not-allowed rounded-sm border-2 border-black bg-black/40 px-3 py-1.5 text-xs font-bold text-white/30 shadow-[1px_1px_0_#000]"
+            >
+              {post.status === "CLOSED" ? "Post Closed" : "Expired"}
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );

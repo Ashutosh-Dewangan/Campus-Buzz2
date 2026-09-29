@@ -278,7 +278,7 @@ export default function OfficialCalendarPage() {
                     <div>
                       <p className="text-sm font-bold text-white">{ev.name}</p>
                       <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
-                        🕐 {ev.time} · 📍 {ev.venue} {ev.createdBy ? `· 🏛 ${ev.createdBy}` : ""}
+                        Time: {ev.time} · Venue: {ev.venue} {ev.createdBy ? `· By ${ev.createdBy}` : ""}
                       </p>
                     </div>
 

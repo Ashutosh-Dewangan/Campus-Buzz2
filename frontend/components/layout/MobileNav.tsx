@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  AlertCircleIcon,
+  CalendarIcon,
+  MegaphoneIcon,
+  PinIcon,
+  UsersIcon,
+} from "@/components/ui/Icons";
 
 const mobileNav = [
-  { label: "Buzz",       href: "/buzz",       icon: "📣" },
-  { label: "Events",     href: "/events",     icon: "✦"  },
-  { label: "Rooms",      href: "/rooms",      icon: "👥" },
-  { label: "Complaints", href: "/complaints", icon: "▣"  },
-  { label: "Official",   href: "/official",   icon: "⚑"  },
+  { label: "Buzz",       href: "/buzz",       Icon: MegaphoneIcon   },
+  { label: "Events",     href: "/events",     Icon: CalendarIcon    },
+  { label: "Rooms",      href: "/rooms",      Icon: UsersIcon       },
+  { label: "Complaints", href: "/complaints", Icon: AlertCircleIcon },
+  { label: "Official",   href: "/official",   Icon: PinIcon         },
 ];
 
 export default function MobileNav() {
@@ -31,8 +38,8 @@ export default function MobileNav() {
             className={`cb-mobile-nav-item${isActive ? " cb-mobile-nav-item--active" : ""}`}
             aria-current={isActive ? "page" : undefined}
           >
-            <span className="cb-mobile-nav-icon" aria-hidden="true">
-              {item.icon}
+            <span className="cb-mobile-nav-icon flex items-center justify-center" aria-hidden="true">
+              <item.Icon className="h-5 w-5" />
             </span>
             <span className="cb-mobile-nav-label">{item.label}</span>
           </Link>

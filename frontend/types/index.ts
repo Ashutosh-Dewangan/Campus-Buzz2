@@ -1,141 +1,152 @@
 export type UserRole =
-
-  | "STUDENT"
-
-  | "CLUB"
-
-  | "COMMITTEE"
-
-  | "ADMIN";
+  | "STUDENT"
+  | "CLUB"
+  | "COMMITTEE"
+  | "ADMIN";
 
 export type Hashtag =
+  | "#foodsplit"
+  | "#cabsplit"
+  | "#resell"
+  | "#lost"
+  | "#found";
 
-  | "#foodsplit"
-
-  | "#cabsplit"
-
-  | "#resell"
-
-  | "#lost"
-
-  | "#found";
-
-  export interface Post {
-
-    id: string;
-
-    image: string;
-
-    title: string;
-
-    description: string;
-
-    hashtags: string[];
-
-    interactionType:
-
-      | "FOOD_SPLIT"
-
-      | "CAB_SPLIT"
-
-      | "RESELL"
-
-      | "LOST"
-
-      | "FOUND";
-
-    author: string;
-
-    contactName?: string;
-
-    contactPhone?: string;
-
-    createdAt: string;
-
-    expiresAt?: string;
-
-    status: "ACTIVE" | "CLOSED";
-
-  }
-
-export interface Event {
-
-  id: string;
-
-  name: string;
-
-  date: string;
-
-  time: string;
-
-  venue: string;
-
-  description: string;
-
-  createdBy?: string;
-
+export interface Post {
+  id: string;
+  image: string;
+  title: string;
+  description: string;
+  hashtags: string[];
+  interactionType:
+    | "FOOD_SPLIT"
+    | "CAB_SPLIT"
+    | "RESELL"
+    | "LOST"
+    | "FOUND";
+  author: string;
+  authorId?: string;
+  contactName?: string;
+  contactPhone?: string;
+  createdAt: string;
+  expiresAt?: string;
+  status: "ACTIVE" | "CLOSED";
+  // Coordination metadata
+  price?: string;
+  itemCondition?: string;
+  departureTime?: string;
+  pickupLocation?: string;
+  seatsTotal?: number;
+  seatsFilled?: number;
+  orderTotal?: number;
+  splitCount?: number;
+  resellStatus?: "AVAILABLE" | "RESERVED" | "SOLD";
 }
 
+export interface Event {
+  id: string;
+  name: string;
+  date: string;
+  time: string;
+  venue: string;
+  description: string;
+  createdBy?: string;
+}
+
+export type ComplaintCategory =
+  | "Hostel"
+  | "Mess / Cafeteria"
+  | "Campus Wi-Fi"
+  | "Library / Facilities"
+  | "Academic"
+  | "Other";
+
 export interface Complaint {
-
-  id: string;
-
-  title: string;
-
-  description: string;
-
-  createdAt: string;
-
-  status: "OPEN" | "RESOLVED";
-
-  resolved?: boolean;
-
-  userId?: string;
-
+  id: string;
+  title: string;
+  description: string;
+  category?: ComplaintCategory;
+  createdAt: string;
+  status: "OPEN" | "RESOLVED";
+  resolved?: boolean;
+  userId?: string;
+  studentRoll?: string; // Visible only in Admin mock view
 }
 
 export interface OfficialPost {
-
-  id: string;
-
-  organization: string;
-
-  content: string;
-
-  link?: string;
-
-  formUrl?: string;
-
-  eventName?: string;
-
-  createdAt?: string;
-
+  id: string;
+  organization: string;
+  content: string;
+  link?: string;
+  formUrl?: string;
+  eventName?: string;
+  createdAt?: string;
 }
 
 export interface Message {
+  id: string;
+  user: string;
+  message: string;
+  timestamp?: string;
+  userId?: string;
+}
 
-  id: string;
+export interface RoomParticipant {
+  id: string;
+  name: string;
+  role: string;
+  isOnline: boolean;
+  isCreator?: boolean;
+}
 
-  user: string;
-
-  message: string;
-
-  timestamp?: string;
-
+export interface ResellOffer {
+  id: string;
+  buyerName: string;
+  buyerId: string;
+  amount: number;
+  status: "PENDING" | "ACCEPTED" | "DECLINED";
+  timestamp: string;
 }
 
 export interface Room {
+  id: string;
+  postId?: string;
+  name: string;
+  creatorId?: string;
+  creatorName?: string;
+  status: "OPEN" | "CLOSED";
+  members: string[];
+  participants?: RoomParticipant[];
+  interactionType?: Post["interactionType"];
+  offers?: ResellOffer[];
+  resellStatus?: "AVAILABLE" | "RESERVED" | "SOLD";
+}
 
-  id: string;
+export interface NotificationItem {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  unread: boolean;
+  type?: "room_message" | "participant_joined" | "expiry_approaching" | "event_alert" | "complaint_resolved";
+  link?: string;
+}
 
-  postId?: string;
+export interface ReportedPost {
+  id: string;
+  postId: string;
+  postTitle: string;
+  reportedBy: string;
+  reason: string;
+  createdAt: string;
+  status: "PENDING" | "DISMISSED" | "RESOLVED";
+}
 
-  name: string;
-
-  creatorId?: string;
-
-  status: "OPEN" | "CLOSED";
-
-  members: string[];
-
+export interface CampusUser {
+  id: string;
+  rollNumber: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: "ACTIVE" | "SUSPENDED";
+  joinedDate: string;
 }

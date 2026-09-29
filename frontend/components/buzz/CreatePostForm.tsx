@@ -22,41 +22,36 @@ const hashtagOptions = [
     value: "#foodsplit",
     label: "#foodsplit",
     category: "Food Split",
-    description: "Find people to share a food order & split bills",
+    description: "Find peers to share a food order & split bills (opens live room)",
     accentColor: "#ff3b4a",
-    icon: "🍕",
   },
   {
     value: "#cabsplit",
     label: "#cabsplit",
     category: "Cab Split",
-    description: "Coordinate a shared ride to airport, station, or city",
+    description: "Coordinate a shared cab to airport, station, or city (opens live room)",
     accentColor: "#2af0ff",
-    icon: "🚕",
   },
   {
     value: "#resell",
     label: "#resell",
     category: "Resell",
-    description: "Buy or sell books, tech, cycles, and essentials",
+    description: "Buy/sell books, electronics, cycles & gear (opens buyer/seller room)",
     accentColor: "#b44fff",
-    icon: "🏷️",
   },
   {
     value: "#lost",
     label: "#lost",
     category: "Lost Item",
-    description: "Report something missing on campus for recovery",
+    description: "Report something missing on campus with verified contact info",
     accentColor: "#ffe14a",
-    icon: "⚠️",
   },
   {
     value: "#found",
     label: "#found",
     category: "Found Item",
-    description: "Report something you found to return to a peer",
+    description: "Report something you found to return to a campus peer",
     accentColor: "#00e5c8",
-    icon: "🔍",
   },
 ];
 
@@ -82,8 +77,18 @@ export default function CreatePostForm({
   const [description, setDescription] = useState("");
   const [hashtag, setHashtag] = useState("#foodsplit");
   const [expiry, setExpiry] = useState("24h");
+
+  // Specific to #lost and #found
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+
+  // Specific to #resell
+  const [price, setPrice] = useState("");
+  const [itemCondition, setItemCondition] = useState("Like New");
+
+  // Specific to #cabsplit
+  const [departureTime, setDepartureTime] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -92,20 +97,15 @@ export default function CreatePostForm({
 
   const selectedHashtag = useMemo(
     () =>
-      hashtagOptions.find(
-        (option) => option.value === hashtag
-      ) || hashtagOptions[0],
+      hashtagOptions.find((option) => option.value === hashtag) ||
+      hashtagOptions[0],
     [hashtag]
   );
 
-  const needsContact =
-    hashtag === "#lost" ||
-    hashtag === "#found" ||
-    hashtag === "#resell";
-
-  const needsExpiry =
-    hashtag === "#foodsplit" ||
-    hashtag === "#cabsplit";
+  const needsContact = hashtag === "#lost" || hashtag === "#found";
+  const needsExpiry = hashtag === "#foodsplit" || hashtag === "#cabsplit";
+  const isResell = hashtag === "#resell";
+  const isCabSplit = hashtag === "#cabsplit";
 
   const processFile = (file: File) => {
     if (file.type !== "image/jpeg" && file.type !== "image/png") {
@@ -124,9 +124,7 @@ export default function CreatePostForm({
     setImagePreview(previewUrl);
   };
 
-  const handleImageChange = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     processFile(file);
@@ -178,24 +176,13 @@ export default function CreatePostForm({
     }
 
     return true;
-  }, [
-    image,
-    title,
-    description,
-    needsContact,
-    contactName,
-    contactPhone,
-  ]);
+  }, [image, title, description, needsContact, contactName, contactPhone]);
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!isValid || !image) {
-      setError(
-        "Please complete all required fields before posting."
-      );
+      setError("Please complete all required fields before posting.");
       return;
     }
 
@@ -204,25 +191,24 @@ export default function CreatePostForm({
       setError("");
 
       const formData = new FormData();
-
       formData.append("image", image);
       formData.append("title", title.trim());
-      formData.append(
-        "description",
-        description.trim()
-      );
+      formData.append("description", description.trim());
       formData.append("hashtags", JSON.stringify([hashtag]));
 
       if (needsContact) {
-        formData.append(
-          "contactName",
-          contactName.trim()
-        );
+        formData.append("contactName", contactName.trim());
+        formData.append("contactPhone", contactPhone.trim());
+      }
 
-        formData.append(
-          "contactPhone",
-          contactPhone.trim()
-        );
+      if (isResell) {
+        if (price.trim()) formData.append("price", price.trim());
+        if (itemCondition.trim()) formData.append("itemCondition", itemCondition.trim());
+      }
+
+      if (isCabSplit) {
+        if (departureTime.trim()) formData.append("departureTime", departureTime.trim());
+        if (pickupLocation.trim()) formData.append("pickupLocation", pickupLocation.trim());
       }
 
       if (needsExpiry) {
@@ -241,25 +227,12 @@ export default function CreatePostForm({
       }
 
       const newPost = await createPost(formData);
-
       onPostCreated(newPost);
       onClose();
-
-      setImage(null);
-      setImagePreview("");
-      setTitle("");
-      setDescription("");
-      setHashtag("#foodsplit");
-      setExpiry("24h");
-      setContactName("");
-      setContactPhone("");
     } catch (err) {
       console.error(err);
-
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to create your post."
+        err instanceof Error ? err.message : "Failed to create your post."
       );
     } finally {
       setIsSubmitting(false);
@@ -285,7 +258,9 @@ export default function CreatePostForm({
             <span className="font-bold text-[var(--fg)]">
               Photo <span className="text-[var(--accent)]">*</span>
             </span>
-            <span className="text-[10px] text-[var(--fg-muted)]">PNG or JPG, max 5MB</span>
+            <span className="text-[10px] text-[var(--fg-muted)]">
+              PNG or JPG, max 5MB (Mandatory for Campus Buzz)
+            </span>
           </div>
 
           {imagePreview ? (
@@ -357,7 +332,7 @@ export default function CreatePostForm({
                 {isDragging ? "Drop image here" : "Click to select or drag photo here"}
               </p>
               <p className="mt-0.5 text-[10px] text-[var(--fg-muted)]">
-                Required for student feed visibility
+                Required for student feed transparency
               </p>
             </div>
           )}
@@ -392,7 +367,7 @@ export default function CreatePostForm({
             value={title}
             maxLength={100}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g., Domino's 2-pizza offer split at Hall 4 / Cab to Airport 6 AM"
+            placeholder="e.g. Domino's 2-pizza split / Airport cab share 5:30 AM / TI-84 Calculator"
             className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
           />
         </div>
@@ -417,8 +392,8 @@ export default function CreatePostForm({
             maxLength={1000}
             rows={3}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add relevant specifics: pickup spot, luggage room, timing, price split, item details..."
-            className="comic-input w-full resize-none px-3 py-2 text-xs leading-relaxed text-[var(--fg)] outline-none"
+            placeholder="Add relevant specifics: pickup spot, luggage space, split ratio, item details..."
+            className="comic-input font-readable w-full resize-none px-3 py-2 text-xs leading-relaxed text-[var(--fg)] outline-none"
           />
         </div>
       </div>
@@ -430,13 +405,13 @@ export default function CreatePostForm({
             2
           </span>
           <span className="text-[11px] font-black tracking-wider text-[var(--fg-muted)] uppercase">
-            Interaction Intent
+            Hashtag-Driven Coordination
           </span>
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-bold text-[var(--fg)]">
-            Select Category <span className="text-[var(--accent)]">*</span>
+            Select Hashtag <span className="text-[var(--accent)]">*</span>
           </label>
 
           {/* Interactive Hashtag Tiles */}
@@ -450,7 +425,9 @@ export default function CreatePostForm({
                   onClick={() => setHashtag(opt.value)}
                   style={{
                     borderColor: isSelected ? opt.accentColor : "black",
-                    boxShadow: isSelected ? `2px 2px 0 #000, 0 0 10px ${opt.accentColor}44` : "2px 2px 0 #000",
+                    boxShadow: isSelected
+                      ? `2px 2px 0 #000, 0 0 10px ${opt.accentColor}44`
+                      : "2px 2px 0 #000",
                   }}
                   className={`relative flex flex-col items-start rounded-sm border-2 p-2 text-left transition-all ${
                     isSelected
@@ -459,12 +436,14 @@ export default function CreatePostForm({
                   }`}
                 >
                   <div className="flex w-full items-center justify-between">
-                    <span className="text-xs">{opt.icon}</span>
                     <span
                       style={{ color: opt.accentColor }}
                       className="text-[10px] font-black tracking-wider uppercase"
                     >
                       {opt.value}
+                    </span>
+                    <span className="rounded-xs border border-black/40 bg-black/60 px-1 py-0.2 text-[8px] font-black uppercase tracking-wider" style={{ color: opt.accentColor }}>
+                      {opt.category}
                     </span>
                   </div>
                   <p className="mt-1 line-clamp-1 text-[10px] text-[var(--fg-muted)]">
@@ -485,7 +464,13 @@ export default function CreatePostForm({
             </span>
             <div className="text-[11px] leading-tight">
               <p className="font-bold text-[var(--fg)]">
-                Your hashtag determines how students respond to this post.
+                {selectedHashtag.value === "#resell"
+                  ? "Resell opens a live buyer/seller negotiation room."
+                  : selectedHashtag.value === "#foodsplit"
+                  ? "Food Split opens a live group coordination room."
+                  : selectedHashtag.value === "#cabsplit"
+                  ? "Cab Split opens a shared ride coordination room."
+                  : "Lost & Found opens a direct verified contact surface (no public group chat)."}
               </p>
               <p className="mt-0.5 text-[var(--fg-muted)]">
                 {selectedHashtag.description}.
@@ -495,54 +480,151 @@ export default function CreatePostForm({
         </div>
       </div>
 
-      {/* ---------------- SECTION 3: WHEN NEEDED (EXPIRY / CONTACT) ---------------- */}
-      {(needsExpiry || needsContact) && (
+      {/* ---------------- SECTION 3: HASHTAG-SPECIFIC CONFIGURATION ---------------- */}
+      {(needsExpiry || needsContact || isResell) && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 border-b border-black/40 pb-1.5">
             <span className="flex h-5 w-5 items-center justify-center rounded-sm bg-[var(--neon-yellow)] text-[10px] font-black text-black shadow-[1px_1px_0_#000]">
               3
             </span>
             <span className="text-[11px] font-black tracking-wider text-[var(--fg-muted)] uppercase">
-              Coordination Settings
+              {needsExpiry
+                ? "Expiry & Schedule"
+                : isResell
+                ? "Item & Price Information"
+                : "Verified Contact Details"}
             </span>
           </div>
 
           {/* Expiry Selector (Food & Cab Split) */}
           {needsExpiry && (
-            <div className="rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
-              <div className="mb-1.5 flex items-center justify-between text-xs">
-                <label htmlFor="buzz-expiry" className="font-bold text-[var(--fg)]">
-                  Coordination Expiry <span className="text-[var(--accent)]">*</span>
-                </label>
-                <span className="text-[10px] text-[var(--neon-yellow)]">
-                  ⏱ #foodsplit and #cabsplit posts automatically expire.
-                </span>
+            <div className="space-y-3 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
+              <div>
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <label htmlFor="buzz-expiry" className="font-bold text-[var(--fg)]">
+                    Coordination Expiry <span className="text-[var(--accent)]">*</span>
+                  </label>
+                  <span className="text-[10px] text-[var(--neon-yellow)] font-semibold">
+                    Auto-expires when window ends
+                  </span>
+                </div>
+
+                <select
+                  id="buzz-expiry"
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                >
+                  {expiryOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <select
-                id="buzz-expiry"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
-              >
-                {expiryOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              {/* Cab Split specific departure & pickup */}
+              {isCabSplit && (
+                <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="buzz-cab-dep"
+                      className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                    >
+                      Departure Time
+                    </label>
+                    <input
+                      id="buzz-cab-dep"
+                      type="text"
+                      value={departureTime}
+                      onChange={(e) => setDepartureTime(e.target.value)}
+                      placeholder="e.g. Tomorrow 5:30 AM"
+                      className="comic-input w-full px-3 py-1.5 text-xs text-[var(--fg)] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="buzz-cab-pickup"
+                      className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                    >
+                      Pickup Spot
+                    </label>
+                    <input
+                      id="buzz-cab-pickup"
+                      type="text"
+                      value={pickupLocation}
+                      onChange={(e) => setPickupLocation(e.target.value)}
+                      placeholder="e.g. Main Gate Security Post"
+                      className="comic-input w-full px-3 py-1.5 text-xs text-[var(--fg)] outline-none"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Contact Details (Lost, Found, Resell) */}
+          {/* Resell Specific Fields (Price & Condition) */}
+          {isResell && (
+            <div className="space-y-2.5 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
+              <div>
+                <p className="text-xs font-bold text-[var(--tag-resell)]">
+                  Resell Item Details
+                </p>
+                <p className="mt-0.5 text-[10px] text-[var(--fg-muted)]">
+                  Price is negotiated directly with interested campus peers in the live room.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="buzz-resell-price"
+                    className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                  >
+                    Asking Price (Optional)
+                  </label>
+                  <input
+                    id="buzz-resell-price"
+                    type="text"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="e.g. ₹2,500 or Negotiable"
+                    className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="buzz-resell-condition"
+                    className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
+                  >
+                    Item Condition
+                  </label>
+                  <select
+                    id="buzz-resell-condition"
+                    value={itemCondition}
+                    onChange={(e) => setItemCondition(e.target.value)}
+                    className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  >
+                    <option value="Brand New">Brand New / Sealed</option>
+                    <option value="Like New">Like New (Mint Condition)</option>
+                    <option value="Good">Good (Working & Maintained)</option>
+                    <option value="Fair">Fair (Noticeable Wear)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Contact Details (Lost & Found ONLY) */}
           {needsContact && (
             <div className="space-y-2.5 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.85)] p-3 shadow-[2px_2px_0_#000]">
               <div>
                 <p className="text-xs font-bold text-[var(--neon-cyan)]">
-                  Poster Contact Information
+                  Verified Contact Details
                 </p>
                 <p className="mt-0.5 text-[10px] text-[var(--fg-muted)]">
-                  Students will see your contact details when they open this post.
+                  Only shown when students open the contact modal for this lost or found report.
                 </p>
               </div>
 
@@ -552,14 +634,14 @@ export default function CreatePostForm({
                     htmlFor="buzz-contact-name"
                     className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
                   >
-                    Contact Name <span className="text-[var(--accent)]">*</span>
+                    Contact Name / Hostel Room <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     id="buzz-contact-name"
                     type="text"
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="e.g., Alex / Room 302"
+                    placeholder="e.g. Sneha Patel / GH-2 Room 214"
                     className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
                   />
                 </div>
@@ -569,14 +651,14 @@ export default function CreatePostForm({
                     htmlFor="buzz-contact-phone"
                     className="mb-1 block text-[11px] font-bold text-[var(--fg)]"
                   >
-                    Contact Phone <span className="text-[var(--accent)]">*</span>
+                    Contact Phone / WhatsApp <span className="text-[var(--accent)]">*</span>
                   </label>
                   <input
                     id="buzz-contact-phone"
                     type="tel"
                     value={contactPhone}
                     onChange={(e) => setContactPhone(e.target.value)}
-                    placeholder="e.g., +91 9876543210"
+                    placeholder="e.g. +91 98765 43210"
                     className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
                   />
                 </div>

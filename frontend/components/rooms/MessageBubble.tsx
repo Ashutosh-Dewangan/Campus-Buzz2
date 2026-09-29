@@ -32,7 +32,7 @@ export default function MessageBubble({
       </div>
 
       <div
-        className={`max-w-sm rounded-2xl px-4 py-3 text-sm shadow-sm sm:max-w-md ${
+        className={`font-readable max-w-sm rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-md ${
           isCurrentUser
             ? "rounded-br-sm bg-[var(--accent)] text-white border-3 border-black"
             : "rounded-bl-sm bg-[var(--bg-input)] text-[var(--fg)] border-3 border-black"
