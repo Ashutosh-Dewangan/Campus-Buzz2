@@ -3,7 +3,6 @@ import {
   Complaint,
   Event,
   NotificationItem,
-  OfficialPost,
   Post,
   ReportedPost,
   Room,
@@ -260,52 +259,6 @@ export const mockComplaints: Complaint[] = [
     createdAt: "2026-09-18T11:20:00Z",
     userId: "u4",
     studentRoll: "21CS1018",
-  },
-];
-
-export const mockOfficialPosts: OfficialPost[] = [
-  {
-    id: "o1",
-    organization: "Placement & Training Cell",
-    content:
-      "Google & Atlassian Campus Hiring Drive 2026: Official registration portal is now live for all eligible final year B.Tech and M.Tech candidates. Complete your profile, verify GPA records, and upload PDF resumes before Friday 11:59 PM.",
-    link: "https://placements.campus.edu/drives/2026",
-    formUrl: "https://forms.google.com/example-placement-drive-2026",
-    eventName: "Campus Placement Drive 2026",
-    createdAt: "2026-09-28T09:00:00Z",
-  },
-  {
-    id: "o2",
-    organization: "Dean of Student Affairs",
-    content:
-      "Central Library 24/7 Hours Notice: In view of the approaching Mid-Semester Examinations, the reading halls and cyber zone will remain open round-the-clock starting October 5th. All students must present their physical or digital student ID at the entrance turnstiles.",
-    createdAt: "2026-09-27T11:30:00Z",
-  },
-  {
-    id: "o3",
-    organization: "Student Council",
-    content:
-      "Nominations Open for Academic Year 2026-27 Class Representatives and Hostel Committee Executives. Interested candidates can review the eligibility guidelines and submit candidacy forms below.",
-    formUrl: "https://forms.google.com/council-elections-2026",
-    eventName: "Student Council Elections",
-    createdAt: "2026-09-25T14:00:00Z",
-  },
-  {
-    id: "o4",
-    organization: "Coding Club",
-    content:
-      "Registrations are officially open for Hackathon 2026: 24h Build Sprint! Form teams of up to 4 students across any year or department. Free registration, food coupons, and cloud credits will be provided.",
-    formUrl: "https://forms.google.com/hackathon-2026-registration",
-    eventName: "Hackathon 2026: 24h Build Sprint",
-    createdAt: "2026-09-24T18:15:00Z",
-  },
-  {
-    id: "o5",
-    organization: "Sports Committee",
-    content:
-      "Inter-Hostel Badminton & Table Tennis Tournament trials will take place this Saturday morning from 8:00 AM at the Indoor Complex. Bring your own racquets.",
-    eventName: "Inter-Hostel Badminton & Table Tennis Tournament",
-    createdAt: "2026-09-23T16:00:00Z",
   },
 ];
 

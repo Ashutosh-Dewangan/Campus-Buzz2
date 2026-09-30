@@ -7,7 +7,7 @@ import EventForm from "@/components/events/EventForm";
 import { CalendarIcon } from "@/components/ui/Icons";
 import { Event } from "@/types";
 import { getEvents, getUserRsvps, rsvpEvent, deleteEvent } from "@/lib/api";
-import { canCreateEvent, isAdmin } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/session";
 import { parseEventDate } from "@/lib/date";
 
@@ -24,9 +24,36 @@ export default function EventsPage() {
   const [error, setError] = useState("");
 
   const user = useCurrentUser();
-  const canCreate = user ? canCreateEvent(user.role) : false;
-  const isUserAdmin = user ? isAdmin(user.role) : false;
 
+const isUserAdmin = user ? isAdmin(user.role) : false;
+
+const hasActiveMembership =
+  user?.memberships?.some(
+    (membership) => membership.status === "ACTIVE",
+  ) ?? false;
+
+const canCreate = isUserAdmin || hasActiveMembership;
+const canManageEvent = (event: Event) => {
+  if (!user) {
+    return false;
+  }
+
+  if (isUserAdmin) {
+    return true;
+  }
+
+  if (!event.organizationId) {
+    return false;
+  }
+
+  return (
+    user.memberships?.some(
+      (membership) =>
+        membership.status === "ACTIVE" &&
+        membership.organization.id === event.organizationId,
+    ) ?? false
+  );
+};
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
     setError("");
@@ -342,18 +369,17 @@ export default function EventsPage() {
               </div>
 
               <div className="flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: "#000" }}>
-                <div>
-                  {(isUserAdmin || (canCreate && selectedEvent.createdBy?.includes(user?.email?.split("@")[0] || ""))) && (
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteEvent(selectedEvent.id)}
-                      className="text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer"
-                    >
-                      Delete Event
-                    </button>
-                  )}
-                </div>
-
+              <div>
+              {canManageEvent(selectedEvent) && (
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteEvent(selectedEvent.id)}
+                  className="text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer"
+                >
+                  Delete Event
+                </button>
+              )}
+              *</div>
                 <div className="flex items-center gap-2">
                   {getEventDate(selectedEvent) >= now && (
                     <button

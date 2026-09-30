@@ -6,6 +6,8 @@ import postRoutes from "./routes/post.routes";
 import path from "node:path";
 import chatRoutes from "./routes/chat.routes";
 import officialPostRoutes from "./routes/official-post.routes";
+import eventRoutes from "./routes/event.routes";
+import organizationRoutes from "./routes/organization.routes";
 
 const app = express();
 
@@ -21,16 +23,8 @@ app.use(
 app.use("/api/posts", postRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/official", officialPostRoutes);
-
-interface EventItem {
-  id: string;
-  name: string;
-  date: string;
-  time: string;
-  venue: string;
-  description: string;
-  createdBy: string;
-}
+app.use("/api/events", eventRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 interface ComplaintItem {
   id: string;
@@ -39,27 +33,6 @@ interface ComplaintItem {
   status: "OPEN" | "RESOLVED";
   createdAt: string;
 }
-
-let events: EventItem[] = [
-  {
-    id: "e1",
-    name: "Hackathon 2026",
-    date: "Sept 15, 2026",
-    time: "10:00 AM - 8:00 PM",
-    venue: "Auditorium Hall A",
-    description: "Annual inter-college 24-hour hackathon. Build amazing web and mobile apps with mentorship from industry experts.",
-    createdBy: "Coding Club",
-  },
-  {
-    id: "e2",
-    name: "Campus Music Night",
-    date: "Sept 20, 2026",
-    time: "6:30 PM Onwards",
-    venue: "Open Air Theatre",
-    description: "Live band performances, solo vocal showdowns, and DJ night. Free refreshments for all students with valid ID.",
-    createdBy: "Cultural Society",
-  },
-];
 
 let complaints: ComplaintItem[] = [
   {
@@ -86,33 +59,6 @@ app.get("/api/health", (_req, res) => {
 // Auth & Test Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
-
-// ========================
-// EVENTS API
-// ========================
-app.get("/api/events", (_req, res) => {
-  res.json(events);
-});
-
-app.post("/api/events", (req, res) => {
-  const { name, date, time, venue, description, createdBy } = req.body;
-  if (!name || !date || !time || !venue || !description) {
-    return res.status(400).json({ error: "All event fields are required." });
-  }
-
-  const newEvent: EventItem = {
-    id: `e_${Date.now()}`,
-    name: String(name).trim(),
-    date: String(date).trim(),
-    time: String(time).trim(),
-    venue: String(venue).trim(),
-    description: String(description).trim(),
-    createdBy: createdBy ? String(createdBy).trim() : "Campus Student",
-  };
-
-  events = [newEvent, ...events];
-  res.status(201).json(newEvent);
-});
 
 // ========================
 // COMPLAINTS API

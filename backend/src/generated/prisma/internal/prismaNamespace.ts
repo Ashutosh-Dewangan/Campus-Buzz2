@@ -1489,7 +1489,7 @@ export const EventScalarFieldEnum = {
   venue: 'venue',
   createdById: 'createdById',
   organizationId: 'organizationId',
-  linkedPostId: 'linkedPostId',
+  linkedOfficialPostId: 'linkedOfficialPostId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

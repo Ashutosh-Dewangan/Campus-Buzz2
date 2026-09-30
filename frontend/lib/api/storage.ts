@@ -14,7 +14,6 @@ import {
   mockEvents,
   mockMessagesByRoom,
   mockNotifications,
-  mockOfficialPosts,
   mockPosts,
   mockReportedPosts,
   mockRooms,

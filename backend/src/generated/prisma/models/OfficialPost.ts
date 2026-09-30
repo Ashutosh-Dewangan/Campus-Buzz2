@@ -216,6 +216,7 @@ export type OfficialPostWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"OfficialPost"> | Date | string
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  event?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
 }
 
 export type OfficialPostOrderByWithRelationInput = {
@@ -230,6 +231,7 @@ export type OfficialPostOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   author?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
+  event?: Prisma.EventOrderByWithRelationInput
 }
 
 export type OfficialPostWhereUniqueInput = Prisma.AtLeast<{
@@ -247,6 +249,7 @@ export type OfficialPostWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"OfficialPost"> | Date | string
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  event?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
 }, "id">
 
 export type OfficialPostOrderByWithAggregationInput = {
@@ -289,6 +292,7 @@ export type OfficialPostCreateInput = {
   updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutOfficialPostsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutOfficialPostsInput
+  event?: Prisma.EventCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostUncheckedCreateInput = {
@@ -301,6 +305,7 @@ export type OfficialPostUncheckedCreateInput = {
   organizationId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  event?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostUpdateInput = {
@@ -313,6 +318,7 @@ export type OfficialPostUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutOfficialPostsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOfficialPostsNestedInput
+  event?: Prisma.EventUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostUncheckedUpdateInput = {
@@ -325,6 +331,7 @@ export type OfficialPostUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventUncheckedUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostCreateManyInput = {
@@ -405,6 +412,11 @@ export type OfficialPostMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type OfficialPostNullableScalarRelationFilter = {
+  is?: Prisma.OfficialPostWhereInput | null
+  isNot?: Prisma.OfficialPostWhereInput | null
 }
 
 export type OfficialPostCreateNestedManyWithoutAuthorInput = {
@@ -491,6 +503,22 @@ export type OfficialPostUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.OfficialPostScalarWhereInput | Prisma.OfficialPostScalarWhereInput[]
 }
 
+export type OfficialPostCreateNestedOneWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.OfficialPostCreateWithoutEventInput, Prisma.OfficialPostUncheckedCreateWithoutEventInput>
+  connectOrCreate?: Prisma.OfficialPostCreateOrConnectWithoutEventInput
+  connect?: Prisma.OfficialPostWhereUniqueInput
+}
+
+export type OfficialPostUpdateOneWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.OfficialPostCreateWithoutEventInput, Prisma.OfficialPostUncheckedCreateWithoutEventInput>
+  connectOrCreate?: Prisma.OfficialPostCreateOrConnectWithoutEventInput
+  upsert?: Prisma.OfficialPostUpsertWithoutEventInput
+  disconnect?: Prisma.OfficialPostWhereInput | boolean
+  delete?: Prisma.OfficialPostWhereInput | boolean
+  connect?: Prisma.OfficialPostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OfficialPostUpdateToOneWithWhereWithoutEventInput, Prisma.OfficialPostUpdateWithoutEventInput>, Prisma.OfficialPostUncheckedUpdateWithoutEventInput>
+}
+
 export type OfficialPostCreateWithoutAuthorInput = {
   id?: string
   title: string
@@ -500,6 +528,7 @@ export type OfficialPostCreateWithoutAuthorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOfficialPostsInput
+  event?: Prisma.EventCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostUncheckedCreateWithoutAuthorInput = {
@@ -511,6 +540,7 @@ export type OfficialPostUncheckedCreateWithoutAuthorInput = {
   organizationId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  event?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostCreateOrConnectWithoutAuthorInput = {
@@ -563,6 +593,7 @@ export type OfficialPostCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutOfficialPostsInput
+  event?: Prisma.EventCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostUncheckedCreateWithoutOrganizationInput = {
@@ -574,6 +605,7 @@ export type OfficialPostUncheckedCreateWithoutOrganizationInput = {
   authorId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  event?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedOfficialPostInput
 }
 
 export type OfficialPostCreateOrConnectWithoutOrganizationInput = {
@@ -602,6 +634,70 @@ export type OfficialPostUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.OfficialPostUpdateManyMutationInput, Prisma.OfficialPostUncheckedUpdateManyWithoutOrganizationInput>
 }
 
+export type OfficialPostCreateWithoutEventInput = {
+  id?: string
+  title: string
+  content: string
+  link?: string | null
+  formUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  author: Prisma.UserCreateNestedOneWithoutOfficialPostsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutOfficialPostsInput
+}
+
+export type OfficialPostUncheckedCreateWithoutEventInput = {
+  id?: string
+  title: string
+  content: string
+  link?: string | null
+  formUrl?: string | null
+  authorId: string
+  organizationId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OfficialPostCreateOrConnectWithoutEventInput = {
+  where: Prisma.OfficialPostWhereUniqueInput
+  create: Prisma.XOR<Prisma.OfficialPostCreateWithoutEventInput, Prisma.OfficialPostUncheckedCreateWithoutEventInput>
+}
+
+export type OfficialPostUpsertWithoutEventInput = {
+  update: Prisma.XOR<Prisma.OfficialPostUpdateWithoutEventInput, Prisma.OfficialPostUncheckedUpdateWithoutEventInput>
+  create: Prisma.XOR<Prisma.OfficialPostCreateWithoutEventInput, Prisma.OfficialPostUncheckedCreateWithoutEventInput>
+  where?: Prisma.OfficialPostWhereInput
+}
+
+export type OfficialPostUpdateToOneWithWhereWithoutEventInput = {
+  where?: Prisma.OfficialPostWhereInput
+  data: Prisma.XOR<Prisma.OfficialPostUpdateWithoutEventInput, Prisma.OfficialPostUncheckedUpdateWithoutEventInput>
+}
+
+export type OfficialPostUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  formUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneRequiredWithoutOfficialPostsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutOfficialPostsNestedInput
+}
+
+export type OfficialPostUncheckedUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
+  link?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  formUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  authorId?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type OfficialPostCreateManyAuthorInput = {
   id?: string
   title: string
@@ -622,6 +718,7 @@ export type OfficialPostUpdateWithoutAuthorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOfficialPostsNestedInput
+  event?: Prisma.EventUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostUncheckedUpdateWithoutAuthorInput = {
@@ -633,6 +730,7 @@ export type OfficialPostUncheckedUpdateWithoutAuthorInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventUncheckedUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostUncheckedUpdateManyWithoutAuthorInput = {
@@ -666,6 +764,7 @@ export type OfficialPostUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutOfficialPostsNestedInput
+  event?: Prisma.EventUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostUncheckedUpdateWithoutOrganizationInput = {
@@ -677,6 +776,7 @@ export type OfficialPostUncheckedUpdateWithoutOrganizationInput = {
   authorId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventUncheckedUpdateOneWithoutLinkedOfficialPostNestedInput
 }
 
 export type OfficialPostUncheckedUpdateManyWithoutOrganizationInput = {
@@ -704,6 +804,7 @@ export type OfficialPostSelect<ExtArgs extends runtime.Types.Extensions.Internal
   updatedAt?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.OfficialPost$eventArgs<ExtArgs>
 }, ExtArgs["result"]["officialPost"]>
 
 export type OfficialPostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -750,6 +851,7 @@ export type OfficialPostOmit<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type OfficialPostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.OfficialPost$eventArgs<ExtArgs>
 }
 export type OfficialPostIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -765,6 +867,7 @@ export type $OfficialPostPayload<ExtArgs extends runtime.Types.Extensions.Intern
   objects: {
     author: Prisma.$UserPayload<ExtArgs>
     organization: Prisma.$OrganizationPayload<ExtArgs>
+    event: Prisma.$EventPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1172,6 +1275,7 @@ export interface Prisma__OfficialPostClient<T, Null = never, ExtArgs extends run
   readonly [Symbol.toStringTag]: "PrismaPromise"
   author<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  event<T extends Prisma.OfficialPost$eventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OfficialPost$eventArgs<ExtArgs>>): Prisma.Prisma__EventClient<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1608,6 +1712,25 @@ export type OfficialPostDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many OfficialPosts to delete.
    */
   limit?: number
+}
+
+/**
+ * OfficialPost.event
+ */
+export type OfficialPost$eventArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Event
+   */
+  select?: Prisma.EventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Event
+   */
+  omit?: Prisma.EventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInclude<ExtArgs> | null
+  where?: Prisma.EventWhereInput
 }
 
 /**

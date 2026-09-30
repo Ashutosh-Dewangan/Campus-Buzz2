@@ -42,14 +42,28 @@ export interface Post {
   resellStatus?: "AVAILABLE" | "RESERVED" | "SOLD";
 }
 
-export interface Event {
+export interface EventOrganization {
   id: string;
   name: string;
-  date: string;
-  time: string;
-  venue: string;
-  description: string;
-  createdBy?: string;
+  type: "CLUB" | "COMMITTEE";
+}
+export interface Event {
+id: string;
+name: string;
+date: string;
+time: string;
+venue: string;
+description: string;
+// Organization responsible for the event.
+organizationId?: string | null;
+organization?: EventOrganization | null;
+// Actual authenticated user who created the event.
+createdBy?: string;
+createdById?: string;
+// Official-post relationship.
+linkedOfficialPostId?: string | null;
+createdAt?: string;
+updatedAt?: string;
 }
 
 export type ComplaintCategory =
@@ -74,12 +88,34 @@ export interface Complaint {
 
 export interface OfficialPost {
   id: string;
-  organization: string;
+  title: string;
   content: string;
-  link?: string;
-  formUrl?: string;
-  eventName?: string;
+  link?: string | null;
+  formUrl?: string | null;
+
+  authorId: string;
+  author?: {
+    id: string;
+    name: string;
+  } | null;
+
+  organizationId: string;
+  organization: {
+    id: string;
+    name: string;
+    type: "CLUB" | "COMMITTEE";
+  };
+
+  event?: {
+    id: string;
+    name: string;
+    date: string;
+    time: string;
+    venue: string;
+  } | null;
+
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Message {

@@ -15,7 +15,9 @@ export default function OfficialPage() {
   const [error, setError] = useState("");
 
   const user = useCurrentUser();
-  const canPost = user ? canCreateOfficialPost(user.role) : false;
+  const canPost = user
+  ? canCreateOfficialPost(user.role, user.memberships ?? [])
+  : false;
 
   const loadOfficialPosts = useCallback(async () => {
     setIsLoading(true);

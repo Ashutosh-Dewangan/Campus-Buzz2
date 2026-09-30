@@ -1,36 +1,90 @@
 import { Event } from "@/types";
+
 import { getStoredEvents, saveStoredEvents } from "./storage";
 import { getSession } from "@/lib/session";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function getAuthHeaders(): HeadersInit {
   const session = getSession();
-  if (!session?.token) return {};
-  return { Authorization: `Bearer ${session.token}` };
+
+  if (!session?.token) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${session.token}`,
+  };
+}
+
+async function getErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = await response.json();
+
+    if (data?.message && typeof data.message === "string") {
+      return data.message;
+    }
+
+    if (data?.error && typeof data.error === "string") {
+      return data.error;
+    }
+  } catch {
+    // Ignore invalid/non-JSON error bodies.
+  }
+
+  return `Request failed with status ${response.status}`;
 }
 
 export async function getEvents(): Promise<Event[]> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-    const response = await fetch(`${API_URL}/api/events`, {
-      headers: { ...getAuthHeaders() },
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 2000);
 
-    if (response.ok) {
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data;
+    try {
+      const response = await fetch(`${API_URL}/api/events`, {
+        method: "GET",
+        headers: {
+          ...getAuthHeaders(),
+        },
+        signal: controller.signal,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // An empty array from the server is authoritative.
+        if (Array.isArray(data)) {
+          return data;
+        }
+
+        throw new Error("Invalid events response");
+      }
+
+      // Do NOT silently replace server errors with localStorage.
+      throw new Error(await getErrorMessage(response));
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (error) {
+    // Only use localStorage as a fallback for actual network/offline
+    // failures, not HTTP authorization/server errors.
+    if (error instanceof Error && error.name !== "AbortError") {
+      // HTTP errors should reach the UI.
+      if (
+        error.message.startsWith("Request failed") ||
+        error.message.toLowerCase().includes("forbidden") ||
+        error.message.toLowerCase().includes("unauthorized")
+      ) {
+        throw error;
       }
     }
-  } catch {
-    // Offline fallback
-  }
 
-  return getStoredEvents();
+    return getStoredEvents();
+  }
 }
 
 export async function createEvent(
@@ -38,61 +92,121 @@ export async function createEvent(
 ): Promise<Event> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-    const response = await fetch(`${API_URL}/api/events`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(event),
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 2500);
 
-    if (response.ok) {
+    try {
+      const response = await fetch(`${API_URL}/api/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(event),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+
       const created = await response.json();
-      const current = getStoredEvents();
-      saveStoredEvents([created, ...current]);
-      return created;
+
+      if (!created || typeof created !== "object") {
+        throw new Error("Invalid event response");
+      }
+
+      return created as Event;
+    } finally {
+      clearTimeout(timeoutId);
     }
-  } catch {
-    // Offline fallback
+  } catch (error) {
+    /*
+     * IMPORTANT:
+     * Never create a fake event when the backend explicitly rejected
+     * the request.
+     */
+    if (
+      error instanceof Error &&
+      error.name !== "AbortError" &&
+      !error.message.toLowerCase().includes("fetch")
+    ) {
+      throw error;
+    }
+
+    // Only network/offline failure gets the local fallback.
+    const newEvent: Event = {
+      id: `e-${Date.now()}`,
+      ...event,
+    };
+
+    const current = getStoredEvents();
+    saveStoredEvents([newEvent, ...current]);
+
+    return newEvent;
   }
-
-  const newEvent: Event = {
-    id: `e-${Date.now()}`,
-    ...event,
-  };
-
-  const current = getStoredEvents();
-  saveStoredEvents([newEvent, ...current]);
-  return newEvent;
 }
 
 export async function deleteEvent(eventId: string): Promise<void> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-    await fetch(`${API_URL}/api/events/${encodeURIComponent(eventId)}`, {
-      method: "DELETE",
-      headers: { ...getAuthHeaders() },
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
-  } catch {
-    // Offline fallback
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 2000);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/events/${encodeURIComponent(eventId)}`,
+        {
+          method: "DELETE",
+          headers: {
+            ...getAuthHeaders(),
+          },
+          signal: controller.signal,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    // Only update local cache after successful server deletion.
+    const current = getStoredEvents();
+    saveStoredEvents(current.filter((event) => event.id !== eventId));
+  } catch (error) {
+    /*
+     * A server-side 403/404/500 must NOT be treated as an offline
+     * deletion.
+     */
+    if (
+      error instanceof Error &&
+      error.name !== "AbortError" &&
+      !error.message.toLowerCase().includes("fetch")
+    ) {
+      throw error;
+    }
+
+    // Network failure: maintain local fallback behavior.
+    const current = getStoredEvents();
+    saveStoredEvents(current.filter((event) => event.id !== eventId));
+
+    throw error;
   }
-
-  const current = getStoredEvents();
-  saveStoredEvents(current.filter((e) => e.id !== eventId));
 }
 
 export async function rsvpEvent(eventId: string): Promise<boolean> {
   const session = getSession();
   const userId = session?.user?.id || "u-current";
   const key = `cb_rsvp_${userId}`;
+
   let list: string[] = [];
+
   try {
     const raw = localStorage.getItem(key);
     list = raw ? JSON.parse(raw) : [];
@@ -101,6 +215,7 @@ export async function rsvpEvent(eventId: string): Promise<boolean> {
   }
 
   const isRsvped = list.includes(eventId);
+
   const updated = isRsvped
     ? list.filter((id) => id !== eventId)
     : [...list, eventId];
@@ -108,17 +223,21 @@ export async function rsvpEvent(eventId: string): Promise<boolean> {
   try {
     localStorage.setItem(key, JSON.stringify(updated));
   } catch {
-    // no-op
+    // No-op.
   }
 
   return !isRsvped;
 }
 
 export function getUserRsvps(): string[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {
+    return [];
+  }
+
   const session = getSession();
   const userId = session?.user?.id || "u-current";
   const key = `cb_rsvp_${userId}`;
+
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : [];

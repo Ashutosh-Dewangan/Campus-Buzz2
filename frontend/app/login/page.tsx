@@ -56,11 +56,13 @@ export default function LoginPage() {
       setCurrentUser(
         {
           id: data.user.id,
+          name: data.user.name,
           rollNumber: data.user.rollNumber,
-          email: data.user.instituteEmail || data.user.email,
+          email: data.user.instituteEmail,
           role: data.user.role,
+          memberships: data.user.memberships ?? [],
         },
-        data.token
+        data.token,
       );
 
       router.push("/buzz");

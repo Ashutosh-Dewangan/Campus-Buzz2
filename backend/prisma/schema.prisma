@@ -93,6 +93,7 @@ model OfficialPost {
 
   author       User         @relation(fields: [authorId], references: [id])
   organization Organization @relation(fields: [organizationId], references: [id])
+  event        Event?
 }
 
 // ================================
@@ -155,9 +156,8 @@ model Post {
   author       User          @relation(fields: [authorId], references: [id])
   organization Organization? @relation(fields: [organizationId], references: [id])
 
-  hashtags    PostHashtag[]
-  chatRoom    ChatRoom?
-  linkedEvent Event?
+  hashtags PostHashtag[]
+  chatRoom ChatRoom?
 }
 
 model Hashtag {
@@ -241,16 +241,16 @@ model Event {
   startAt     DateTime
   venue       String
 
-  createdById    String
-  organizationId String?
-  linkedPostId   String? @unique
+  createdById          String
+  organizationId       String?
+  linkedOfficialPostId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  createdBy    User          @relation(fields: [createdById], references: [id])
-  organization Organization? @relation(fields: [organizationId], references: [id])
-  linkedPost   Post?         @relation(fields: [linkedPostId], references: [id])
+  createdBy          User          @relation(fields: [createdById], references: [id])
+  organization       Organization? @relation(fields: [organizationId], references: [id])
+  linkedOfficialPost OfficialPost? @relation(fields: [linkedOfficialPostId], references: [id])
 }
 
 enum PostStatus {

@@ -1,12 +1,23 @@
 import { useSyncExternalStore } from "react";
 import { UserRole } from "@/types";
 
+export interface OrganizationMembership {
+  id: string;
+  status: "ACTIVE" | "INACTIVE";
+  organization: {
+    id: string;
+    name: string;
+    type: "CLUB" | "COMMITTEE";
+  };
+}
+
 export interface CurrentUser {
   id: string;
   rollNumber: string;
   email: string;
   role: UserRole;
   name?: string;
+  memberships?: OrganizationMembership[];
 }
 
 export interface Session {

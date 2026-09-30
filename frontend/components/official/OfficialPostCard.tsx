@@ -32,22 +32,32 @@ export default function OfficialPostCard({ post }: Props) {
                 boxShadow: "0 0 6px var(--neon-cyan)",
               }}
             />
-            {post.organization}
+
+            {post.organization.name}
           </p>
+
           <span className="tag-pill tag-cab text-[10px] font-bold">
             ✓ Official
           </span>
         </div>
 
+        {/* Post title */}
+        <h2
+          className="mt-4 text-xl font-black"
+          style={{ color: "var(--fg)" }}
+        >
+          {post.title}
+        </h2>
+
         {/* Post content */}
         <p
-          className="font-readable mt-3.5 leading-relaxed whitespace-pre-wrap text-sm"
+          className="font-readable mt-3.5 whitespace-pre-wrap text-sm leading-relaxed"
           style={{ color: "var(--fg)" }}
         >
           {post.content}
         </p>
 
-        {/* Action Attachments: Google Form / Link */}
+        {/* Action Attachments */}
         <div className="mt-4 flex flex-wrap gap-2">
           {post.formUrl && (
             <a
@@ -56,7 +66,7 @@ export default function OfficialPostCard({ post }: Props) {
               rel="noopener noreferrer"
               className="comic-btn inline-flex items-center gap-1.5 text-xs font-bold"
             >
-              Open Registration Form ↗
+              Open Registration Form →
             </a>
           )}
 
@@ -67,31 +77,37 @@ export default function OfficialPostCard({ post }: Props) {
               rel="noopener noreferrer"
               className="comic-btn-outline inline-flex items-center gap-1.5 text-xs font-bold"
             >
-              Portal Link ↗
+              Portal Link →
             </a>
           )}
         </div>
       </div>
 
-      {/* Footer metadata: Linked event & timestamp */}
+      {/* Footer metadata */}
       <div
-        className="mt-5 border-t pt-3 flex items-center justify-between text-xs"
+        className="mt-5 flex items-center justify-between border-t pt-3 text-xs"
         style={{ borderColor: "#000", color: "var(--fg-muted)" }}
       >
-        {post.eventName ? (
+        {post.event ? (
           <Link
             href="/events"
-            className="flex items-center gap-1.5 font-bold text-white hover:text-[var(--neon-cyan)] transition"
+            className="flex items-center gap-1.5 font-bold text-white transition hover:text-[var(--neon-cyan)]"
           >
-            <CalendarIcon className="h-3 w-3 text-[var(--neon-yellow)] shrink-0" />
-            <span className="underline underline-offset-2">{post.eventName}</span>
+            <CalendarIcon className="h-3 w-3 shrink-0 text-[var(--neon-yellow)]" />
+
+            <span className="underline underline-offset-2">
+              {post.event.name}
+            </span>
           </Link>
         ) : (
           <span />
         )}
 
         {formattedDate && (
-          <time dateTime={post.createdAt} className="text-[11px] font-semibold">
+          <time
+            dateTime={post.createdAt}
+            className="text-[11px] font-semibold"
+          >
             {formattedDate}
           </time>
         )}

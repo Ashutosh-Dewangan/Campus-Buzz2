@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCurrentUser } from "@/lib/session";
+import { useEffect, useState } from "react";
 import { Event } from "@/types";
-import { createEvent } from "@/lib/api";
+import { createEvent, getOrganizations } from "@/lib/api";
 
 interface EventFormProps {
   onClose: () => void;
@@ -13,25 +14,110 @@ export default function EventForm({
   onClose,
   onEventCreated,
 }: EventFormProps) {
+  const currentUser = useCurrentUser();
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [venue, setVenue] = useState("");
   const [description, setDescription] = useState("");
-  const [createdBy, setCreatedBy] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
+  const [organizations, setOrganizations] = useState<
+  Awaited<ReturnType<typeof getOrganizations>>
+>([]);
+const [isLoadingOrganizations, setIsLoadingOrganizations] =
+  useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const isAdmin = currentUser?.role === "ADMIN";
+  const memberships =
+    currentUser?.memberships?.filter(
+      (membership) => membership.status === "ACTIVE",
+    ) ?? [];
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
+    useEffect(() => {
+      if (!isAdmin) {
+        setOrganizations([]);
+        return;
+      }
+    
+      let cancelled = false;
+    
+      async function loadOrganizations() {
+        setIsLoadingOrganizations(true);
+    
+        try {
+          const data = await getOrganizations();
+    
+          if (!cancelled) {
+            setOrganizations(data);
+          }
+        } catch (err) {
+          if (!cancelled) {
+            setError(
+              err instanceof Error
+                ? err.message
+                : "Failed to load organizations.",
+            );
+          }
+        } finally {
+          if (!cancelled) {
+            setIsLoadingOrganizations(false);
+          }
+        }
+      }
+    
+      void loadOrganizations();
+    
+      return () => {
+        cancelled = true;
+      };
+    }, [isAdmin]);
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
 
-    if (!name.trim() || !date.trim() || !time.trim() || !venue.trim() || !description.trim()) {
-      setError("Please fill in all required fields.");
+    setError("");
+
+    if (!name.trim()) {
+      setError("Event name is required.");
+      return;
+    }
+
+    if (!date.trim()) {
+      setError("Event date is required.");
+      return;
+    }
+
+    if (!time.trim()) {
+      setError("Event time is required.");
+      return;
+    }
+
+    if (!venue.trim()) {
+      setError("Venue is required.");
+      return;
+    }
+
+    if (!description.trim()) {
+      setError("Event description is required.");
+      return;
+    }
+
+    if (!isAdmin && memberships.length === 0) {
+      setError(
+        "You need an active club or committee membership to create an event.",
+      );
+      return;
+    }
+
+    if (!isAdmin && !organizationId) {
+      setError("Please select an organization.");
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       const created = await createEvent({
         name: name.trim(),
@@ -39,51 +125,48 @@ export default function EventForm({
         time: time.trim(),
         venue: venue.trim(),
         description: description.trim(),
-        createdBy: createdBy.trim() || "Campus Student",
+        organizationId: organizationId || undefined,
       });
 
       onEventCreated?.(created);
       onClose();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create event");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create event.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="comic-modal w-full max-w-lg p-6">
-        <div className="mb-6 flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="stay-loop-title" style={{ fontSize: 24 }}>
-              Create Campus Event
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+              Create Event
             </h2>
-            <p className="mt-1 text-xs" style={{ color: "var(--neon-cyan)" }}>
-              Official Activity &amp; Club Scheduling
+
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Add an event to the campus calendar.
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
+            className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
             aria-label="Close"
-            className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
-            style={{ boxShadow: "2px 2px 0 #000" }}
           >
             ✕
           </button>
         </div>
 
         {error && (
-          <div
-            className="mb-4 border-2 border-black p-3 text-sm font-bold"
-            style={{
-              background: "rgba(255,45,74,0.18)",
-              color: "var(--accent)",
-              boxShadow: "2px 2px 0 #000",
-            }}
-          >
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
             {error}
           </div>
         )}
@@ -92,55 +175,56 @@ export default function EventForm({
           <div>
             <label
               htmlFor="event-name"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
+              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Event Name *
+              Event Name
             </label>
+
             <input
               id="event-name"
+              type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Hackathon 2026, Music Night"
-              className="comic-input w-full px-4 py-2 text-sm"
-              required
+              onChange={(event) => setName(event.target.value)}
+              placeholder="e.g. Campus Tech Meetup"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              disabled={isSubmitting}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="event-date"
-                className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-                style={{ color: "var(--neon-yellow)" }}
+                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
               >
-                Date *
+                Date
               </label>
+
               <input
                 id="event-date"
+                type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                placeholder="YYYY-MM-DD or Oct 12"
-                className="comic-input w-full px-4 py-2 text-sm"
-                required
+                onChange={(event) => setDate(event.target.value)}
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+                disabled={isSubmitting}
               />
             </div>
 
             <div>
               <label
                 htmlFor="event-time"
-                className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-                style={{ color: "var(--neon-yellow)" }}
+                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
               >
-                Time *
+                Time
               </label>
+
               <input
                 id="event-time"
+                type="time"
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
-                placeholder="e.g. 5:00 PM"
-                className="comic-input w-full px-4 py-2 text-sm"
-                required
+                onChange={(event) => setTime(event.target.value)}
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -148,69 +232,122 @@ export default function EventForm({
           <div>
             <label
               htmlFor="event-venue"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
+              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Venue / Location *
+              Venue
             </label>
+
             <input
               id="event-venue"
+              type="text"
               value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder="e.g. Main Auditorium, Seminar Hall B"
-              className="comic-input w-full px-4 py-2 text-sm"
-              required
+              onChange={(event) => setVenue(event.target.value)}
+              placeholder="e.g. Main Auditorium"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              disabled={isSubmitting}
             />
           </div>
 
           <div>
             <label
-              htmlFor="event-organizer"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
+              htmlFor="event-organization"
+              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Organizer / Club Name
+              Organization
             </label>
-            <input
-              id="event-organizer"
-              value={createdBy}
-              onChange={(e) => setCreatedBy(e.target.value)}
-              placeholder="e.g. Coding Club, Student Council"
-              className="comic-input w-full px-4 py-2 text-sm"
-            />
+
+            <select
+              id="event-organization"
+              value={organizationId}
+              onChange={(event) =>
+                setOrganizationId(event.target.value)
+              }
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              disabled={isSubmitting || (isAdmin && isLoadingOrganizations)}
+            >
+              {isAdmin && (
+                <option value="">
+                  Campus-wide event
+                </option>
+              )}
+
+              {!isAdmin && (
+                <option value="" disabled>
+                  Select organization
+                </option>
+              )}
+
+            {isAdmin
+              ? organizations.map((organization) => (
+                  <option
+                    key={organization.id}
+                    value={organization.id}
+                  >
+                    {organization.name}
+                  </option>
+                ))
+              : memberships.map((membership) => (
+                  <option
+                    key={membership.organization.id}
+                    value={membership.organization.id}
+                  >
+                    {membership.organization.name}
+                  </option>
+                ))}
+              </select>
+            {isAdmin ? (
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                Admins can create campus-wide events or create
+                events on behalf of an organization.
+              </p>
+            ) : memberships.length === 0 ? (
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                You need an active organization membership to
+                create events.
+              </p>
+            ) : (
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                You can create events only for organizations
+                where you are an active member.
+              </p>
+            )}
           </div>
 
           <div>
             <label
-              htmlFor="event-desc"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
+              htmlFor="event-description"
+              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Description *
+              Description
             </label>
+
             <textarea
-              id="event-desc"
+              id="event-description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              placeholder="Describe the event, rules, schedule, prizes..."
-              className="comic-input font-readable w-full px-4 py-2 text-sm leading-relaxed"
-              required
+              onChange={(event) =>
+                setDescription(event.target.value)
+              }
+              placeholder="Describe the event..."
+              rows={5}
+              className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              disabled={isSubmitting}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="comic-btn-outline"
+              disabled={isSubmitting}
+              className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className="comic-btn disabled:opacity-50"
+              className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               {isSubmitting ? "Creating..." : "Create Event"}
             </button>

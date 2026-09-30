@@ -32,7 +32,7 @@ export type EventMinAggregateOutputType = {
   venue: string | null
   createdById: string | null
   organizationId: string | null
-  linkedPostId: string | null
+  linkedOfficialPostId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -45,7 +45,7 @@ export type EventMaxAggregateOutputType = {
   venue: string | null
   createdById: string | null
   organizationId: string | null
-  linkedPostId: string | null
+  linkedOfficialPostId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,7 +58,7 @@ export type EventCountAggregateOutputType = {
   venue: number
   createdById: number
   organizationId: number
-  linkedPostId: number
+  linkedOfficialPostId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -73,7 +73,7 @@ export type EventMinAggregateInputType = {
   venue?: true
   createdById?: true
   organizationId?: true
-  linkedPostId?: true
+  linkedOfficialPostId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -86,7 +86,7 @@ export type EventMaxAggregateInputType = {
   venue?: true
   createdById?: true
   organizationId?: true
-  linkedPostId?: true
+  linkedOfficialPostId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -99,7 +99,7 @@ export type EventCountAggregateInputType = {
   venue?: true
   createdById?: true
   organizationId?: true
-  linkedPostId?: true
+  linkedOfficialPostId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -185,7 +185,7 @@ export type EventGroupByOutputType = {
   venue: string
   createdById: string
   organizationId: string | null
-  linkedPostId: string | null
+  linkedOfficialPostId: string | null
   createdAt: Date
   updatedAt: Date
   _count: EventCountAggregateOutputType | null
@@ -219,12 +219,12 @@ export type EventWhereInput = {
   venue?: Prisma.StringFilter<"Event"> | string
   createdById?: Prisma.StringFilter<"Event"> | string
   organizationId?: Prisma.StringNullableFilter<"Event"> | string | null
-  linkedPostId?: Prisma.StringNullableFilter<"Event"> | string | null
+  linkedOfficialPostId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  linkedPost?: Prisma.XOR<Prisma.PostNullableScalarRelationFilter, Prisma.PostWhereInput> | null
+  linkedOfficialPost?: Prisma.XOR<Prisma.OfficialPostNullableScalarRelationFilter, Prisma.OfficialPostWhereInput> | null
 }
 
 export type EventOrderByWithRelationInput = {
@@ -235,17 +235,17 @@ export type EventOrderByWithRelationInput = {
   venue?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
-  linkedPostId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedOfficialPostId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdBy?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
-  linkedPost?: Prisma.PostOrderByWithRelationInput
+  linkedOfficialPost?: Prisma.OfficialPostOrderByWithRelationInput
 }
 
 export type EventWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  linkedPostId?: string
+  linkedOfficialPostId?: string
   AND?: Prisma.EventWhereInput | Prisma.EventWhereInput[]
   OR?: Prisma.EventWhereInput[]
   NOT?: Prisma.EventWhereInput | Prisma.EventWhereInput[]
@@ -259,8 +259,8 @@ export type EventWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  linkedPost?: Prisma.XOR<Prisma.PostNullableScalarRelationFilter, Prisma.PostWhereInput> | null
-}, "id" | "linkedPostId">
+  linkedOfficialPost?: Prisma.XOR<Prisma.OfficialPostNullableScalarRelationFilter, Prisma.OfficialPostWhereInput> | null
+}, "id" | "linkedOfficialPostId">
 
 export type EventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -270,7 +270,7 @@ export type EventOrderByWithAggregationInput = {
   venue?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
-  linkedPostId?: Prisma.SortOrderInput | Prisma.SortOrder
+  linkedOfficialPostId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EventCountOrderByAggregateInput
@@ -289,7 +289,7 @@ export type EventScalarWhereWithAggregatesInput = {
   venue?: Prisma.StringWithAggregatesFilter<"Event"> | string
   createdById?: Prisma.StringWithAggregatesFilter<"Event"> | string
   organizationId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
-  linkedPostId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
+  linkedOfficialPostId?: Prisma.StringNullableWithAggregatesFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Event"> | Date | string
 }
@@ -304,7 +304,7 @@ export type EventCreateInput = {
   updatedAt?: Date | string
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedEventsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutEventsInput
-  linkedPost?: Prisma.PostCreateNestedOneWithoutLinkedEventInput
+  linkedOfficialPost?: Prisma.OfficialPostCreateNestedOneWithoutEventInput
 }
 
 export type EventUncheckedCreateInput = {
@@ -315,7 +315,7 @@ export type EventUncheckedCreateInput = {
   venue: string
   createdById: string
   organizationId?: string | null
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -330,7 +330,7 @@ export type EventUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedEventsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutEventsNestedInput
-  linkedPost?: Prisma.PostUpdateOneWithoutLinkedEventNestedInput
+  linkedOfficialPost?: Prisma.OfficialPostUpdateOneWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateInput = {
@@ -341,7 +341,7 @@ export type EventUncheckedUpdateInput = {
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -354,7 +354,7 @@ export type EventCreateManyInput = {
   venue: string
   createdById: string
   organizationId?: string | null
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -377,7 +377,7 @@ export type EventUncheckedUpdateManyInput = {
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -405,7 +405,7 @@ export type EventCountOrderByAggregateInput = {
   venue?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
-  linkedPostId?: Prisma.SortOrder
+  linkedOfficialPostId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -418,7 +418,7 @@ export type EventMaxOrderByAggregateInput = {
   venue?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
-  linkedPostId?: Prisma.SortOrder
+  linkedOfficialPostId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -431,7 +431,7 @@ export type EventMinOrderByAggregateInput = {
   venue?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
-  linkedPostId?: Prisma.SortOrder
+  linkedOfficialPostId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -520,36 +520,36 @@ export type EventUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.EventScalarWhereInput | Prisma.EventScalarWhereInput[]
 }
 
-export type EventCreateNestedOneWithoutLinkedPostInput = {
-  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
-  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedPostInput
+export type EventCreateNestedOneWithoutLinkedOfficialPostInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedOfficialPostInput
   connect?: Prisma.EventWhereUniqueInput
 }
 
-export type EventUncheckedCreateNestedOneWithoutLinkedPostInput = {
-  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
-  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedPostInput
+export type EventUncheckedCreateNestedOneWithoutLinkedOfficialPostInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedOfficialPostInput
   connect?: Prisma.EventWhereUniqueInput
 }
 
-export type EventUpdateOneWithoutLinkedPostNestedInput = {
-  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
-  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedPostInput
-  upsert?: Prisma.EventUpsertWithoutLinkedPostInput
+export type EventUpdateOneWithoutLinkedOfficialPostNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedOfficialPostInput
+  upsert?: Prisma.EventUpsertWithoutLinkedOfficialPostInput
   disconnect?: Prisma.EventWhereInput | boolean
   delete?: Prisma.EventWhereInput | boolean
   connect?: Prisma.EventWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutLinkedPostInput, Prisma.EventUpdateWithoutLinkedPostInput>, Prisma.EventUncheckedUpdateWithoutLinkedPostInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutLinkedOfficialPostInput, Prisma.EventUpdateWithoutLinkedOfficialPostInput>, Prisma.EventUncheckedUpdateWithoutLinkedOfficialPostInput>
 }
 
-export type EventUncheckedUpdateOneWithoutLinkedPostNestedInput = {
-  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
-  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedPostInput
-  upsert?: Prisma.EventUpsertWithoutLinkedPostInput
+export type EventUncheckedUpdateOneWithoutLinkedOfficialPostNestedInput = {
+  create?: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
+  connectOrCreate?: Prisma.EventCreateOrConnectWithoutLinkedOfficialPostInput
+  upsert?: Prisma.EventUpsertWithoutLinkedOfficialPostInput
   disconnect?: Prisma.EventWhereInput | boolean
   delete?: Prisma.EventWhereInput | boolean
   connect?: Prisma.EventWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutLinkedPostInput, Prisma.EventUpdateWithoutLinkedPostInput>, Prisma.EventUncheckedUpdateWithoutLinkedPostInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventUpdateToOneWithWhereWithoutLinkedOfficialPostInput, Prisma.EventUpdateWithoutLinkedOfficialPostInput>, Prisma.EventUncheckedUpdateWithoutLinkedOfficialPostInput>
 }
 
 export type EventCreateWithoutCreatedByInput = {
@@ -561,7 +561,7 @@ export type EventCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization?: Prisma.OrganizationCreateNestedOneWithoutEventsInput
-  linkedPost?: Prisma.PostCreateNestedOneWithoutLinkedEventInput
+  linkedOfficialPost?: Prisma.OfficialPostCreateNestedOneWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutCreatedByInput = {
@@ -571,7 +571,7 @@ export type EventUncheckedCreateWithoutCreatedByInput = {
   startAt: Date | string
   venue: string
   organizationId?: string | null
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -613,7 +613,7 @@ export type EventScalarWhereInput = {
   venue?: Prisma.StringFilter<"Event"> | string
   createdById?: Prisma.StringFilter<"Event"> | string
   organizationId?: Prisma.StringNullableFilter<"Event"> | string | null
-  linkedPostId?: Prisma.StringNullableFilter<"Event"> | string | null
+  linkedOfficialPostId?: Prisma.StringNullableFilter<"Event"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Event"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Event"> | Date | string
 }
@@ -627,7 +627,7 @@ export type EventCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedEventsInput
-  linkedPost?: Prisma.PostCreateNestedOneWithoutLinkedEventInput
+  linkedOfficialPost?: Prisma.OfficialPostCreateNestedOneWithoutEventInput
 }
 
 export type EventUncheckedCreateWithoutOrganizationInput = {
@@ -637,7 +637,7 @@ export type EventUncheckedCreateWithoutOrganizationInput = {
   startAt: Date | string
   venue: string
   createdById: string
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -668,7 +668,7 @@ export type EventUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.EventUpdateManyMutationInput, Prisma.EventUncheckedUpdateManyWithoutOrganizationInput>
 }
 
-export type EventCreateWithoutLinkedPostInput = {
+export type EventCreateWithoutLinkedOfficialPostInput = {
   id?: string
   name: string
   description: string
@@ -680,7 +680,7 @@ export type EventCreateWithoutLinkedPostInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutEventsInput
 }
 
-export type EventUncheckedCreateWithoutLinkedPostInput = {
+export type EventUncheckedCreateWithoutLinkedOfficialPostInput = {
   id?: string
   name: string
   description: string
@@ -692,23 +692,23 @@ export type EventUncheckedCreateWithoutLinkedPostInput = {
   updatedAt?: Date | string
 }
 
-export type EventCreateOrConnectWithoutLinkedPostInput = {
+export type EventCreateOrConnectWithoutLinkedOfficialPostInput = {
   where: Prisma.EventWhereUniqueInput
-  create: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
 }
 
-export type EventUpsertWithoutLinkedPostInput = {
-  update: Prisma.XOR<Prisma.EventUpdateWithoutLinkedPostInput, Prisma.EventUncheckedUpdateWithoutLinkedPostInput>
-  create: Prisma.XOR<Prisma.EventCreateWithoutLinkedPostInput, Prisma.EventUncheckedCreateWithoutLinkedPostInput>
+export type EventUpsertWithoutLinkedOfficialPostInput = {
+  update: Prisma.XOR<Prisma.EventUpdateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedUpdateWithoutLinkedOfficialPostInput>
+  create: Prisma.XOR<Prisma.EventCreateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedCreateWithoutLinkedOfficialPostInput>
   where?: Prisma.EventWhereInput
 }
 
-export type EventUpdateToOneWithWhereWithoutLinkedPostInput = {
+export type EventUpdateToOneWithWhereWithoutLinkedOfficialPostInput = {
   where?: Prisma.EventWhereInput
-  data: Prisma.XOR<Prisma.EventUpdateWithoutLinkedPostInput, Prisma.EventUncheckedUpdateWithoutLinkedPostInput>
+  data: Prisma.XOR<Prisma.EventUpdateWithoutLinkedOfficialPostInput, Prisma.EventUncheckedUpdateWithoutLinkedOfficialPostInput>
 }
 
-export type EventUpdateWithoutLinkedPostInput = {
+export type EventUpdateWithoutLinkedOfficialPostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -720,7 +720,7 @@ export type EventUpdateWithoutLinkedPostInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutEventsNestedInput
 }
 
-export type EventUncheckedUpdateWithoutLinkedPostInput = {
+export type EventUncheckedUpdateWithoutLinkedOfficialPostInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -739,7 +739,7 @@ export type EventCreateManyCreatedByInput = {
   startAt: Date | string
   venue: string
   organizationId?: string | null
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -753,7 +753,7 @@ export type EventUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneWithoutEventsNestedInput
-  linkedPost?: Prisma.PostUpdateOneWithoutLinkedEventNestedInput
+  linkedOfficialPost?: Prisma.OfficialPostUpdateOneWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutCreatedByInput = {
@@ -763,7 +763,7 @@ export type EventUncheckedUpdateWithoutCreatedByInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -775,7 +775,7 @@ export type EventUncheckedUpdateManyWithoutCreatedByInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -787,7 +787,7 @@ export type EventCreateManyOrganizationInput = {
   startAt: Date | string
   venue: string
   createdById: string
-  linkedPostId?: string | null
+  linkedOfficialPostId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -801,7 +801,7 @@ export type EventUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedEventsNestedInput
-  linkedPost?: Prisma.PostUpdateOneWithoutLinkedEventNestedInput
+  linkedOfficialPost?: Prisma.OfficialPostUpdateOneWithoutEventNestedInput
 }
 
 export type EventUncheckedUpdateWithoutOrganizationInput = {
@@ -811,7 +811,7 @@ export type EventUncheckedUpdateWithoutOrganizationInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -823,7 +823,7 @@ export type EventUncheckedUpdateManyWithoutOrganizationInput = {
   startAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   venue?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
-  linkedPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  linkedOfficialPostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -838,12 +838,12 @@ export type EventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   venue?: boolean
   createdById?: boolean
   organizationId?: boolean
-  linkedPostId?: boolean
+  linkedOfficialPostId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -854,12 +854,12 @@ export type EventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venue?: boolean
   createdById?: boolean
   organizationId?: boolean
-  linkedPostId?: boolean
+  linkedOfficialPostId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -870,12 +870,12 @@ export type EventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   venue?: boolean
   createdById?: boolean
   organizationId?: boolean
-  linkedPostId?: boolean
+  linkedOfficialPostId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }, ExtArgs["result"]["event"]>
 
 export type EventSelectScalar = {
@@ -886,26 +886,26 @@ export type EventSelectScalar = {
   venue?: boolean
   createdById?: boolean
   organizationId?: boolean
-  linkedPostId?: boolean
+  linkedOfficialPostId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "startAt" | "venue" | "createdById" | "organizationId" | "linkedPostId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
+export type EventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "startAt" | "venue" | "createdById" | "organizationId" | "linkedOfficialPostId" | "createdAt" | "updatedAt", ExtArgs["result"]["event"]>
 export type EventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }
 export type EventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }
 export type EventIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Event$organizationArgs<ExtArgs>
-  linkedPost?: boolean | Prisma.Event$linkedPostArgs<ExtArgs>
+  linkedOfficialPost?: boolean | Prisma.Event$linkedOfficialPostArgs<ExtArgs>
 }
 
 export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -913,7 +913,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     createdBy: Prisma.$UserPayload<ExtArgs>
     organization: Prisma.$OrganizationPayload<ExtArgs> | null
-    linkedPost: Prisma.$PostPayload<ExtArgs> | null
+    linkedOfficialPost: Prisma.$OfficialPostPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -923,7 +923,7 @@ export type $EventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     venue: string
     createdById: string
     organizationId: string | null
-    linkedPostId: string | null
+    linkedOfficialPostId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["event"]>
@@ -1322,7 +1322,7 @@ export interface Prisma__EventClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.Event$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  linkedPost<T extends Prisma.Event$linkedPostArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$linkedPostArgs<ExtArgs>>): Prisma.Prisma__PostClient<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  linkedOfficialPost<T extends Prisma.Event$linkedOfficialPostArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Event$linkedOfficialPostArgs<ExtArgs>>): Prisma.Prisma__OfficialPostClient<runtime.Types.Result.GetResult<Prisma.$OfficialPostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1359,7 +1359,7 @@ export interface EventFieldRefs {
   readonly venue: Prisma.FieldRef<"Event", 'String'>
   readonly createdById: Prisma.FieldRef<"Event", 'String'>
   readonly organizationId: Prisma.FieldRef<"Event", 'String'>
-  readonly linkedPostId: Prisma.FieldRef<"Event", 'String'>
+  readonly linkedOfficialPostId: Prisma.FieldRef<"Event", 'String'>
   readonly createdAt: Prisma.FieldRef<"Event", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Event", 'DateTime'>
 }
@@ -1782,22 +1782,22 @@ export type Event$organizationArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
- * Event.linkedPost
+ * Event.linkedOfficialPost
  */
-export type Event$linkedPostArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Event$linkedOfficialPostArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Post
+   * Select specific fields to fetch from the OfficialPost
    */
-  select?: Prisma.PostSelect<ExtArgs> | null
+  select?: Prisma.OfficialPostSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Post
+   * Omit specific fields from the OfficialPost
    */
-  omit?: Prisma.PostOmit<ExtArgs> | null
+  omit?: Prisma.OfficialPostOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.PostInclude<ExtArgs> | null
-  where?: Prisma.PostWhereInput
+  include?: Prisma.OfficialPostInclude<ExtArgs> | null
+  where?: Prisma.OfficialPostWhereInput
 }
 
 /**

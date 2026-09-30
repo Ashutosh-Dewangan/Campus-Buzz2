@@ -258,7 +258,6 @@ export type PostWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
   hashtags?: Prisma.PostHashtagListRelationFilter
   chatRoom?: Prisma.XOR<Prisma.ChatRoomNullableScalarRelationFilter, Prisma.ChatRoomWhereInput> | null
-  linkedEvent?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
 }
 
 export type PostOrderByWithRelationInput = {
@@ -280,7 +279,6 @@ export type PostOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   hashtags?: Prisma.PostHashtagOrderByRelationAggregateInput
   chatRoom?: Prisma.ChatRoomOrderByWithRelationInput
-  linkedEvent?: Prisma.EventOrderByWithRelationInput
 }
 
 export type PostWhereUniqueInput = Prisma.AtLeast<{
@@ -305,7 +303,6 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
   hashtags?: Prisma.PostHashtagListRelationFilter
   chatRoom?: Prisma.XOR<Prisma.ChatRoomNullableScalarRelationFilter, Prisma.ChatRoomWhereInput> | null
-  linkedEvent?: Prisma.XOR<Prisma.EventNullableScalarRelationFilter, Prisma.EventWhereInput> | null
 }, "id">
 
 export type PostOrderByWithAggregationInput = {
@@ -365,7 +362,6 @@ export type PostCreateInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutPostsInput
   hashtags?: Prisma.PostHashtagCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUncheckedCreateInput = {
@@ -385,7 +381,6 @@ export type PostUncheckedCreateInput = {
   updatedAt?: Date | string
   hashtags?: Prisma.PostHashtagUncheckedCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomUncheckedCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUpdateInput = {
@@ -405,7 +400,6 @@ export type PostUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutPostsNestedInput
   hashtags?: Prisma.PostHashtagUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateInput = {
@@ -425,7 +419,6 @@ export type PostUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hashtags?: Prisma.PostHashtagUncheckedUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUncheckedUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUncheckedUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostCreateManyInput = {
@@ -541,11 +534,6 @@ export type PostMinOrderByAggregateInput = {
 export type PostScalarRelationFilter = {
   is?: Prisma.PostWhereInput
   isNot?: Prisma.PostWhereInput
-}
-
-export type PostNullableScalarRelationFilter = {
-  is?: Prisma.PostWhereInput | null
-  isNot?: Prisma.PostWhereInput | null
 }
 
 export type PostCreateNestedManyWithoutAuthorInput = {
@@ -672,22 +660,6 @@ export type PostUpdateOneRequiredWithoutChatRoomNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutChatRoomInput, Prisma.PostUpdateWithoutChatRoomInput>, Prisma.PostUncheckedUpdateWithoutChatRoomInput>
 }
 
-export type PostCreateNestedOneWithoutLinkedEventInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutLinkedEventInput, Prisma.PostUncheckedCreateWithoutLinkedEventInput>
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutLinkedEventInput
-  connect?: Prisma.PostWhereUniqueInput
-}
-
-export type PostUpdateOneWithoutLinkedEventNestedInput = {
-  create?: Prisma.XOR<Prisma.PostCreateWithoutLinkedEventInput, Prisma.PostUncheckedCreateWithoutLinkedEventInput>
-  connectOrCreate?: Prisma.PostCreateOrConnectWithoutLinkedEventInput
-  upsert?: Prisma.PostUpsertWithoutLinkedEventInput
-  disconnect?: Prisma.PostWhereInput | boolean
-  delete?: Prisma.PostWhereInput | boolean
-  connect?: Prisma.PostWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutLinkedEventInput, Prisma.PostUpdateWithoutLinkedEventInput>, Prisma.PostUncheckedUpdateWithoutLinkedEventInput>
-}
-
 export type PostCreateWithoutAuthorInput = {
   id?: string
   title: string
@@ -704,7 +676,6 @@ export type PostCreateWithoutAuthorInput = {
   organization?: Prisma.OrganizationCreateNestedOneWithoutPostsInput
   hashtags?: Prisma.PostHashtagCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUncheckedCreateWithoutAuthorInput = {
@@ -723,7 +694,6 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   updatedAt?: Date | string
   hashtags?: Prisma.PostHashtagUncheckedCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomUncheckedCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostCreateOrConnectWithoutAuthorInput = {
@@ -788,7 +758,6 @@ export type PostCreateWithoutOrganizationInput = {
   author: Prisma.UserCreateNestedOneWithoutPostsInput
   hashtags?: Prisma.PostHashtagCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUncheckedCreateWithoutOrganizationInput = {
@@ -807,7 +776,6 @@ export type PostUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   hashtags?: Prisma.PostHashtagUncheckedCreateNestedManyWithoutPostInput
   chatRoom?: Prisma.ChatRoomUncheckedCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostCreateOrConnectWithoutOrganizationInput = {
@@ -852,7 +820,6 @@ export type PostCreateWithoutHashtagsInput = {
   author: Prisma.UserCreateNestedOneWithoutPostsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutPostsInput
   chatRoom?: Prisma.ChatRoomCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUncheckedCreateWithoutHashtagsInput = {
@@ -871,7 +838,6 @@ export type PostUncheckedCreateWithoutHashtagsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   chatRoom?: Prisma.ChatRoomUncheckedCreateNestedOneWithoutPostInput
-  linkedEvent?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostCreateOrConnectWithoutHashtagsInput = {
@@ -906,7 +872,6 @@ export type PostUpdateWithoutHashtagsInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutPostsNestedInput
   chatRoom?: Prisma.ChatRoomUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutHashtagsInput = {
@@ -925,7 +890,6 @@ export type PostUncheckedUpdateWithoutHashtagsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chatRoom?: Prisma.ChatRoomUncheckedUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUncheckedUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostCreateWithoutChatRoomInput = {
@@ -944,7 +908,6 @@ export type PostCreateWithoutChatRoomInput = {
   author: Prisma.UserCreateNestedOneWithoutPostsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutPostsInput
   hashtags?: Prisma.PostHashtagCreateNestedManyWithoutPostInput
-  linkedEvent?: Prisma.EventCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostUncheckedCreateWithoutChatRoomInput = {
@@ -963,7 +926,6 @@ export type PostUncheckedCreateWithoutChatRoomInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   hashtags?: Prisma.PostHashtagUncheckedCreateNestedManyWithoutPostInput
-  linkedEvent?: Prisma.EventUncheckedCreateNestedOneWithoutLinkedPostInput
 }
 
 export type PostCreateOrConnectWithoutChatRoomInput = {
@@ -998,7 +960,6 @@ export type PostUpdateWithoutChatRoomInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutPostsNestedInput
   hashtags?: Prisma.PostHashtagUpdateManyWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutChatRoomInput = {
@@ -1017,99 +978,6 @@ export type PostUncheckedUpdateWithoutChatRoomInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hashtags?: Prisma.PostHashtagUncheckedUpdateManyWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUncheckedUpdateOneWithoutLinkedPostNestedInput
-}
-
-export type PostCreateWithoutLinkedEventInput = {
-  id?: string
-  title: string
-  description: string
-  imageUrl: string
-  feedType?: $Enums.FeedType
-  interactionType?: $Enums.InteractionType | null
-  contactName?: string | null
-  contactPhone?: string | null
-  expiresAt?: Date | string | null
-  status?: $Enums.PostStatus
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  author: Prisma.UserCreateNestedOneWithoutPostsInput
-  organization?: Prisma.OrganizationCreateNestedOneWithoutPostsInput
-  hashtags?: Prisma.PostHashtagCreateNestedManyWithoutPostInput
-  chatRoom?: Prisma.ChatRoomCreateNestedOneWithoutPostInput
-}
-
-export type PostUncheckedCreateWithoutLinkedEventInput = {
-  id?: string
-  title: string
-  description: string
-  imageUrl: string
-  feedType?: $Enums.FeedType
-  interactionType?: $Enums.InteractionType | null
-  authorId: string
-  organizationId?: string | null
-  contactName?: string | null
-  contactPhone?: string | null
-  expiresAt?: Date | string | null
-  status?: $Enums.PostStatus
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  hashtags?: Prisma.PostHashtagUncheckedCreateNestedManyWithoutPostInput
-  chatRoom?: Prisma.ChatRoomUncheckedCreateNestedOneWithoutPostInput
-}
-
-export type PostCreateOrConnectWithoutLinkedEventInput = {
-  where: Prisma.PostWhereUniqueInput
-  create: Prisma.XOR<Prisma.PostCreateWithoutLinkedEventInput, Prisma.PostUncheckedCreateWithoutLinkedEventInput>
-}
-
-export type PostUpsertWithoutLinkedEventInput = {
-  update: Prisma.XOR<Prisma.PostUpdateWithoutLinkedEventInput, Prisma.PostUncheckedUpdateWithoutLinkedEventInput>
-  create: Prisma.XOR<Prisma.PostCreateWithoutLinkedEventInput, Prisma.PostUncheckedCreateWithoutLinkedEventInput>
-  where?: Prisma.PostWhereInput
-}
-
-export type PostUpdateToOneWithWhereWithoutLinkedEventInput = {
-  where?: Prisma.PostWhereInput
-  data: Prisma.XOR<Prisma.PostUpdateWithoutLinkedEventInput, Prisma.PostUncheckedUpdateWithoutLinkedEventInput>
-}
-
-export type PostUpdateWithoutLinkedEventInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  feedType?: Prisma.EnumFeedTypeFieldUpdateOperationsInput | $Enums.FeedType
-  interactionType?: Prisma.NullableEnumInteractionTypeFieldUpdateOperationsInput | $Enums.InteractionType | null
-  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
-  organization?: Prisma.OrganizationUpdateOneWithoutPostsNestedInput
-  hashtags?: Prisma.PostHashtagUpdateManyWithoutPostNestedInput
-  chatRoom?: Prisma.ChatRoomUpdateOneWithoutPostNestedInput
-}
-
-export type PostUncheckedUpdateWithoutLinkedEventInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  title?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  imageUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  feedType?: Prisma.EnumFeedTypeFieldUpdateOperationsInput | $Enums.FeedType
-  interactionType?: Prisma.NullableEnumInteractionTypeFieldUpdateOperationsInput | $Enums.InteractionType | null
-  authorId?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  hashtags?: Prisma.PostHashtagUncheckedUpdateManyWithoutPostNestedInput
-  chatRoom?: Prisma.ChatRoomUncheckedUpdateOneWithoutPostNestedInput
 }
 
 export type PostCreateManyAuthorInput = {
@@ -1144,7 +1012,6 @@ export type PostUpdateWithoutAuthorInput = {
   organization?: Prisma.OrganizationUpdateOneWithoutPostsNestedInput
   hashtags?: Prisma.PostHashtagUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutAuthorInput = {
@@ -1163,7 +1030,6 @@ export type PostUncheckedUpdateWithoutAuthorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hashtags?: Prisma.PostHashtagUncheckedUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUncheckedUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUncheckedUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateManyWithoutAuthorInput = {
@@ -1214,7 +1080,6 @@ export type PostUpdateWithoutOrganizationInput = {
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
   hashtags?: Prisma.PostHashtagUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutOrganizationInput = {
@@ -1233,7 +1098,6 @@ export type PostUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   hashtags?: Prisma.PostHashtagUncheckedUpdateManyWithoutPostNestedInput
   chatRoom?: Prisma.ChatRoomUncheckedUpdateOneWithoutPostNestedInput
-  linkedEvent?: Prisma.EventUncheckedUpdateOneWithoutLinkedPostNestedInput
 }
 
 export type PostUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1302,7 +1166,6 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   organization?: boolean | Prisma.Post$organizationArgs<ExtArgs>
   hashtags?: boolean | Prisma.Post$hashtagsArgs<ExtArgs>
   chatRoom?: boolean | Prisma.Post$chatRoomArgs<ExtArgs>
-  linkedEvent?: boolean | Prisma.Post$linkedEventArgs<ExtArgs>
   _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
 
@@ -1367,7 +1230,6 @@ export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organization?: boolean | Prisma.Post$organizationArgs<ExtArgs>
   hashtags?: boolean | Prisma.Post$hashtagsArgs<ExtArgs>
   chatRoom?: boolean | Prisma.Post$chatRoomArgs<ExtArgs>
-  linkedEvent?: boolean | Prisma.Post$linkedEventArgs<ExtArgs>
   _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PostIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1386,7 +1248,6 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     organization: Prisma.$OrganizationPayload<ExtArgs> | null
     hashtags: Prisma.$PostHashtagPayload<ExtArgs>[]
     chatRoom: Prisma.$ChatRoomPayload<ExtArgs> | null
-    linkedEvent: Prisma.$EventPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1801,7 +1662,6 @@ export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Typ
   organization<T extends Prisma.Post$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   hashtags<T extends Prisma.Post$hashtagsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$hashtagsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostHashtagPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chatRoom<T extends Prisma.Post$chatRoomArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$chatRoomArgs<ExtArgs>>): Prisma.Prisma__ChatRoomClient<runtime.Types.Result.GetResult<Prisma.$ChatRoomPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  linkedEvent<T extends Prisma.Post$linkedEventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$linkedEventArgs<ExtArgs>>): Prisma.Prisma__EventClient<runtime.Types.Result.GetResult<Prisma.$EventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2305,25 +2165,6 @@ export type Post$chatRoomArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.ChatRoomInclude<ExtArgs> | null
   where?: Prisma.ChatRoomWhereInput
-}
-
-/**
- * Post.linkedEvent
- */
-export type Post$linkedEventArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Event
-   */
-  select?: Prisma.EventSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Event
-   */
-  omit?: Prisma.EventOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EventInclude<ExtArgs> | null
-  where?: Prisma.EventWhereInput
 }
 
 /**

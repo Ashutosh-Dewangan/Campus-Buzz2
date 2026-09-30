@@ -6,3 +6,4 @@ export * from "./official";
 export * from "./notifications";
 export * from "./admin";
 export * from "./storage";
+export * from "./organizations";
