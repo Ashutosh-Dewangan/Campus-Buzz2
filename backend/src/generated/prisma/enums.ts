@@ -74,3 +74,15 @@ export const PostStatus = {
 } as const
 
 export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus]
+
+
+export const ComplaintCategory = {
+  HOSTEL: 'HOSTEL',
+  MESS_CAFETERIA: 'MESS_CAFETERIA',
+  CAMPUS_WIFI: 'CAMPUS_WIFI',
+  LIBRARY_FACILITIES: 'LIBRARY_FACILITIES',
+  ACADEMIC: 'ACADEMIC',
+  OTHER: 'OTHER'
+} as const
+
+export type ComplaintCategory = (typeof ComplaintCategory)[keyof typeof ComplaintCategory]

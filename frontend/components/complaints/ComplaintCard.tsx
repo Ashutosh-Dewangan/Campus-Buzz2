@@ -2,7 +2,7 @@ import { Complaint } from "@/types";
 import { LockIcon } from "@/components/ui/Icons";
 
 interface ComplaintCardProps {
-  complaint: Complaint & { resolved?: boolean };
+  complaint: Complaint;
   canResolve?: boolean;
   onResolve?: ((id: string) => void) | (() => void);
   showAdminIdentity?: boolean;
@@ -14,11 +14,11 @@ export default function ComplaintCard({
   onResolve,
   showAdminIdentity = false,
 }: ComplaintCardProps) {
-  const isResolved =
-    Boolean(complaint.resolved) || complaint.status === "RESOLVED";
+  const isResolved = complaint.status === "RESOLVED";
 
   function handleResolveClick() {
     if (!onResolve) return;
+
     if (onResolve.length > 0) {
       (onResolve as (id: string) => void)(complaint.id);
     } else {
@@ -64,6 +64,7 @@ export default function ComplaintCard({
             >
               {isResolved ? "✓ Resolved" : "● Open"}
             </span>
+
             {complaint.category && (
               <span className="rounded-sm border border-black/60 bg-black/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
                 {complaint.category}
@@ -73,9 +74,17 @@ export default function ComplaintCard({
         </div>
 
         {/* Admin only identity reveal */}
-        {showAdminIdentity && complaint.studentRoll && (
-          <div className="mb-2 rounded-sm border border-[var(--neon-yellow)] bg-black/60 px-2 py-1 text-[10px] font-bold text-[var(--neon-yellow)]">
-            Admin Verification · Roll #{complaint.studentRoll}
+        {showAdminIdentity && complaint.poster && (
+          <div className="mb-2 rounded-sm border border-[var(--neon-yellow)] bg-black/60 px-2 py-2 text-[10px] font-bold text-[var(--neon-yellow)]">
+            <div>Admin Verification</div>
+
+            <div className="mt-1 text-white">
+              {complaint.poster.name} · Roll #{complaint.poster.rollNumber}
+            </div>
+
+            <div className="mt-0.5 text-[var(--fg-muted)]">
+              {complaint.poster.instituteEmail}
+            </div>
           </div>
         )}
 
@@ -90,13 +99,13 @@ export default function ComplaintCard({
 
       {!isResolved && canResolve && onResolve && (
         <div
-          className="mt-5 pt-3 border-t flex justify-end"
+          className="mt-5 flex justify-end border-t pt-3"
           style={{ borderColor: "#000" }}
         >
           <button
             type="button"
             onClick={handleResolveClick}
-            className="retro-btn text-xs py-1 px-3 cursor-pointer"
+            className="retro-btn cursor-pointer px-3 py-1 text-xs"
           >
             ✓ Mark Resolved
           </button>

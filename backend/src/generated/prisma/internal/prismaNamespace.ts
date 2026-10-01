@@ -1473,6 +1473,7 @@ export const ComplaintScalarFieldEnum = {
   userId: 'userId',
   title: 'title',
   description: 'description',
+  category: 'category',
   status: 'status',
   createdAt: 'createdAt',
   resolvedAt: 'resolvedAt'
@@ -1661,6 +1662,20 @@ export type EnumChatRoomStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'ChatRoomStatus[]'
  */
 export type ListEnumChatRoomStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatRoomStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ComplaintCategory'
+ */
+export type EnumComplaintCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ComplaintCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'ComplaintCategory[]'
+ */
+export type ListEnumComplaintCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ComplaintCategory[]'>
     
 
 

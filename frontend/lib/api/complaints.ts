@@ -1,36 +1,107 @@
 import { Complaint, ComplaintCategory } from "@/types";
-import { getStoredComplaints, saveStoredComplaints } from "./storage";
 import { getSession } from "@/lib/session";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function getAuthHeaders(): HeadersInit {
   const session = getSession();
-  if (!session?.token) return {};
-  return { Authorization: `Bearer ${session.token}` };
+
+  if (!session?.token) {
+    throw new Error("Authentication required");
+  }
+
+  return {
+    Authorization: `Bearer ${session.token}`,
+  };
+}
+
+const categoryToApi: Record<ComplaintCategory, string> = {
+  Hostel: "HOSTEL",
+  "Mess / Cafeteria": "MESS_CAFETERIA",
+  "Campus Wi-Fi": "CAMPUS_WIFI",
+  "Library / Facilities": "LIBRARY_FACILITIES",
+  Academic: "ACADEMIC",
+  Other: "OTHER",
+};
+
+const categoryFromApi: Record<string, ComplaintCategory> = {
+  HOSTEL: "Hostel",
+  MESS_CAFETERIA: "Mess / Cafeteria",
+  CAMPUS_WIFI: "Campus Wi-Fi",
+  LIBRARY_FACILITIES: "Library / Facilities",
+  ACADEMIC: "Academic",
+  OTHER: "Other",
+};
+
+function normalizeComplaint(data: unknown): Complaint {
+  if (!data || typeof data !== "object") {
+    throw new Error("Invalid complaint response");
+  }
+
+  const complaint = data as Record<string, unknown>;
+
+  return {
+    id: String(complaint.id),
+    title: String(complaint.title),
+    description: String(complaint.description),
+    category:
+      categoryFromApi[String(complaint.category)] ??
+      "Other",
+    createdAt: String(complaint.createdAt),
+    resolvedAt:
+      complaint.resolvedAt === null ||
+      complaint.resolvedAt === undefined
+        ? null
+        : String(complaint.resolvedAt),
+    status:
+      complaint.status === "RESOLVED"
+        ? "RESOLVED"
+        : "OPEN",
+    isOwner:
+      typeof complaint.isOwner === "boolean"
+        ? complaint.isOwner
+        : undefined,
+    poster:
+      complaint.poster &&
+      typeof complaint.poster === "object"
+        ? (complaint.poster as Complaint["poster"])
+        : undefined,
+  };
 }
 
 export async function getComplaints(): Promise<Complaint[]> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+  const response = await fetch(`${API_URL}/api/complaints`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    cache: "no-store",
+  });
 
-    const response = await fetch(`${API_URL}/api/complaints`, {
-      headers: { ...getAuthHeaders() },
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
+  if (!response.ok) {
+    let message = `Failed to load complaints (${response.status})`;
 
-    if (response.ok) {
+    try {
       const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data;
+
+      if (typeof data?.message === "string") {
+        message = data.message;
+      } else if (typeof data?.error === "string") {
+        message = data.error;
       }
+    } catch {
+      // Keep the default error message.
     }
-  } catch {
-    // Offline fallback
+
+    throw new Error(message);
   }
 
-  return getStoredComplaints();
+  const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    throw new Error("Invalid complaints response");
+  }
+
+  return data.map(normalizeComplaint);
 }
 
 export async function createComplaint(complaint: {
@@ -38,86 +109,66 @@ export async function createComplaint(complaint: {
   description: string;
   category?: ComplaintCategory;
 }): Promise<Complaint> {
-  const session = getSession();
-  const userId = session?.user?.id || "u-current";
-  const studentRoll = session?.user?.rollNumber || "23CS1004";
+  const response = await fetch(`${API_URL}/api/complaints`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: complaint.title,
+      description: complaint.description,
+      category: categoryToApi[complaint.category ?? "Other"],
+    }),
+  });
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2500);
+  if (!response.ok) {
+    let message = `Failed to create complaint (${response.status})`;
 
-    const response = await fetch(`${API_URL}/api/complaints`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({ ...complaint, userId, studentRoll }),
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId));
+    try {
+      const data = await response.json();
 
-    if (response.ok) {
-      const created = await response.json();
-      const current = getStoredComplaints();
-      saveStoredComplaints([created, ...current]);
-      return created;
+      if (typeof data?.message === "string") {
+        message = data.message;
+      } else if (typeof data?.error === "string") {
+        message = data.error;
+      }
+    } catch {
+      // Keep the default error message.
     }
-  } catch {
-    // Offline fallback
+
+    throw new Error(message);
   }
 
-  const newComplaint: Complaint = {
-    id: `c-${Date.now()}`,
-    title: complaint.title,
-    description: complaint.description,
-    category: complaint.category || "Other",
-    createdAt: new Date().toISOString(),
-    status: "OPEN",
-    userId,
-    studentRoll,
-  };
-
-  const current = getStoredComplaints();
-  saveStoredComplaints([newComplaint, ...current]);
-  return newComplaint;
+  return normalizeComplaint(await response.json());
 }
 
-export async function resolveComplaint(id: string): Promise<Complaint> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    const response = await fetch(
-      `${API_URL}/api/complaints/${encodeURIComponent(id)}/resolve`,
-      {
-        method: "PATCH",
-        headers: { ...getAuthHeaders() },
-        signal: controller.signal,
-      }
-    ).finally(() => clearTimeout(timeoutId));
-
-    if (response.ok) {
-      return await response.json();
+export async function resolveComplaint(
+  id: string
+): Promise<Complaint> {
+  const response = await fetch(
+    `${API_URL}/api/complaints/${encodeURIComponent(id)}/resolve`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
     }
-  } catch {
-    // Offline fallback
-  }
+  );
 
-  const current = getStoredComplaints();
-  const index = current.findIndex((c) => c.id === id);
-  if (index >= 0) {
-    current[index].status = "RESOLVED";
-    current[index].resolved = true;
-    saveStoredComplaints(current);
-    return current[index];
-  }
+  if (!response.ok) {
+    let message = `Failed to resolve complaint (${response.status})`;
 
-  return {
-    id,
-    title: "Complaint",
-    description: "",
-    status: "RESOLVED",
-    resolved: true,
-    createdAt: new Date().toISOString(),
-  };
+    try {
+      const data = await response.json();
+
+      if (typeof data?.message === "string") {
+        message = data.message;
+      } else if (typeof data?.error === "string") {
+        message = data.error;
+      }
+    } catch {
+      // Keep the default error message.
+    }
+    throw new Error(message);
+  }
+  return normalizeComplaint(await response.json());
 }

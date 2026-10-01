@@ -65,7 +65,7 @@ export function saveStoredComplaints(complaints: Complaint[]): void {
 
 // Official Posts
 export function getStoredOfficialPosts(): OfficialPost[] {
-  return getLocal<OfficialPost[]>("cb_official", mockOfficialPosts);
+  return getLocal<OfficialPost[]>("cb_official", []);
 }
 export function saveStoredOfficialPosts(posts: OfficialPost[]): void {
   setLocal("cb_official", posts);

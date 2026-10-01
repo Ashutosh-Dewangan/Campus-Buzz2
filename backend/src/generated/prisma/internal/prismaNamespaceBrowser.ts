@@ -199,6 +199,7 @@ export const ComplaintScalarFieldEnum = {
   userId: 'userId',
   title: 'title',
   description: 'description',
+  category: 'category',
   status: 'status',
   createdAt: 'createdAt',
   resolvedAt: 'resolvedAt'

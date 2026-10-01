@@ -224,7 +224,7 @@ model Complaint {
   userId      String
   title       String
   description String
-
+  category ComplaintCategory @default(OTHER)
   status ComplaintStatus @default(OPEN)
 
   createdAt  DateTime  @default(now())
@@ -269,4 +269,12 @@ model Message {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([chatRoomId, createdAt])
+}
+enum ComplaintCategory {
+  HOSTEL
+  MESS_CAFETERIA
+  CAMPUS_WIFI
+  LIBRARY_FACILITIES
+  ACADEMIC
+  OTHER
 }

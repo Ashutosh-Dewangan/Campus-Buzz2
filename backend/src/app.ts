@@ -8,6 +8,7 @@ import chatRoutes from "./routes/chat.routes";
 import officialPostRoutes from "./routes/official-post.routes";
 import eventRoutes from "./routes/event.routes";
 import organizationRoutes from "./routes/organization.routes";
+import complaintRoutes from "./routes/complaint.routes";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/official", officialPostRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/organizations", organizationRoutes);
+app.use("/api/complaints", complaintRoutes);
 
 interface ComplaintItem {
   id: string;

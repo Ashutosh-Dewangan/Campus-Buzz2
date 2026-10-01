@@ -499,7 +499,9 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between text-xs mb-2">
                         <span className="inline-flex items-center gap-1 rounded-sm border border-[var(--neon-yellow)] bg-black/60 px-2 py-0.5 text-[10px] font-bold text-[var(--neon-yellow)]">
                           <LockIcon className="h-3 w-3 shrink-0" />
-                          <span>Poster: Roll #{c.studentRoll || "Verified Student"}</span>
+                          <span>
+                          Poster: Roll #{c.poster?.rollNumber || "Verified Student"}
+                          </span>
                         </span>
                         <span
                           className={`tag-pill text-[9px] ${

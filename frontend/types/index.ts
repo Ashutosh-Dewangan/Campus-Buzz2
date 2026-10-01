@@ -74,16 +74,28 @@ export type ComplaintCategory =
   | "Academic"
   | "Other";
 
+export interface ComplaintPoster {
+  id: string;
+  name: string;
+  rollNumber: string;
+  instituteEmail: string;
+}
+
 export interface Complaint {
   id: string;
   title: string;
   description: string;
-  category?: ComplaintCategory;
+  category: ComplaintCategory;
   createdAt: string;
+  resolvedAt?: string | null;
   status: "OPEN" | "RESOLVED";
-  resolved?: boolean;
-  userId?: string;
-  studentRoll?: string; // Visible only in Admin mock view
+
+  // Returned by the backend based on the authenticated user.
+  // Never populated by the client when creating a complaint.
+  isOwner?: boolean;
+
+  // Returned only to admins by the backend.
+  poster?: ComplaintPoster | null;
 }
 
 export interface OfficialPost {

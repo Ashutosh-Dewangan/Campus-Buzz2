@@ -211,8 +211,7 @@ export const mockComplaints: Complaint[] = [
     category: "Campus Wi-Fi",
     status: "OPEN",
     createdAt: "2026-09-28T10:15:00Z",
-    userId: "u1",
-    studentRoll: "23CS1004",
+    isOwner: false,
   },
   {
     id: "c2",
@@ -222,8 +221,7 @@ export const mockComplaints: Complaint[] = [
     category: "Mess / Cafeteria",
     status: "OPEN",
     createdAt: "2026-09-27T16:40:00Z",
-    userId: "u2",
-    studentRoll: "22EC1021",
+    isOwner: false,
   },
   {
     id: "c3",
@@ -232,10 +230,9 @@ export const mockComplaints: Complaint[] = [
       "The secondary AC unit above row 4 desks was leaking water on study tables. Reported to campus estate office.",
     category: "Library / Facilities",
     status: "RESOLVED",
-    resolved: true,
     createdAt: "2026-09-20T09:00:00Z",
-    userId: "u3",
-    studentRoll: "23ME1055",
+    resolvedAt: "2026-09-21T12:00:00Z",
+    isOwner: false,
   },
   {
     id: "c4",
@@ -245,8 +242,7 @@ export const mockComplaints: Complaint[] = [
     category: "Mess / Cafeteria",
     status: "OPEN",
     createdAt: "2026-09-26T19:10:00Z",
-    userId: "u1",
-    studentRoll: "23CS1004",
+    isOwner: false,
   },
   {
     id: "c5",
@@ -255,10 +251,9 @@ export const mockComplaints: Complaint[] = [
       "Completely dark after 6:30 PM, posing a safety hazard during evening lectures.",
     category: "Hostel",
     status: "RESOLVED",
-    resolved: true,
     createdAt: "2026-09-18T11:20:00Z",
-    userId: "u4",
-    studentRoll: "21CS1018",
+    resolvedAt: "2026-09-19T10:30:00Z",
+    isOwner: false,
   },
 ];
 
