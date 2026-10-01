@@ -1,10 +1,14 @@
 import { Event } from "@/types";
 
-import { getStoredEvents, saveStoredEvents } from "./storage";
+import {
+  getStoredEvents,
+  saveStoredEvents,
+} from "./storage";
 import { getSession } from "@/lib/session";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 
 function getAuthHeaders(): HeadersInit {
   const session = getSession();
@@ -18,15 +22,23 @@ function getAuthHeaders(): HeadersInit {
   };
 }
 
-async function getErrorMessage(response: Response): Promise<string> {
+async function getErrorMessage(
+  response: Response,
+): Promise<string> {
   try {
     const data = await response.json();
 
-    if (data?.message && typeof data.message === "string") {
+    if (
+      data?.message &&
+      typeof data.message === "string"
+    ) {
       return data.message;
     }
 
-    if (data?.error && typeof data.error === "string") {
+    if (
+      data?.error &&
+      typeof data.error === "string"
+    ) {
       return data.error;
     }
   } catch {
@@ -45,13 +57,16 @@ export async function getEvents(): Promise<Event[]> {
     }, 2000);
 
     try {
-      const response = await fetch(`${API_URL}/api/events`, {
-        method: "GET",
-        headers: {
-          ...getAuthHeaders(),
+      const response = await fetch(
+        `${API_URL}/api/events`,
+        {
+          method: "GET",
+          headers: {
+            ...getAuthHeaders(),
+          },
+          signal: controller.signal,
         },
-        signal: controller.signal,
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -61,23 +76,33 @@ export async function getEvents(): Promise<Event[]> {
           return data;
         }
 
-        throw new Error("Invalid events response");
+        throw new Error(
+          "Invalid events response",
+        );
       }
 
       // Do NOT silently replace server errors with localStorage.
-      throw new Error(await getErrorMessage(response));
+      throw new Error(
+        await getErrorMessage(response),
+      );
     } finally {
       clearTimeout(timeoutId);
     }
   } catch (error) {
-    // Only use localStorage as a fallback for actual network/offline
-    // failures, not HTTP authorization/server errors.
-    if (error instanceof Error && error.name !== "AbortError") {
-      // HTTP errors should reach the UI.
+    // Only use localStorage as a fallback for actual
+    // network/offline failures, not HTTP authorization/server errors.
+    if (
+      error instanceof Error &&
+      error.name !== "AbortError"
+    ) {
       if (
         error.message.startsWith("Request failed") ||
-        error.message.toLowerCase().includes("forbidden") ||
-        error.message.toLowerCase().includes("unauthorized")
+        error.message
+          .toLowerCase()
+          .includes("forbidden") ||
+        error.message
+          .toLowerCase()
+          .includes("unauthorized")
       ) {
         throw error;
       }
@@ -87,8 +112,18 @@ export async function getEvents(): Promise<Event[]> {
   }
 }
 
+export interface CreateEventInput {
+  name: string;
+  date: string;
+  time: string;
+  venue: string;
+  description: string;
+  organizationId?: string;
+  linkedOfficialPostId?: string;
+}
+
 export async function createEvent(
-  event: Omit<Event, "id">
+  event: CreateEventInput,
 ): Promise<Event> {
   try {
     const controller = new AbortController();
@@ -98,24 +133,34 @@ export async function createEvent(
     }, 2500);
 
     try {
-      const response = await fetch(`${API_URL}/api/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
+      const response = await fetch(
+        `${API_URL}/api/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
+          },
+          body: JSON.stringify(event),
+          signal: controller.signal,
         },
-        body: JSON.stringify(event),
-        signal: controller.signal,
-      });
+      );
 
       if (!response.ok) {
-        throw new Error(await getErrorMessage(response));
+        throw new Error(
+          await getErrorMessage(response),
+        );
       }
 
       const created = await response.json();
 
-      if (!created || typeof created !== "object") {
-        throw new Error("Invalid event response");
+      if (
+        !created ||
+        typeof created !== "object"
+      ) {
+        throw new Error(
+          "Invalid event response",
+        );
       }
 
       return created as Event;
@@ -131,7 +176,9 @@ export async function createEvent(
     if (
       error instanceof Error &&
       error.name !== "AbortError" &&
-      !error.message.toLowerCase().includes("fetch")
+      !error.message
+        .toLowerCase()
+        .includes("fetch")
     ) {
       throw error;
     }
@@ -143,13 +190,65 @@ export async function createEvent(
     };
 
     const current = getStoredEvents();
-    saveStoredEvents([newEvent, ...current]);
+
+    saveStoredEvents([
+      newEvent,
+      ...current,
+    ]);
 
     return newEvent;
   }
 }
 
-export async function deleteEvent(eventId: string): Promise<void> {
+export interface UpdateEventInput {
+  name?: string;
+  date?: string;
+  time?: string;
+  venue?: string;
+  description?: string;
+  organizationId?: string | null;
+  linkedOfficialPostId?: string | null;
+}
+
+export async function updateEvent(
+  eventId: string,
+  updates: UpdateEventInput,
+): Promise<Event> {
+  const response = await fetch(
+    `${API_URL}/api/events/${encodeURIComponent(eventId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(updates),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await getErrorMessage(response),
+    );
+  }
+
+  const updated = await response.json();
+
+  if (
+    !updated ||
+    typeof updated !== "object"
+  ) {
+    throw new Error(
+      "Invalid event response",
+    );
+  }
+
+  return updated as Event;
+}
+
+export async function deleteEvent(
+  eventId: string,
+): Promise<void> {
   try {
     const controller = new AbortController();
 
@@ -166,11 +265,13 @@ export async function deleteEvent(eventId: string): Promise<void> {
             ...getAuthHeaders(),
           },
           signal: controller.signal,
-        }
+        },
       );
 
       if (!response.ok) {
-        throw new Error(await getErrorMessage(response));
+        throw new Error(
+          await getErrorMessage(response),
+        );
       }
     } finally {
       clearTimeout(timeoutId);
@@ -178,31 +279,47 @@ export async function deleteEvent(eventId: string): Promise<void> {
 
     // Only update local cache after successful server deletion.
     const current = getStoredEvents();
-    saveStoredEvents(current.filter((event) => event.id !== eventId));
+
+    saveStoredEvents(
+      current.filter(
+        (event) => event.id !== eventId,
+      ),
+    );
   } catch (error) {
     /*
-     * A server-side 403/404/500 must NOT be treated as an offline
-     * deletion.
+     * A server-side 403/404/500 must NOT be treated
+     * as an offline deletion.
      */
     if (
       error instanceof Error &&
       error.name !== "AbortError" &&
-      !error.message.toLowerCase().includes("fetch")
+      !error.message
+        .toLowerCase()
+        .includes("fetch")
     ) {
       throw error;
     }
 
     // Network failure: maintain local fallback behavior.
     const current = getStoredEvents();
-    saveStoredEvents(current.filter((event) => event.id !== eventId));
+
+    saveStoredEvents(
+      current.filter(
+        (event) => event.id !== eventId,
+      ),
+    );
 
     throw error;
   }
 }
 
-export async function rsvpEvent(eventId: string): Promise<boolean> {
+export async function rsvpEvent(
+  eventId: string,
+): Promise<boolean> {
   const session = getSession();
-  const userId = session?.user?.id || "u-current";
+  const userId =
+    session?.user?.id || "u-current";
+
   const key = `cb_rsvp_${userId}`;
 
   let list: string[] = [];
@@ -221,7 +338,10 @@ export async function rsvpEvent(eventId: string): Promise<boolean> {
     : [...list, eventId];
 
   try {
-    localStorage.setItem(key, JSON.stringify(updated));
+    localStorage.setItem(
+      key,
+      JSON.stringify(updated),
+    );
   } catch {
     // No-op.
   }
@@ -235,11 +355,15 @@ export function getUserRsvps(): string[] {
   }
 
   const session = getSession();
-  const userId = session?.user?.id || "u-current";
+
+  const userId =
+    session?.user?.id || "u-current";
+
   const key = `cb_rsvp_${userId}`;
 
   try {
     const raw = localStorage.getItem(key);
+
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];

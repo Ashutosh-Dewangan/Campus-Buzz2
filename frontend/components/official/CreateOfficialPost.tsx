@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { OfficialPost } from "@/types";
-import { createOfficialPost } from "@/lib/api";
-import { getOrganizations, Organization } from "@/lib/api/organizations";
+import { Event, OfficialPost } from "@/types";
+import {
+  createOfficialPost,
+  getEvents,
+  updateEvent,
+} from "@/lib/api";
+import {
+  getOrganizations,
+  Organization,
+} from "@/lib/api/organizations";
 import { getSession } from "@/lib/session";
 
 interface CreateOfficialPostProps {
@@ -22,9 +29,15 @@ export default function CreateOfficialPost({
   const [content, setContent] = useState("");
   const [formUrl, setFormUrl] = useState("");
   const [link, setLink] = useState("");
+  const [linkedEventId, setLinkedEventId] = useState("");
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(true);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  const [isLoadingOrganizations, setIsLoadingOrganizations] =
+    useState(true);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,8 +66,14 @@ export default function CreateOfficialPost({
 
         const memberOrganizationIds = new Set(
           activeMemberships
-            .filter((membership) => membership.status === "ACTIVE")
-            .map((membership) => membership.organization.id),
+            .filter(
+              (membership) =>
+                membership.status === "ACTIVE",
+            )
+            .map(
+              (membership) =>
+                membership.organization.id,
+            ),
         );
 
         setOrganizations(
@@ -77,14 +96,61 @@ export default function CreateOfficialPost({
       }
     }
 
-    loadOrganizations();
+    void loadOrganizations();
 
     return () => {
       cancelled = true;
     };
   }, [session]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  /*
+   * Events are campus-visible, so all authenticated users can
+   * retrieve them. We filter the selectable events by the
+   * selected organization below.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadEvents() {
+      try {
+        const data = await getEvents();
+
+        if (!cancelled) {
+          setEvents(data);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load events.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingEvents(false);
+        }
+      }
+    }
+
+    void loadEvents();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const availableEvents = events.filter((event) => {
+    if (!organizationId) {
+      return false;
+    }
+
+    return event.organizationId === organizationId;
+  });
+
+  async function handleSubmit(
+    e: React.FormEvent<HTMLFormElement>,
+  ) {
     e.preventDefault();
     setError(null);
 
@@ -113,6 +179,28 @@ export default function CreateOfficialPost({
         formUrl: formUrl.trim() || undefined,
         link: link.trim() || undefined,
       });
+
+      /*
+       * Official post creation and event linking are separate
+       * backend operations because the official-post creation
+       * endpoint does not accept linkedOfficialPostId.
+       */
+      if (linkedEventId) {
+        try {
+          await updateEvent(linkedEventId, {
+            linkedOfficialPostId: created.id,
+          });
+        } catch (linkError) {
+          setError(
+            linkError instanceof Error
+              ? `Notice created, but the event could not be linked: ${linkError.message}`
+              : "Notice created, but the event could not be linked.",
+          );
+
+          onPostCreated?.(created);
+          return;
+        }
+      }
 
       onPostCreated?.(created);
       onClose();
@@ -188,6 +276,7 @@ export default function CreateOfficialPost({
               placeholder="e.g. Placement Drive Registration Open"
               className="comic-input font-readable w-full px-4 py-2 text-sm"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -203,9 +292,15 @@ export default function CreateOfficialPost({
             <select
               id="official-org"
               value={organizationId}
-              onChange={(e) => setOrganizationId(e.target.value)}
+              onChange={(e) => {
+                setOrganizationId(e.target.value);
+                setLinkedEventId("");
+              }}
               className="comic-input font-readable w-full px-4 py-2 text-sm"
-              disabled={isLoadingOrganizations}
+              disabled={
+                isLoadingOrganizations ||
+                isSubmitting
+              }
               required
             >
               <option value="">
@@ -215,11 +310,63 @@ export default function CreateOfficialPost({
               </option>
 
               {organizations.map((organization) => (
-                <option key={organization.id} value={organization.id}>
+                <option
+                  key={organization.id}
+                  value={organization.id}
+                >
                   {organization.name}
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="official-event"
+              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+              style={{ color: "var(--neon-yellow)" }}
+            >
+              Link Event (Optional)
+            </label>
+
+            <select
+              id="official-event"
+              value={linkedEventId}
+              onChange={(e) =>
+                setLinkedEventId(e.target.value)
+              }
+              className="comic-input font-readable w-full px-4 py-2 text-sm"
+              disabled={
+                isSubmitting ||
+                isLoadingEvents ||
+                !organizationId
+              }
+            >
+              <option value="">
+                {isLoadingEvents
+                  ? "Loading events..."
+                  : !organizationId
+                    ? "Select an organization first"
+                    : "No linked event"}
+              </option>
+
+              {availableEvents.map((event) => (
+                <option
+                  key={event.id}
+                  value={event.id}
+                >
+                  {event.name}
+                </option>
+              ))}
+            </select>
+
+            <p
+              className="mt-1 text-xs"
+              style={{ color: "var(--neon-cyan)" }}
+            >
+              Optionally connect this notice to an event
+              on the campus calendar.
+            </p>
           </div>
 
           <div>
@@ -239,6 +386,7 @@ export default function CreateOfficialPost({
               placeholder="Important notice details, instructions, deadlines..."
               className="comic-input font-readable w-full px-4 py-2 text-sm leading-relaxed"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -258,6 +406,7 @@ export default function CreateOfficialPost({
               type="url"
               placeholder="https://forms.google.com/..."
               className="comic-input w-full px-4 py-2 text-sm"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -277,6 +426,7 @@ export default function CreateOfficialPost({
               type="url"
               placeholder="https://campus-portal.example/..."
               className="comic-input w-full px-4 py-2 text-sm"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -284,6 +434,7 @@ export default function CreateOfficialPost({
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="comic-btn-outline"
             >
               Cancel
@@ -298,7 +449,9 @@ export default function CreateOfficialPost({
               }
               className="comic-btn disabled:opacity-50"
             >
-              {isSubmitting ? "Publishing..." : "Publish Notice"}
+              {isSubmitting
+                ? "Publishing..."
+                : "Publish Notice"}
             </button>
           </div>
         </form>

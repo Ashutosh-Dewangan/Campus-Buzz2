@@ -2,7 +2,8 @@ import { OfficialPost } from "@/types";
 import { getSession } from "@/lib/session";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 
 function getAuthHeaders(): HeadersInit {
   const session = getSession();
@@ -16,14 +17,19 @@ function getAuthHeaders(): HeadersInit {
   };
 }
 
-export async function getOfficialPosts(): Promise<OfficialPost[]> {
-  const response = await fetch(`${API_URL}/api/official`, {
-    method: "GET",
-    headers: {
-      ...getAuthHeaders(),
+export async function getOfficialPosts(): Promise<
+  OfficialPost[]
+> {
+  const response = await fetch(
+    `${API_URL}/api/official`,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+      },
+      cache: "no-store",
     },
-    cache: "no-store",
-  });
+  );
 
   if (!response.ok) {
     let message = `Failed to load official posts (${response.status})`;
@@ -31,9 +37,13 @@ export async function getOfficialPosts(): Promise<OfficialPost[]> {
     try {
       const data = await response.json();
 
-      if (typeof data?.message === "string") {
+      if (
+        typeof data?.message === "string"
+      ) {
         message = data.message;
-      } else if (typeof data?.error === "string") {
+      } else if (
+        typeof data?.error === "string"
+      ) {
         message = data.error;
       }
     } catch {
@@ -46,7 +56,9 @@ export async function getOfficialPosts(): Promise<OfficialPost[]> {
   const data = await response.json();
 
   if (!Array.isArray(data)) {
-    throw new Error("Invalid official posts response");
+    throw new Error(
+      "Invalid official posts response",
+    );
   }
 
   return data as OfficialPost[];
@@ -66,23 +78,29 @@ export async function createOfficialPost(
   const session = getSession();
 
   if (!session?.token) {
-    throw new Error("Authentication required");
+    throw new Error(
+      "Authentication required",
+    );
   }
 
-  const response = await fetch(`${API_URL}/api/official`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.token}`,
+  const response = await fetch(
+    `${API_URL}/api/official`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+      },
+      body: JSON.stringify({
+        title: post.title,
+        content: post.content,
+        organizationId: post.organizationId,
+        link: post.link || undefined,
+        formUrl:
+          post.formUrl || undefined,
+      }),
     },
-    body: JSON.stringify({
-      title: post.title,
-      content: post.content,
-      organizationId: post.organizationId,
-      link: post.link || undefined,
-      formUrl: post.formUrl || undefined,
-    }),
-  });
+  );
 
   let data: unknown = null;
 
@@ -104,5 +122,27 @@ export async function createOfficialPost(
     throw new Error(message);
   }
 
-  return data as OfficialPost;
+  /*
+   * Backend returns:
+   *
+   * {
+   *   message: "...",
+   *   post: { ... }
+   * }
+   *
+   * The frontend must return the actual post object.
+   */
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("post" in data) ||
+    !data.post ||
+    typeof data.post !== "object"
+  ) {
+    throw new Error(
+      "Invalid official post response",
+    );
+  }
+
+  return data.post as OfficialPost;
 }

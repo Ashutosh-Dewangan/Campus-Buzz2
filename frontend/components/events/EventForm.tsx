@@ -2,8 +2,12 @@
 
 import { useCurrentUser } from "@/lib/session";
 import { useEffect, useState } from "react";
-import { Event } from "@/types";
-import { createEvent, getOrganizations } from "@/lib/api";
+import { Event, OfficialPost } from "@/types";
+import {
+  createEvent,
+  getOfficialPosts,
+  getOrganizations,
+} from "@/lib/api";
 
 interface EventFormProps {
   onClose: () => void;
@@ -15,63 +19,142 @@ export default function EventForm({
   onEventCreated,
 }: EventFormProps) {
   const currentUser = useCurrentUser();
+
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [venue, setVenue] = useState("");
   const [description, setDescription] = useState("");
   const [organizationId, setOrganizationId] = useState("");
+  const [linkedOfficialPostId, setLinkedOfficialPostId] = useState("");
+
   const [organizations, setOrganizations] = useState<
-  Awaited<ReturnType<typeof getOrganizations>>
->([]);
-const [isLoadingOrganizations, setIsLoadingOrganizations] =
-  useState(false);
+    Awaited<ReturnType<typeof getOrganizations>>
+  >([]);
+
+  const [officialPosts, setOfficialPosts] = useState<OfficialPost[]>([]);
+
+  const [isLoadingOrganizations, setIsLoadingOrganizations] =
+    useState(false);
+
+  const [isLoadingOfficialPosts, setIsLoadingOfficialPosts] =
+    useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
   const isAdmin = currentUser?.role === "ADMIN";
+
   const memberships =
     currentUser?.memberships?.filter(
       (membership) => membership.status === "ACTIVE",
     ) ?? [];
 
-    useEffect(() => {
-      if (!isAdmin) {
-        setOrganizations([]);
-        return;
-      }
-    
-      let cancelled = false;
-    
-      async function loadOrganizations() {
-        setIsLoadingOrganizations(true);
-    
-        try {
-          const data = await getOrganizations();
-    
-          if (!cancelled) {
-            setOrganizations(data);
-          }
-        } catch (err) {
-          if (!cancelled) {
-            setError(
-              err instanceof Error
-                ? err.message
-                : "Failed to load organizations.",
-            );
-          }
-        } finally {
-          if (!cancelled) {
-            setIsLoadingOrganizations(false);
-          }
+  /*
+   * Admins can choose from all organizations.
+   * Students do not need the organizations endpoint because
+   * they can only create events for their active memberships.
+   */
+  useEffect(() => {
+  if (!isAdmin) {
+    return;
+  }
+
+    let cancelled = false;
+
+    async function loadOrganizations() {
+      setIsLoadingOrganizations(true);
+
+      try {
+        const data = await getOrganizations();
+
+        if (!cancelled) {
+          setOrganizations(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load organizations.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingOrganizations(false);
         }
       }
-    
-      void loadOrganizations();
-    
-      return () => {
-        cancelled = true;
-      };
-    }, [isAdmin]);
+    }
+
+    void loadOrganizations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
+
+  /*
+   * Official notices are visible campus-wide, so all authenticated
+   * users can fetch them. We filter them below according to the
+   * organization selected for the event.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOfficialPosts() {
+      setIsLoadingOfficialPosts(true);
+
+      try {
+        const posts = await getOfficialPosts();
+
+        if (!cancelled) {
+          setOfficialPosts(posts);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load official notices.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingOfficialPosts(false);
+        }
+      }
+    }
+
+    void loadOfficialPosts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /*
+   * Only notices belonging to the selected organization can be
+   * linked to an organization event.
+   *
+   * For a campus-wide admin event, all official notices are available.
+   */
+  const availableOfficialPosts = officialPosts.filter((post) => {
+    if (isAdmin && !organizationId) {
+      return true;
+    }
+
+    if (!organizationId) {
+      return false;
+    }
+
+    return post.organizationId === organizationId;
+  });
+
+  /*
+   * If the organization changes and the selected official notice
+   * no longer belongs to that organization, clear the selection.
+   */
+
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
@@ -126,6 +209,8 @@ const [isLoadingOrganizations, setIsLoadingOrganizations] =
         venue: venue.trim(),
         description: description.trim(),
         organizationId: organizationId || undefined,
+        linkedOfficialPostId:
+          linkedOfficialPostId || undefined,
       });
 
       onEventCreated?.(created);
@@ -161,7 +246,7 @@ const [isLoadingOrganizations, setIsLoadingOrganizations] =
             className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
             aria-label="Close"
           >
-            ✕
+            ×
           </button>
         </div>
 
@@ -259,11 +344,15 @@ const [isLoadingOrganizations, setIsLoadingOrganizations] =
             <select
               id="event-organization"
               value={organizationId}
-              onChange={(event) =>
-                setOrganizationId(event.target.value)
-              }
+              onChange={(event) => {
+                setOrganizationId(event.target.value);
+                setLinkedOfficialPostId("");
+              }}
               className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={isSubmitting || (isAdmin && isLoadingOrganizations)}
+              disabled={
+                isSubmitting ||
+                (isAdmin && isLoadingOrganizations)
+              }
             >
               {isAdmin && (
                 <option value="">
@@ -277,24 +366,25 @@ const [isLoadingOrganizations, setIsLoadingOrganizations] =
                 </option>
               )}
 
-            {isAdmin
-              ? organizations.map((organization) => (
-                  <option
-                    key={organization.id}
-                    value={organization.id}
-                  >
-                    {organization.name}
-                  </option>
-                ))
-              : memberships.map((membership) => (
-                  <option
-                    key={membership.organization.id}
-                    value={membership.organization.id}
-                  >
-                    {membership.organization.name}
-                  </option>
-                ))}
-              </select>
+              {isAdmin
+                ? organizations.map((organization) => (
+                    <option
+                      key={organization.id}
+                      value={organization.id}
+                    >
+                      {organization.name}
+                    </option>
+                  ))
+                : memberships.map((membership) => (
+                    <option
+                      key={membership.organization.id}
+                      value={membership.organization.id}
+                    >
+                      {membership.organization.name}
+                    </option>
+                  ))}
+            </select>
+
             {isAdmin ? (
               <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                 Admins can create campus-wide events or create
@@ -311,6 +401,44 @@ const [isLoadingOrganizations, setIsLoadingOrganizations] =
                 where you are an active member.
               </p>
             )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="event-official-post"
+              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Link Official Notice
+            </label>
+
+            <select
+              id="event-official-post"
+              value={linkedOfficialPostId}
+              onChange={(event) =>
+                setLinkedOfficialPostId(event.target.value)
+              }
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
+              disabled={
+                isSubmitting ||
+                isLoadingOfficialPosts
+              }
+            >
+              <option value="">
+                {isLoadingOfficialPosts
+                  ? "Loading official notices..."
+                  : "No linked notice"}
+              </option>
+
+              {availableOfficialPosts.map((post) => (
+                <option key={post.id} value={post.id}>
+                  {post.title} — {post.organization.name}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+              Optional. Link this event to an official campus notice.
+            </p>
           </div>
 
           <div>
