@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import OfficialPostCard from "@/components/official/OfficialPostCard";
 import CreateOfficialPost from "@/components/official/CreateOfficialPost";
 import { OfficialPost } from "@/types";
-import { getOfficialPosts } from "@/lib/api";
+import { getOfficialPosts, deleteOfficialPost } from "@/lib/api";
 import { canCreateOfficialPost } from "@/lib/auth";
 import { useCurrentUser } from "@/lib/session";
 
@@ -15,15 +15,18 @@ export default function OfficialPage() {
   const [error, setError] = useState("");
 
   const user = useCurrentUser();
+
   const canPost = user
-  ? canCreateOfficialPost(user.role, user.memberships ?? [])
-  : false;
+    ? canCreateOfficialPost(user.role, user.memberships ?? [])
+    : false;
 
   const loadOfficialPosts = useCallback(async () => {
     setIsLoading(true);
     setError("");
+
     try {
       const fetched = await getOfficialPosts();
+
       if (Array.isArray(fetched)) {
         setPosts(fetched);
       }
@@ -36,9 +39,11 @@ export default function OfficialPage() {
 
   useEffect(() => {
     let ignore = false;
+
     async function fetchInitial() {
       try {
         const fetched = await getOfficialPosts();
+
         if (!ignore && Array.isArray(fetched)) {
           setPosts(fetched);
         }
@@ -54,6 +59,7 @@ export default function OfficialPage() {
     }
 
     fetchInitial();
+
     return () => {
       ignore = true;
     };
@@ -62,6 +68,22 @@ export default function OfficialPage() {
   function handlePostCreated(newPost: OfficialPost) {
     setPosts((current) => [newPost, ...current]);
     setShowCreatePost(false);
+  }
+
+  async function handlePostDeleted(postId: string) {
+    try {
+      await deleteOfficialPost(postId);
+
+      setPosts((current) =>
+        current.filter((post) => post.id !== postId),
+      );
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete the official post.",
+      );
+    }
   }
 
   return (
@@ -80,7 +102,6 @@ export default function OfficialPage() {
             </p>
           </div>
 
-          {/* Only render this button for authorized roles */}
           {canPost && (
             <button
               type="button"
@@ -95,8 +116,17 @@ export default function OfficialPage() {
         {/* Error state */}
         {error && !isLoading && (
           <div className="comic-card comic-empty mb-6">
-            <p style={{ color: "var(--accent)", fontWeight: 800 }}>Failed to load announcements</p>
+            <p
+              style={{
+                color: "var(--accent)",
+                fontWeight: 800,
+              }}
+            >
+              Failed to load announcements
+            </p>
+
             <p className="comic-sub">{error}</p>
+
             <button
               type="button"
               onClick={loadOfficialPosts}
@@ -119,13 +149,18 @@ export default function OfficialPage() {
           </div>
         )}
 
-        {/* Posts List */}
-        {!isLoading && !error && posts.length === 0 ? (
+        {/* Empty state */}
+        {!isLoading && !error && posts.length === 0 && (
           <div className="comic-card comic-empty">
-            <h2 className="stay-loop-title">No official announcements</h2>
+            <h2 className="stay-loop-title">
+              No official announcements
+            </h2>
+
             <p className="comic-sub mx-auto max-w-md">
-              No notices have been published yet. Check back soon for administrative announcements.
+              No notices have been published yet. Check back soon for
+              administrative announcements.
             </p>
+
             {canPost && (
               <button
                 type="button"
@@ -136,14 +171,30 @@ export default function OfficialPage() {
               </button>
             )}
           </div>
-        ) : (
-          !isLoading && (
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post) => (
-                <OfficialPostCard key={post.id} post={post} />
-              ))}
-            </div>
-          )
+        )}
+
+        {/* Posts list */}
+        {!isLoading && !error && posts.length > 0 && (
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {posts.map((post) => {
+              const canDelete =
+                user?.role === "ADMIN" ||
+                user?.memberships?.some(
+                  (membership) =>
+                    membership.organization.id === post.organizationId &&
+                    membership.status === "ACTIVE",
+                ) === true;
+
+              return (
+                <OfficialPostCard
+                  key={post.id}
+                  post={post}
+                  canDelete={canDelete}
+                  onDeleted={handlePostDeleted}
+                />
+              );
+            })}
+          </div>
         )}
 
         {/* Create Official Post Modal */}

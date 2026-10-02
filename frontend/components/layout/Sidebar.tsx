@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCurrentUser, CurrentUser, clearSession } from "@/lib/session";
 import { isAdmin } from "@/lib/auth";
 import {
@@ -95,6 +95,7 @@ function getRoleLabel(user: CurrentUser): string {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useCurrentUser();
   const isUserAdmin = user ? isAdmin(user.role) : false;
 
@@ -183,7 +184,10 @@ export default function Sidebar() {
             {user ? (
               <button
                 type="button"
-                onClick={() => clearSession()}
+                onClick={() => {
+                clearSession();
+                router.replace("/login");
+                }}              
                 className="text-[10px] font-bold text-[var(--fg-muted)] hover:text-[var(--accent)] underline shrink-0 cursor-pointer transition"
                 title="Sign out of your session"
               >

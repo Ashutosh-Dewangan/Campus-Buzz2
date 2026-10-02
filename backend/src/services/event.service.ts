@@ -450,9 +450,41 @@ export async function deleteEvent(
     );
   }
 
-  await prisma.event.delete({
+  await prisma.$transaction(async (tx) => {
+  const event = await tx.event.findUnique({
+    where: {
+      id: eventId,
+    },
+    select: {
+      linkedOfficialPostId: true,
+    },
+  });
+
+  if (!event) {
+    throw new Error("Event not found");
+  }
+
+  if (event.linkedOfficialPostId) {
+    await tx.event.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        linkedOfficialPostId: null,
+      },
+    });
+
+    await tx.officialPost.delete({
+      where: {
+        id: event.linkedOfficialPostId,
+      },
+    });
+  }
+
+  await tx.event.delete({
     where: {
       id: eventId,
     },
   });
+});
 }

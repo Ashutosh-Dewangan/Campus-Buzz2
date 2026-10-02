@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import {
   createOfficialPost,
   getOfficialPosts,
+  deleteOfficialPost,
 } from "../services/official-post.service";
 
 import {
@@ -91,5 +92,46 @@ export async function getOfficialPostsController(
     res.status(500).json({
       message: "Failed to fetch official posts",
     });
+  }
+}
+export async function deleteOfficialPostController(
+  req: Request,
+  res: Response,
+) {
+  if (!req.user) {
+    res.status(401).json({ message: "Authentication required" });
+    return;
+  }
+
+  const rawId = req.params.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+  if (!id) {
+    res.status(400).json({ message: "Official post ID is required" });
+    return;
+  }
+
+  try {
+    await deleteOfficialPost(req.user.userId, req.user.role, id);
+    res.status(204).send();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Official post not found"
+    ) {
+      res.status(404).json({ message: error.message });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "You are not an active member of this organization"
+    ) {
+      res.status(403).json({ message: error.message });
+      return;
+    }
+
+    console.error("Delete official post failed:", error);
+    res.status(500).json({ message: "Failed to delete official post" });
   }
 }

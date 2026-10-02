@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
 import EventForm from "@/components/events/EventForm";
 import { CalendarIcon } from "@/components/ui/Icons";
@@ -22,7 +28,8 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get("event");
   const user = useCurrentUser();
 
 const isUserAdmin = user ? isAdmin(user.role) : false;
@@ -118,6 +125,19 @@ const canManageEvent = (event: Event) => {
     [events]
   );
 
+  useEffect(() => {
+  if (!eventIdFromUrl || events.length === 0) {
+    return;
+  }
+
+  const event = events.find(
+    (item) => item.id === eventIdFromUrl,
+  );
+
+  if (event) {
+    setSelectedEvent(event);
+  }
+}, [eventIdFromUrl, events]);
   async function toggleRsvp(eventId: string) {
     const isNowGoing = await rsvpEvent(eventId);
     setRsvpedEvents((current) =>

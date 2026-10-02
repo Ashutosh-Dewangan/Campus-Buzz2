@@ -4,9 +4,14 @@ import { CalendarIcon } from "@/components/ui/Icons";
 
 interface Props {
   post: OfficialPost;
+  canDelete: boolean;
+  onDeleted: (postId: string) => Promise<void>;
 }
-
-export default function OfficialPostCard({ post }: Props) {
+export default function OfficialPostCard({
+  post,
+  canDelete,
+  onDeleted,
+}: Props) {
   const formattedDate = post.createdAt
     ? new Date(post.createdAt).toLocaleDateString(undefined, {
         month: "short",
@@ -88,21 +93,15 @@ export default function OfficialPostCard({ post }: Props) {
         className="mt-5 flex items-center justify-between border-t pt-3 text-xs"
         style={{ borderColor: "#000", color: "var(--fg-muted)" }}
       >
-        {post.event ? (
-          <Link
-            href="/events"
-            className="flex items-center gap-1.5 font-bold text-white transition hover:text-[var(--neon-cyan)]"
-          >
-            <CalendarIcon className="h-3 w-3 shrink-0 text-[var(--neon-yellow)]" />
-
-            <span className="underline underline-offset-2">
-              {post.event.name}
-            </span>
-          </Link>
-        ) : (
-          <span />
+        {post.event && (
+        <Link
+          href={`/events?event=${encodeURIComponent(post.event.id)}`}
+          className="comic-btn-outline inline-flex items-center gap-1.5 text-xs font-bold"
+        >
+          <CalendarIcon className="h-3 w-3 shrink-0 text-[var(--neon-yellow)]" />
+          Go to Event →
+        </Link>
         )}
-
         {formattedDate && (
           <time
             dateTime={post.createdAt}
@@ -111,6 +110,23 @@ export default function OfficialPostCard({ post }: Props) {
             {formattedDate}
           </time>
         )}
+        {canDelete && (
+        <button
+          type="button"
+          onClick={async () => {
+            const confirmed = window.confirm(
+              "Delete this official post? If it is linked to an event, the event will remain on the calendar.",
+            );
+      
+            if (!confirmed) return;
+      
+            await onDeleted(post.id);
+          }}
+          className="comic-btn-outline text-xs font-bold"
+        >
+          Delete
+        </button>
+      )}
       </div>
     </article>
   );

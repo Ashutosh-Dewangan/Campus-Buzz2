@@ -67,17 +67,7 @@ export function getSession(): Session | null {
   const storedSession = localStorage.getItem(SESSION_KEY);
 
   if (!storedSession) {
-    // Provide student demo persona as default so testing works out of the box
-    const defaultSession: Session = {
-      token: "mock-demo-token-student",
-      user: DEMO_PERSONAS.STUDENT,
-    };
-    try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(defaultSession));
-    } catch {
-      // no-op
-    }
-    return defaultSession;
+    return null;
   }
 
   try {

@@ -146,3 +146,38 @@ export async function createOfficialPost(
 
   return data.post as OfficialPost;
 }
+export async function deleteOfficialPost(
+  officialPostId: string,
+): Promise<void> {
+  const session = getSession();
+
+  if (!session?.token) {
+    throw new Error("Authentication required");
+  }
+
+  const response = await fetch(
+    `${API_URL}/api/official/${encodeURIComponent(officialPostId)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    let message = `Failed to delete official post (${response.status})`;
+
+    try {
+      const data = await response.json();
+
+      if (typeof data?.message === "string") {
+        message = data.message;
+      }
+    } catch {
+      // Keep default message.
+    }
+
+    throw new Error(message);
+  }
+}
