@@ -86,3 +86,14 @@ export const ComplaintCategory = {
 } as const
 
 export type ComplaintCategory = (typeof ComplaintCategory)[keyof typeof ComplaintCategory]
+
+
+export const NotificationType = {
+  ROOM_MESSAGE: 'ROOM_MESSAGE',
+  PARTICIPANT_JOINED: 'PARTICIPANT_JOINED',
+  EXPIRY_APPROACHING: 'EXPIRY_APPROACHING',
+  EVENT_ALERT: 'EVENT_ALERT',
+  COMPLAINT_RESOLVED: 'COMPLAINT_RESOLVED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

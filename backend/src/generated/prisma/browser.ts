@@ -38,6 +38,11 @@ export type OfficialPost = Prisma.OfficialPostModel
  */
 export type Membership = Prisma.MembershipModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model Post
  * 
  */

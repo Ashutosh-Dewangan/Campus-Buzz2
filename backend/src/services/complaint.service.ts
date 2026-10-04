@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma";
 import type { CreateComplaintInput } from "../validators/complaint.validators";
+import { createNotification } from "./notification.service";
 
 function formatComplaint(complaint: any, options?: {
   includeIdentity?: boolean;
@@ -149,7 +150,15 @@ export async function resolveComplaint(
       },
     },
   });
-
+  if (updated.userId !== userId) {
+  await createNotification({
+    userId: updated.userId,
+    type: "COMPLAINT_RESOLVED",
+    title: "Your complaint was resolved",
+    description: updated.title,
+    link: `/complaints`,
+  });
+}
   return formatComplaint(updated, {
     isOwner: updated.userId === userId,
     includeIdentity: isAdmin,

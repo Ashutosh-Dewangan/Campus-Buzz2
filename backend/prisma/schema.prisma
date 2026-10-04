@@ -51,6 +51,7 @@ model User {
   createdEvents   Event[]
   messages        Message[]
   officialPosts   OfficialPost[]
+  notifications   Notification[]
 }
 
 // ================================
@@ -131,6 +132,25 @@ enum InteractionType {
   FOUND
 }
 
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+  type   NotificationType
+
+  title       String
+  description String
+  link        String?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
 model Post {
   id String @id @default(uuid())
 
@@ -147,8 +167,10 @@ model Post {
   contactName  String?
   contactPhone String?
 
-  expiresAt DateTime?
-  status    PostStatus @default(ACTIVE)
+  expiresAt              DateTime?
+  expiryReminder30SentAt DateTime?
+  expiryReminder5SentAt  DateTime?
+  status                 PostStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -224,8 +246,8 @@ model Complaint {
   userId      String
   title       String
   description String
-  category ComplaintCategory @default(OTHER)
-  status ComplaintStatus @default(OPEN)
+  category    ComplaintCategory @default(OTHER)
+  status      ComplaintStatus   @default(OPEN)
 
   createdAt  DateTime  @default(now())
   resolvedAt DateTime?
@@ -270,6 +292,7 @@ model Message {
 
   @@index([chatRoomId, createdAt])
 }
+
 enum ComplaintCategory {
   HOSTEL
   MESS_CAFETERIA
@@ -277,4 +300,12 @@ enum ComplaintCategory {
   LIBRARY_FACILITIES
   ACADEMIC
   OTHER
+}
+
+enum NotificationType {
+  ROOM_MESSAGE
+  PARTICIPANT_JOINED
+  EXPIRY_APPROACHING
+  EVENT_ALERT
+  COMPLAINT_RESOLVED
 }

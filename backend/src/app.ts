@@ -9,6 +9,7 @@ import officialPostRoutes from "./routes/official-post.routes";
 import eventRoutes from "./routes/event.routes";
 import organizationRoutes from "./routes/organization.routes";
 import complaintRoutes from "./routes/complaint.routes";
+import notificationRoutes from "./routes/notification.routes";
 
 const app = express();
 
@@ -27,6 +28,10 @@ app.use("/api/official", officialPostRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use(
+  "/api/notifications",
+  notificationRoutes,
+);
 
 interface ComplaintItem {
   id: string;

@@ -8,7 +8,8 @@ import {
   markNotificationRead,
 } from "@/lib/api/notifications";
 import { NotificationItem } from "@/types";
-
+import { getSession } from "@/lib/session";
+import { createChatSocket } from "@/lib/socket";
 import { BellIcon } from "@/components/ui/Icons";
 
 export default function NotificationDropdown() {
@@ -17,13 +18,63 @@ export default function NotificationDropdown() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    async function load() {
+ useEffect(() => {
+  let socket: ReturnType<typeof createChatSocket> | null =
+    null;
+
+  async function load() {
+    try {
       const items = await getNotifications();
       setNotifications(items);
+    } catch (error) {
+      console.error(
+        "Failed to load notifications:",
+        error,
+      );
     }
-    load();
-  }, []);
+  }
+
+  load();
+
+  const session = getSession();
+
+  if (!session?.token) {
+    return;
+  }
+
+  socket = createChatSocket(session.token);
+
+  socket.on(
+    "notification",
+    (notification: NotificationItem) => {
+      setNotifications((current) => {
+        const withoutDuplicate = current.filter(
+          (item) => item.id !== notification.id,
+        );
+
+        return [
+          notification,
+          ...withoutDuplicate,
+        ];
+      });
+    },
+  );
+
+  socket.on("connect_error", (error) => {
+    console.error(
+      "Notification socket connection failed:",
+      error,
+    );
+  });
+
+  socket.connect();
+
+  return () => {
+    socket?.off("notification");
+    socket?.off("connect_error");
+    socket?.disconnect();
+  };
+}, []);
 
   const unreadCount = notifications.filter(
     (notification) => notification.unread
@@ -47,21 +98,48 @@ export default function NotificationDropdown() {
     };
   }, [isOpen]);
 
-  async function handleMarkAllAsRead() {
-    const updated = await markAllNotificationsRead();
-    setNotifications(updated);
-  }
+ async function handleMarkAllAsRead() {
+  try {
+    const updated =
+      await markAllNotificationsRead();
 
-  async function handleItemClick(item: NotificationItem) {
+    setNotifications(updated);
+  } catch (error) {
+    console.error(
+      "Failed to mark notifications as read:",
+      error,
+    );
+  }
+}
+  async function handleItemClick(
+  item: NotificationItem,
+) {
+  try {
     if (item.unread) {
-      const updated = await markNotificationRead(item.id);
-      setNotifications(updated);
+      const updated =
+        await markNotificationRead(item.id);
+
+      setNotifications((current) =>
+        current.map((notification) =>
+          notification.id === updated.id
+            ? updated
+            : notification,
+        ),
+      );
     }
+
     setIsOpen(false);
+
     if (item.link) {
       router.push(item.link);
     }
+  } catch (error) {
+    console.error(
+      "Failed to mark notification as read:",
+      error,
+    );
   }
+}
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -84,7 +162,7 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="comic-modal absolute right-0 top-11 z-50 w-80 sm:w-[400px] max-w-[calc(100vw-24px)] rounded-sm p-4 sm:p-5 shadow-[6px_6px_0_#000]">
+        <div className="cb-notification-dropdown comic-modal absolute right-0 top-11 z-50 rounded-sm p-0 shadow-[6px_6px_0_#000]">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-black pb-3">
             <div className="flex items-center gap-2">

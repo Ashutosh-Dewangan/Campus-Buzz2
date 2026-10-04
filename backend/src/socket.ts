@@ -17,6 +17,14 @@ const JWT_SECRET =
       ?.to(roomId)
       .emit("new-message", message);
   }
+  export function emitNotification(
+  userId: string,
+  notification: unknown,
+) {
+  socketServer
+    ?.to(`user:${userId}`)
+    .emit("notification", notification);
+}
 
 interface SocketUser {
   userId: string;
@@ -87,7 +95,11 @@ export function registerSocketServer(
     console.log(
       `Socket connected: ${authenticatedSocket.user.userId}`,
     );
-
+    const userRoom = `user:${authenticatedSocket.user.userId}`;
+    socket.join(userRoom);
+    socket.join(
+      `user:${authenticatedSocket.user.userId}`,
+    );
     socket.on(
       "join-room",
       async (roomId: string, callback?: (result: unknown) => void) => {

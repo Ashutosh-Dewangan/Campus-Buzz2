@@ -36,6 +36,8 @@ export type PostMinAggregateOutputType = {
   contactName: string | null
   contactPhone: string | null
   expiresAt: Date | null
+  expiryReminder30SentAt: Date | null
+  expiryReminder5SentAt: Date | null
   status: $Enums.PostStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -53,6 +55,8 @@ export type PostMaxAggregateOutputType = {
   contactName: string | null
   contactPhone: string | null
   expiresAt: Date | null
+  expiryReminder30SentAt: Date | null
+  expiryReminder5SentAt: Date | null
   status: $Enums.PostStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -70,6 +74,8 @@ export type PostCountAggregateOutputType = {
   contactName: number
   contactPhone: number
   expiresAt: number
+  expiryReminder30SentAt: number
+  expiryReminder5SentAt: number
   status: number
   createdAt: number
   updatedAt: number
@@ -89,6 +95,8 @@ export type PostMinAggregateInputType = {
   contactName?: true
   contactPhone?: true
   expiresAt?: true
+  expiryReminder30SentAt?: true
+  expiryReminder5SentAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -106,6 +114,8 @@ export type PostMaxAggregateInputType = {
   contactName?: true
   contactPhone?: true
   expiresAt?: true
+  expiryReminder30SentAt?: true
+  expiryReminder5SentAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -123,6 +133,8 @@ export type PostCountAggregateInputType = {
   contactName?: true
   contactPhone?: true
   expiresAt?: true
+  expiryReminder30SentAt?: true
+  expiryReminder5SentAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -213,6 +225,8 @@ export type PostGroupByOutputType = {
   contactName: string | null
   contactPhone: string | null
   expiresAt: Date | null
+  expiryReminder30SentAt: Date | null
+  expiryReminder5SentAt: Date | null
   status: $Enums.PostStatus
   createdAt: Date
   updatedAt: Date
@@ -251,6 +265,8 @@ export type PostWhereInput = {
   contactName?: Prisma.StringNullableFilter<"Post"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Post"> | string | null
   expiresAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder30SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder5SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
@@ -272,6 +288,8 @@ export type PostOrderByWithRelationInput = {
   contactName?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiryReminder30SentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiryReminder5SentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -296,6 +314,8 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   contactName?: Prisma.StringNullableFilter<"Post"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Post"> | string | null
   expiresAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder30SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder5SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
@@ -317,6 +337,8 @@ export type PostOrderByWithAggregationInput = {
   contactName?: Prisma.SortOrderInput | Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiryReminder30SentAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiryReminder5SentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -340,6 +362,8 @@ export type PostScalarWhereWithAggregatesInput = {
   contactName?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Post"> | string | null
   expiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Post"> | Date | string | null
+  expiryReminder30SentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Post"> | Date | string | null
+  expiryReminder5SentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Post"> | Date | string | null
   status?: Prisma.EnumPostStatusWithAggregatesFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
@@ -355,6 +379,8 @@ export type PostCreateInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -376,6 +402,8 @@ export type PostUncheckedCreateInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -393,6 +421,8 @@ export type PostUpdateInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,6 +444,8 @@ export type PostUncheckedUpdateInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -433,6 +465,8 @@ export type PostCreateManyInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -448,6 +482,8 @@ export type PostUpdateManyMutationInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +501,8 @@ export type PostUncheckedUpdateManyInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -492,6 +530,8 @@ export type PostCountOrderByAggregateInput = {
   contactName?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  expiryReminder30SentAt?: Prisma.SortOrder
+  expiryReminder5SentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -509,6 +549,8 @@ export type PostMaxOrderByAggregateInput = {
   contactName?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  expiryReminder30SentAt?: Prisma.SortOrder
+  expiryReminder5SentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -526,6 +568,8 @@ export type PostMinOrderByAggregateInput = {
   contactName?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  expiryReminder30SentAt?: Prisma.SortOrder
+  expiryReminder5SentAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -670,6 +714,8 @@ export type PostCreateWithoutAuthorInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -689,6 +735,8 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -737,6 +785,8 @@ export type PostScalarWhereInput = {
   contactName?: Prisma.StringNullableFilter<"Post"> | string | null
   contactPhone?: Prisma.StringNullableFilter<"Post"> | string | null
   expiresAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder30SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
+  expiryReminder5SentAt?: Prisma.DateTimeNullableFilter<"Post"> | Date | string | null
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
@@ -752,6 +802,8 @@ export type PostCreateWithoutOrganizationInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -771,6 +823,8 @@ export type PostUncheckedCreateWithoutOrganizationInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -814,6 +868,8 @@ export type PostCreateWithoutHashtagsInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -834,6 +890,8 @@ export type PostUncheckedCreateWithoutHashtagsInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -866,6 +924,8 @@ export type PostUpdateWithoutHashtagsInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -886,6 +946,8 @@ export type PostUncheckedUpdateWithoutHashtagsInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -902,6 +964,8 @@ export type PostCreateWithoutChatRoomInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -922,6 +986,8 @@ export type PostUncheckedCreateWithoutChatRoomInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -954,6 +1020,8 @@ export type PostUpdateWithoutChatRoomInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -974,6 +1042,8 @@ export type PostUncheckedUpdateWithoutChatRoomInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -991,6 +1061,8 @@ export type PostCreateManyAuthorInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1006,6 +1078,8 @@ export type PostUpdateWithoutAuthorInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1025,6 +1099,8 @@ export type PostUncheckedUpdateWithoutAuthorInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1043,6 +1119,8 @@ export type PostUncheckedUpdateManyWithoutAuthorInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1059,6 +1137,8 @@ export type PostCreateManyOrganizationInput = {
   contactName?: string | null
   contactPhone?: string | null
   expiresAt?: Date | string | null
+  expiryReminder30SentAt?: Date | string | null
+  expiryReminder5SentAt?: Date | string | null
   status?: $Enums.PostStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1074,6 +1154,8 @@ export type PostUpdateWithoutOrganizationInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1093,6 +1175,8 @@ export type PostUncheckedUpdateWithoutOrganizationInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1111,6 +1195,8 @@ export type PostUncheckedUpdateManyWithoutOrganizationInput = {
   contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   expiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder30SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiryReminder5SentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1159,6 +1245,8 @@ export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   contactName?: boolean
   contactPhone?: boolean
   expiresAt?: boolean
+  expiryReminder30SentAt?: boolean
+  expiryReminder5SentAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1181,6 +1269,8 @@ export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   contactName?: boolean
   contactPhone?: boolean
   expiresAt?: boolean
+  expiryReminder30SentAt?: boolean
+  expiryReminder5SentAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1200,6 +1290,8 @@ export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   contactName?: boolean
   contactPhone?: boolean
   expiresAt?: boolean
+  expiryReminder30SentAt?: boolean
+  expiryReminder5SentAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1219,12 +1311,14 @@ export type PostSelectScalar = {
   contactName?: boolean
   contactPhone?: boolean
   expiresAt?: boolean
+  expiryReminder30SentAt?: boolean
+  expiryReminder5SentAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "imageUrl" | "feedType" | "interactionType" | "authorId" | "organizationId" | "contactName" | "contactPhone" | "expiresAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["post"]>
+export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "imageUrl" | "feedType" | "interactionType" | "authorId" | "organizationId" | "contactName" | "contactPhone" | "expiresAt" | "expiryReminder30SentAt" | "expiryReminder5SentAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["post"]>
 export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Post$organizationArgs<ExtArgs>
@@ -1261,6 +1355,8 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     contactName: string | null
     contactPhone: string | null
     expiresAt: Date | null
+    expiryReminder30SentAt: Date | null
+    expiryReminder5SentAt: Date | null
     status: $Enums.PostStatus
     createdAt: Date
     updatedAt: Date
@@ -1702,6 +1798,8 @@ export interface PostFieldRefs {
   readonly contactName: Prisma.FieldRef<"Post", 'String'>
   readonly contactPhone: Prisma.FieldRef<"Post", 'String'>
   readonly expiresAt: Prisma.FieldRef<"Post", 'DateTime'>
+  readonly expiryReminder30SentAt: Prisma.FieldRef<"Post", 'DateTime'>
+  readonly expiryReminder5SentAt: Prisma.FieldRef<"Post", 'DateTime'>
   readonly status: Prisma.FieldRef<"Post", 'PostStatus'>
   readonly createdAt: Prisma.FieldRef<"Post", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Post", 'DateTime'>

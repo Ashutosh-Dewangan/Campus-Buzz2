@@ -55,6 +55,7 @@ export const ModelName = {
   Organization: 'Organization',
   OfficialPost: 'OfficialPost',
   Membership: 'Membership',
+  Notification: 'Notification',
   Post: 'Post',
   Hashtag: 'Hashtag',
   PostHashtag: 'PostHashtag',
@@ -135,6 +136,20 @@ export const MembershipScalarFieldEnum = {
 export type MembershipScalarFieldEnum = (typeof MembershipScalarFieldEnum)[keyof typeof MembershipScalarFieldEnum]
 
 
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  link: 'link',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
 export const PostScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -147,6 +162,8 @@ export const PostScalarFieldEnum = {
   contactName: 'contactName',
   contactPhone: 'contactPhone',
   expiresAt: 'expiresAt',
+  expiryReminder30SentAt: 'expiryReminder30SentAt',
+  expiryReminder5SentAt: 'expiryReminder5SentAt',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

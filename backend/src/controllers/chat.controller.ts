@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { emitNewChatMessage } from "../socket";
-
 import {
   closeChatRoom,
   getChatRoomByPostId,
@@ -8,7 +7,10 @@ import {
   joinChatRoom,
   leaveChatRoom,
   sendMessage,
+  getActiveRoomMemberIds,
 } from "../services/chat.service";
+
+import { createNotification } from "../services/notification.service";
 
 import {
   sendMessageSchema,
@@ -200,7 +202,22 @@ export async function createMessage(
     req.params.roomId,
     message,
   );
-  
+  const memberIds =
+  await getActiveRoomMemberIds(req.params.roomId);
+
+await Promise.all(
+  memberIds
+    .filter((memberId) => memberId !== userId)
+    .map((memberId) =>
+      createNotification({
+        userId: memberId,
+        type: "ROOM_MESSAGE",
+        title: "New message in your coordination room",
+        description: `${message.user.name} sent a new message.`,
+        link: `/chat/${req.params.roomId}`,
+      }),
+    ),
+);
   res.status(201).json({
     message,
   });

@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma";
 import type { SendMessageInput } from "../validators/chat.validators";
+import { createNotification } from "./notification.service";
 
 export async function getRoomWithPost(roomId: string) {
   return prisma.chatRoom.findUnique({
@@ -137,12 +138,23 @@ export async function joinChatRoom(
     });
   }
 
-  return prisma.chatMember.create({
-    data: {
-      chatRoomId: roomId,
-      userId,
-    },
+  const member = await prisma.chatMember.create({
+  data: {
+    chatRoomId: roomId,
+    userId,
+  },
+});
+
+if (room.post.authorId !== userId) {
+  await createNotification({
+    userId: room.post.authorId,
+    type: "PARTICIPANT_JOINED",
+    title: "Someone joined your coordination room",
+    description: "A student joined your post's chat room.",
+    link: `/buzz/${room.post.id}`,
   });
+}
+return member;
 }
 
 export async function leaveChatRoom(
@@ -288,4 +300,20 @@ export async function closeChatRoom(
       closedAt: new Date(),
     },
   });
+}
+
+export async function getActiveRoomMemberIds(
+  roomId: string,
+) {
+  const members = await prisma.chatMember.findMany({
+    where: {
+      chatRoomId: roomId,
+      leftAt: null,
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  return members.map((member) => member.userId);
 }
