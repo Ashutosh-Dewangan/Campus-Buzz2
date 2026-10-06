@@ -10,7 +10,11 @@ import {
 } from "react";
 
 import { createPost } from "@/lib/api";
+import { useCurrentUser } from "@/lib/session";
+import { canCreateBuzzPost } from "@/lib/auth";
 import { Post } from "@/types";
+import { SparkIcon, AlertCircleIcon } from "@/components/ui/Icons";
+
 
 interface CreatePostFormProps {
   onPostCreated: (post: Post) => void;
@@ -178,13 +182,26 @@ export default function CreatePostForm({
     return true;
   }, [image, title, description, needsContact, contactName, contactPhone]);
 
+  const currentUser = useCurrentUser();
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!currentUser) {
+      setError("Authentication required: Please sign in to publish a post.");
+      return;
+    }
+
+    if (!canCreateBuzzPost(currentUser.role)) {
+      setError("Administrative accounts cannot create student Campus Buzz posts. Only student accounts have posting permission.");
+      return;
+    }
 
     if (!isValid || !image) {
       setError("Please complete all required fields before posting.");
       return;
     }
+
 
     try {
       setIsSubmitting(true);
@@ -456,12 +473,10 @@ export default function CreatePostForm({
 
           {/* Helper Note for Selected Hashtag */}
           <div className="mt-2.5 flex items-start gap-2 rounded-sm border border-black/60 bg-[rgba(14,10,32,0.85)] p-2.5 text-left shadow-[2px_2px_0_#000]">
-            <span
+            <SparkIcon
+              className="mt-0.5 h-3.5 w-3.5 shrink-0"
               style={{ color: selectedHashtag.accentColor }}
-              className="mt-0.5 text-xs font-black"
-            >
-              ✦
-            </span>
+            />
             <div className="text-[11px] leading-tight">
               <p className="font-bold text-[var(--fg)]">
                 {selectedHashtag.value === "#resell"
@@ -674,7 +689,7 @@ export default function CreatePostForm({
           role="alert"
           className="flex items-center gap-2 rounded-sm border-2 border-black bg-[rgba(255,45,74,0.18)] p-2.5 text-xs font-bold text-[var(--accent)] shadow-[2px_2px_0_#000]"
         >
-          <span>⚠</span>
+          <AlertCircleIcon className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}

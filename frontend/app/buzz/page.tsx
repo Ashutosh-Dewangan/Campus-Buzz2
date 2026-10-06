@@ -2,13 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import CreatePostForm from "@/components/buzz/CreatePostForm";
 import CampusPulse from "@/components/buzz/CampusPulse";
 import PostCard from "@/components/buzz/PostCard";
 
 import { getPostContact, getPosts, getTrendingTags } from "@/lib/api";
+import { useCurrentUser } from "@/lib/session";
+import { canCreateBuzzPost, isAdmin } from "@/lib/auth";
 import { Post } from "@/types";
+
 import {
   AlertCircleIcon,
   CarIcon,
@@ -17,6 +21,9 @@ import {
   TagIcon,
   UserIcon,
   UtensilsIcon,
+  CheckIcon,
+  XIcon,
+  RefreshIcon,
 } from "@/components/ui/Icons";
 
 /* ---------- Filter config ---------- */
@@ -68,18 +75,19 @@ function ContactModal({
               <h2 className="text-sm font-black uppercase tracking-wider text-white">
                 Poster Contact Details
               </h2>
-              <span className="text-[10px] font-semibold text-emerald-400">
-                ✓ Verified Campus Student
+              <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
+                <CheckIcon className="h-3 w-3 shrink-0" />
+                <span>Verified Campus Student</span>
               </span>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer text-xl font-bold text-[var(--fg-muted)] hover:text-white"
+            className="cursor-pointer text-[var(--fg-muted)] hover:text-white"
             aria-label="Close"
           >
-            ×
+            <XIcon className="h-4 w-4" />
           </button>
         </div>
 
@@ -90,7 +98,7 @@ function ContactModal({
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
               Poster Name / Location
             </p>
-            <p className="mt-1 text-sm font-bold text-white">
+            <p className="mt-1 text-sm font-bold text-white font-readable">
               {contactName || "Campus Student"}
             </p>
           </div>
@@ -104,9 +112,16 @@ function ContactModal({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="cursor-pointer text-[10px] font-bold text-[var(--neon-cyan)] hover:underline"
+                className="inline-flex items-center gap-1 cursor-pointer text-[10px] font-bold text-[var(--neon-cyan)] hover:underline"
               >
-                {copied ? "Copied! ✓" : "Copy"}
+                {copied ? (
+                  <>
+                    <CheckIcon className="h-3 w-3" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  "Copy"
+                )}
               </button>
             </div>
             <a
@@ -182,6 +197,9 @@ function SkeletonCard() {
 /* ---------- Main page ---------- */
 export default function BuzzPage() {
   const router = useRouter();
+  const user = useCurrentUser();
+  const canPostBuzz = user ? canCreateBuzzPost(user.role) : false;
+  const isUserAdmin = user ? isAdmin(user.role) : false;
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -190,6 +208,7 @@ export default function BuzzPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [toastMessage, setToastMessage] = useState("");
+
 
   // Contact modal state
   const [contactModal, setContactModal] = useState<{
@@ -290,7 +309,7 @@ export default function BuzzPage() {
   const handlePostCreated = (newPost: Post) => {
     setPosts((cur) => [newPost, ...cur]);
     setShowCreatePost(false);
-    setToastMessage("✓ Buzz posted! Your coordination is live on campus.");
+    setToastMessage("Buzz posted! Your coordination is live on campus.");
     setTimeout(() => setToastMessage(""), 4000);
   };
 
@@ -411,9 +430,10 @@ export default function BuzzPage() {
               <button
                 type="button"
                 onClick={() => setActiveTrendingTag(null)}
-                className="cursor-pointer text-[10px] font-bold text-[var(--accent)] hover:underline ml-1"
+                className="inline-flex items-center gap-1 cursor-pointer text-[10px] font-bold text-[var(--accent)] hover:underline ml-1"
               >
-                ✕ Clear tag
+                <XIcon className="h-2.5 w-2.5 shrink-0" />
+                <span>Clear tag</span>
               </button>
             )}
           </div>
@@ -422,13 +442,17 @@ export default function BuzzPage() {
         {/* Success Toast */}
         {toastMessage && (
           <div className="mb-4 flex items-center justify-between rounded-sm border-2 border-black bg-[rgba(0,229,200,0.15)] p-3 text-xs font-bold text-emerald-300 shadow-[3px_3px_0_#000]">
-            <span>{toastMessage}</span>
+            <div className="flex items-center gap-2">
+              <CheckIcon className="h-4 w-4 text-emerald-400 shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
             <button
               type="button"
               onClick={() => setToastMessage("")}
               className="text-white/60 hover:text-white cursor-pointer"
+              aria-label="Dismiss message"
             >
-              ✕
+              <XIcon className="h-3.5 w-3.5" />
             </button>
           </div>
         )}
@@ -450,16 +474,34 @@ export default function BuzzPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowCreatePost(true)}
-              className="retro-btn shrink-0 cursor-pointer self-start sm:self-auto"
-              style={{ padding: "8px 16px" }}
-            >
-              + Post a Buzz
-            </button>
+            {canPostBuzz ? (
+              <button
+                type="button"
+                onClick={() => setShowCreatePost(true)}
+                className="retro-btn shrink-0 cursor-pointer self-start sm:self-auto"
+                style={{ padding: "8px 16px" }}
+              >
+                + Post a Buzz
+              </button>
+            ) : !user ? (
+              <Link
+                href="/login?redirect=/buzz"
+                className="retro-btn shrink-0 cursor-pointer self-start sm:self-auto text-xs"
+                style={{ padding: "8px 16px" }}
+              >
+                Sign in to Post ↗
+              </Link>
+            ) : isUserAdmin ? (
+              <span
+                className="rounded-sm border border-black/40 bg-black/40 px-2.5 py-1.5 text-[10px] font-bold text-[var(--fg-muted)] shrink-0 self-start sm:self-auto"
+                title="Campus Buzz posts are restricted to student accounts on the backend"
+              >
+                Student Only
+              </span>
+            ) : null}
           </div>
         </div>
+
 
         {/* Contact Loading Indicator */}
         {contactLoading && (
@@ -502,9 +544,10 @@ export default function BuzzPage() {
               <button
                 type="button"
                 onClick={loadPosts}
-                className="retro-btn cursor-pointer text-xs"
+                className="retro-btn inline-flex items-center gap-1.5 cursor-pointer text-xs"
               >
-                Retry Connection ⟳
+                <RefreshIcon className="h-3.5 w-3.5 shrink-0" />
+                <span>Retry Connection</span>
               </button>
             </div>
           </div>
@@ -583,10 +626,10 @@ export default function BuzzPage() {
               <button
                 type="button"
                 onClick={() => setShowCreatePost(false)}
-                className="cursor-pointer text-2xl font-bold leading-none text-[var(--fg-muted)] hover:text-white"
+                className="cursor-pointer p-1 text-[var(--fg-muted)] hover:text-white hover:bg-white/10 rounded-sm transition-colors"
                 aria-label="Close"
               >
-                ×
+                <XIcon className="h-5 w-5" />
               </button>
             </div>
             <div className="p-4 sm:p-5">

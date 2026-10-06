@@ -19,9 +19,12 @@ import {
 import { Complaint, Event, ReportedPost, CampusUser } from "@/types";
 import {
   CalendarIcon,
+  CheckIcon,
   LockIcon,
   MegaphoneIcon,
+  RefreshIcon,
   ShieldIcon,
+  XIcon,
 } from "@/components/ui/Icons";
 
 function StatCard({
@@ -191,21 +194,39 @@ export default function AdminPage() {
               <ShieldIcon className="h-8 w-8" />
             </div>
             <h1 className="stay-loop-title" style={{ fontSize: 28 }}>
-              Admin Access Restricted
+              {user ? "Admin Access Restricted" : "Authentication Required"}
             </h1>
             <p className="comic-sub font-readable mt-3 mx-auto max-w-md">
-              This area is restricted to campus administrators. Current account:{" "}
-              <strong className="text-white">
-                {user?.email || "Guest"}
-              </strong>{" "}
-              (Role: {user?.role || "NONE"}).
+              {user ? (
+                <>
+                  This area is restricted to campus administrators. Your current account (
+                  <strong className="text-white">{user.email}</strong>, Role:{" "}
+                  <strong className="text-[var(--neon-yellow)]">{user.role}</strong>
+                  ) does not have administrative privileges.
+                </>
+              ) : (
+                <>
+                  You must sign in with a verified campus administrator account to access administrative controls and system governance.
+                </>
+              )}
             </p>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Link href="/buzz" className="retro-btn-outline text-xs font-bold">
+                ← Return to Campus Buzz
+              </Link>
+              {!user && (
+                <Link href="/login?redirect=/admin" className="retro-btn text-xs font-bold">
+                  Sign in as Admin ↗
+                </Link>
+              )}
+            </div>
 
             {/* Development demo switch helper */}
             <div className="mt-8 border-t border-black/40 pt-6">
-              <p className="text-xs text-[var(--neon-yellow)] font-bold mb-3 uppercase tracking-wider">
-                Demo / Development Switcher:
-              </p>
+              <div className="rounded-sm border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200/90 mb-3 text-left">
+                <span className="font-bold">Demo Notice:</span> Switching to the demo Admin persona simulates the client-side administrator interface for local preview only. Server-side API endpoints enforce real JWT authorization.
+              </div>
               <button
                 type="button"
                 onClick={() => switchDemoPersona("ADMIN")}
@@ -219,6 +240,7 @@ export default function AdminPage() {
       </main>
     );
   }
+
 
   const pendingReports = reports.filter((r) => r.status === "PENDING");
   const openComplaints = complaints.filter((c) => c.status === "OPEN");
@@ -242,22 +264,24 @@ export default function AdminPage() {
             type="button"
             onClick={refreshData}
             disabled={isLoading}
-            className="comic-btn-outline text-xs self-start sm:self-auto cursor-pointer"
+            className="comic-btn-outline text-xs self-start sm:self-auto cursor-pointer inline-flex items-center gap-1.5"
           >
-            {isLoading ? "Refreshing..." : "↻ Refresh Live Data"}
+            <RefreshIcon className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <span>{isLoading ? "Refreshing..." : "Refresh Live Data"}</span>
           </button>
         </div>
 
         {/* Feedback Alert */}
         {triageMessage && (
           <div
-            className="mb-4 border-2 border-black px-4 py-2.5 text-xs font-bold shadow-[2px_2px_0_#000]"
+            className="mb-4 flex items-center gap-2 border-2 border-black px-4 py-2.5 text-xs font-bold shadow-[2px_2px_0_#000]"
             style={{
               background: "rgba(0,229,200,0.15)",
               color: "var(--tag-found)",
             }}
           >
-            ✓ {triageMessage}
+            <CheckIcon className="h-4 w-4 shrink-0" />
+            <span>{triageMessage}</span>
           </div>
         )}
 
@@ -416,8 +440,9 @@ export default function AdminPage() {
 
             {pendingReports.length === 0 ? (
               <div className="comic-card comic-empty p-10">
-                <p className="text-sm font-bold text-emerald-400">
-                  ✓ Moderation queue clean!
+                <p className="text-sm font-bold text-emerald-400 inline-flex items-center gap-1.5">
+                  <CheckIcon className="h-4 w-4 shrink-0" />
+                  <span>Moderation queue clean!</span>
                 </p>
                 <p className="comic-sub mt-1 text-xs">
                   No posts currently flagged for community guideline violations.
@@ -460,9 +485,10 @@ export default function AdminPage() {
                         onClick={() =>
                           handleRemoveReportedPost(report.id, report.postId)
                         }
-                        className="retro-btn text-xs py-1.5 px-3 cursor-pointer"
+                        className="retro-btn text-xs py-1.5 px-3 cursor-pointer inline-flex items-center gap-1"
                       >
-                        Remove Post ✕
+                        <XIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span>Remove Post</span>
                       </button>
                     </div>
                   </div>
@@ -532,9 +558,10 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => handleQuickResolve(c.id)}
-                          className="retro-btn text-[10px] py-1 px-2.5 cursor-pointer"
+                          className="retro-btn text-[10px] py-1 px-2.5 cursor-pointer inline-flex items-center gap-1"
                         >
-                          ✓ Mark Resolved
+                          <CheckIcon className="h-3 w-3 shrink-0" />
+                          <span>Mark Resolved</span>
                         </button>
                       )}
                     </div>

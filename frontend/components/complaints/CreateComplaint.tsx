@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Complaint, ComplaintCategory } from "@/types";
 import { createComplaint } from "@/lib/api";
+import { XIcon } from "@/components/ui/Icons";
 
 interface CreateComplaintProps {
   onClose: () => void;
@@ -76,10 +77,10 @@ export default function CreateComplaint({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+            className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
             style={{ boxShadow: "2px 2px 0 #000" }}
           >
-            ✕
+            <XIcon className="h-4 w-4" />
           </button>
         </div>
 

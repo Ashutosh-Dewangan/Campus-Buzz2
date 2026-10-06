@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { OfficialPost } from "@/types";
-import { CalendarIcon } from "@/components/ui/Icons";
+import { CalendarIcon, CheckIcon } from "@/components/ui/Icons";
 
 interface Props {
   post: OfficialPost;
@@ -41,8 +41,9 @@ export default function OfficialPostCard({
             {post.organization.name}
           </p>
 
-          <span className="tag-pill tag-cab text-[10px] font-bold">
-            ✓ Official
+          <span className="tag-pill tag-cab text-[10px] font-bold inline-flex items-center gap-1">
+            <CheckIcon className="h-3 w-3 shrink-0" />
+            <span>Official</span>
           </span>
         </div>
 

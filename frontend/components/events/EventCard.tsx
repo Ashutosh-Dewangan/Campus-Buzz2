@@ -1,5 +1,5 @@
 import { Event } from "@/types";
-import { CalendarIcon, ClockIcon, PinIcon } from "@/components/ui/Icons";
+import { CalendarIcon, ClockIcon, PinIcon, CheckIcon } from "@/components/ui/Icons";
 
 interface EventCardProps {
   event: Event;
@@ -22,8 +22,12 @@ export default function EventCard({
             {event.name}
           </h2>
           {isRsvped && (
-            <span className="tag-pill tag-found tag-pill--active shrink-0">
-              Going
+            <span
+              className="tag-pill tag-found tag-pill--active shrink-0 text-[10px] inline-flex items-center gap-1"
+              title="RSVP is saved locally on this device"
+            >
+              <CheckIcon className="h-3 w-3 shrink-0" />
+              <span>Going</span>
             </span>
           )}
         </div>
@@ -58,10 +62,18 @@ export default function EventCard({
           <button
             type="button"
             onClick={onRsvp}
-            className={`comic-btn w-full ${isRsvped ? "tag-found" : ""}`}
+            title="RSVP is stored locally on this device"
+            className={`comic-btn w-full text-xs ${isRsvped ? "tag-found" : ""}`}
             style={isRsvped ? { background: "var(--tag-found)", color: "#04120e" } : undefined}
           >
-            {isRsvped ? "✓ Going" : "RSVP"}
+            {isRsvped ? (
+              <span className="inline-flex items-center justify-center gap-1.5">
+                <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+                <span>Saved on Device (Going)</span>
+              </span>
+            ) : (
+              "RSVP (Save to this device)"
+            )}
           </button>
         )}
 

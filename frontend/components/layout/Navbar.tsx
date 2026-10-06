@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import AccountDropdown from "@/components/layout/AccountDropdown";
 import { useCurrentUser, switchDemoPersona } from "@/lib/session";
 import { UserRole } from "@/types";
+import { SearchIcon, ChevronDownIcon, CheckIcon } from "@/components/ui/Icons";
 
 export default function Navbar() {
   const user = useCurrentUser();
@@ -42,13 +44,13 @@ export default function Navbar() {
 
       <div className="flex items-center gap-3">
         {/* Search Bar */}
-        <div className="cb-search-bar">
+        <div className="cb-search-bar hidden md:flex">
           <input
             type="search"
             placeholder="Search campus..."
             aria-label="Search campus"
           />
-          <span aria-hidden="true">⌕</span>
+          <SearchIcon className="h-3.5 w-3.5 text-black/70 shrink-0" />
         </div>
 
         {/* Development Persona Switcher (Demo Feature) */}
@@ -57,13 +59,13 @@ export default function Navbar() {
             type="button"
             onClick={() => setPersonaOpen((prev) => !prev)}
             title="Development Persona Switcher"
-            className="flex items-center gap-2 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.95)] px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--neon-yellow)] shadow-[2px_2px_0_#000] hover:border-white/60 transition cursor-pointer"
+            className="flex items-center gap-1.5 rounded-sm border-2 border-black bg-[rgba(14,10,32,0.95)] px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--neon-yellow)] shadow-[2px_2px_0_#000] hover:border-white/60 transition cursor-pointer"
           >
             <span className="text-[9px] text-[var(--fg-muted)]">ROLE:</span>
             <span>
               {user ? user.role : "STUDENT"}
             </span>
-            <span className="text-[9px] text-white/70">▾</span>
+            <ChevronDownIcon className="h-3 w-3 text-white/70 shrink-0" />
           </button>
 
           {personaOpen && (
@@ -97,20 +99,25 @@ export default function Navbar() {
                         </span>
                         <span>{r.label}</span>
                       </span>
-                      {isActive && <span className="text-[10px] font-black">✓</span>}
+                      {isActive && <CheckIcon className="h-3.5 w-3.5 text-white shrink-0" />}
                     </button>
                   );
                 })}
               </div>
-              <div className="mt-3 border-t border-black/40 pt-2 px-0.5 text-[10px] text-[var(--fg-muted)] leading-tight">
-                Preview mode · Server RBAC is authoritative
+              <div className="mt-3 border-t border-black/40 pt-2 px-0.5 text-[9px] text-[var(--fg-muted)] leading-tight space-y-1 font-readable">
+                <p className="font-bold text-[var(--neon-yellow)]">Demo Persona Switcher (Client-only)</p>
+                <p>Simulates role interfaces for local testing. Backend authorization is authoritative and cannot be bypassed.</p>
               </div>
             </div>
+
           )}
         </div>
 
         {/* Notifications Dropdown */}
         <NotificationDropdown />
+
+        {/* Account / Profile Dropdown */}
+        <AccountDropdown />
       </div>
     </header>
   );

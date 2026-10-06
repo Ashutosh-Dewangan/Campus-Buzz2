@@ -32,6 +32,7 @@ export const DEMO_PERSONAS: Record<UserRole, CurrentUser> = {
     name: "Alex Rivera",
     email: "alex.rivera@campusbuzz.test",
     role: "STUDENT",
+    memberships: [],
   },
   CLUB: {
     id: "u-club",
@@ -39,6 +40,17 @@ export const DEMO_PERSONAS: Record<UserRole, CurrentUser> = {
     name: "Coding Club Lead",
     email: "codingclub@campusbuzz.test",
     role: "CLUB",
+    memberships: [
+      {
+        id: "m-club-demo",
+        status: "ACTIVE",
+        organization: {
+          id: "00000000-0000-0000-0000-000000000001",
+          name: "Robotics Club",
+          type: "CLUB",
+        },
+      },
+    ],
   },
   COMMITTEE: {
     id: "u-comm",
@@ -46,6 +58,17 @@ export const DEMO_PERSONAS: Record<UserRole, CurrentUser> = {
     name: "Cultural Society Secretary",
     email: "cultural@campusbuzz.test",
     role: "COMMITTEE",
+    memberships: [
+      {
+        id: "m-comm-demo",
+        status: "ACTIVE",
+        organization: {
+          id: "00000000-0000-0000-0000-000000000002",
+          name: "Cultural Committee",
+          type: "COMMITTEE",
+        },
+      },
+    ],
   },
   ADMIN: {
     id: "u-admin",
@@ -53,8 +76,10 @@ export const DEMO_PERSONAS: Record<UserRole, CurrentUser> = {
     name: "Campus Administrator",
     email: "admin@campusbuzz.test",
     role: "ADMIN",
+    memberships: [],
   },
 };
+
 
 const SESSION_KEY = "campus_buzz_session";
 const SESSION_EVENT = "campus_buzz_session_change";

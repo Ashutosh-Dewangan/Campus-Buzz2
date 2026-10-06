@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useCurrentUser } from "@/lib/session";
+import Link from "next/link";
+import { useCurrentUser, getSession } from "@/lib/session";
+
+import { createChatSocket } from "@/lib/socket";
 import {
   closeChatRoom,
   getChatMessages,
@@ -24,6 +27,10 @@ import {
   UtensilsIcon,
   CarIcon,
   TagIcon,
+  CheckIcon,
+  XIcon,
+  RefreshIcon,
+  StarIcon,
 } from "@/components/ui/Icons";
 
 interface ChatRoomProps {
@@ -56,7 +63,6 @@ export default function ChatRoom({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showParticipants, setShowParticipants] = useState(false);
-  const [isPeerTyping, setIsPeerTyping] = useState(false);
 
   // Resell Offer modal state
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -82,8 +88,12 @@ export default function ChatRoom({
       if (roomData.post.orderTotal) setBillTotal(roomData.post.orderTotal);
       if (roomData.post.splitCount) setSplitCount(roomData.post.splitCount);
 
-      const msgData = await getChatMessages(roomData.id);
-      setMessages(msgData);
+      if (roomData.isMember) {
+        const msgData = await getChatMessages(roomData.id);
+        setMessages(msgData);
+      } else {
+        setMessages([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load room");
     } finally {
@@ -104,9 +114,13 @@ export default function ChatRoom({
         if (roomData.post.orderTotal) setBillTotal(roomData.post.orderTotal);
         if (roomData.post.splitCount) setSplitCount(roomData.post.splitCount);
 
-        const msgData = await getChatMessages(roomData.id);
-        if (ignore) return;
-        setMessages(msgData);
+        if (roomData.isMember) {
+          const msgData = await getChatMessages(roomData.id);
+          if (ignore) return;
+          setMessages(msgData);
+        } else {
+          setMessages([]);
+        }
       } catch (err) {
         if (!ignore) {
           setError(err instanceof Error ? err.message : "Failed to load room");
@@ -122,9 +136,76 @@ export default function ChatRoom({
     };
   }, [postId]);
 
+  // Socket.IO real-time message and member coordination
+  useEffect(() => {
+    let socket: ReturnType<typeof createChatSocket> | null = null;
+    const session = getSession();
+
+    if (!room || !room.id || !session?.token) {
+      return;
+    }
+
+    if (room.isMember && room.status === "OPEN") {
+      try {
+        socket = createChatSocket(session.token);
+
+        socket.on("connect", () => {
+          socket?.emit("join-room", room.id);
+          // Refetch messages on connect or reconnect in case any were missed while offline
+          void getChatMessages(room.id)
+            .then((freshMsgs) => {
+              setMessages((current) => {
+                const merged = new Map(freshMsgs.map((message) => [message.id, message]));
+                current.forEach((message) => {
+                  if (!merged.has(message.id)) merged.set(message.id, message);
+                });
+                return [...merged.values()].sort(
+                  (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+                );
+              });
+            })
+            .catch(() => {});
+        });
+
+        socket.on("new-message", (incomingMsg: ChatMessage) => {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === incomingMsg.id)) return prev;
+            return [...prev, incomingMsg];
+          });
+        });
+
+        socket.on("room-member-joined", () => {
+          void loadRoom();
+        });
+
+        socket.on("room-member-left", () => {
+          void loadRoom();
+        });
+
+        socket.on("connect_error", (err) => {
+          console.warn("Chat socket connect error:", err.message);
+        });
+
+        socket.connect();
+      } catch (err) {
+        console.warn("Failed to initialize chat socket:", err);
+      }
+    }
+
+    return () => {
+      if (socket) {
+        if (room?.id) {
+          socket.emit("leave-room", room.id);
+        }
+        socket.disconnect();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room?.id, room?.isMember, room?.status]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isPeerTyping]);
+  }, [messages]);
 
   async function handleJoin() {
     if (!room || joining) return;
@@ -147,53 +228,11 @@ export default function ChatRoom({
     try {
       setSending(true);
       const newMsg = await sendChatMessage(room.id, text);
-      setMessages((prev) => [...prev, newMsg]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
 
-      // Trigger realistic simulated student reply after 2.5 seconds
-      if (room.status === "OPEN") {
-        setTimeout(() => {
-          setIsPeerTyping(true);
-          setTimeout(async () => {
-            setIsPeerTyping(false);
-            const peerName =
-              room.participants.find((p) => p.id !== currentUser?.id)?.name ||
-              "Campus Peer";
-
-            const responses =
-              roomType === "#resell"
-                ? [
-                    "Sounds great! Where on campus should we meet for handoff?",
-                    "Can we meet near the Central Library around 5 PM?",
-                    "Awesome, I will bring the cash / pay via UPI on spot.",
-                  ]
-                : roomType === "#cabsplit"
-                ? [
-                    "Confirmed! I will be at the pickup spot 5 mins early.",
-                    "Got it, booking is set. See you at the cab.",
-                    "Perfect, let me know when the cab arrives.",
-                  ]
-                : [
-                    "Awesome, sent my share via UPI!",
-                    "Great, looking forward to the delivery.",
-                    "Sounds delicious! Thanks for coordinating.",
-                  ];
-
-            const replyContent =
-              responses[Math.floor(Math.random() * responses.length)];
-
-            const simulatedMsg: ChatMessage = {
-              id: `msg-${Date.now()}`,
-              chatRoomId: room.id,
-              userId: "u-peer",
-              content: replyContent,
-              createdAt: new Date().toISOString(),
-              user: { id: "u-peer", name: peerName },
-            };
-
-            setMessages((prev) => [...prev, simulatedMsg]);
-          }, 1800);
-        }, 1200);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
@@ -237,15 +276,15 @@ export default function ChatRoom({
     if (isNaN(amount) || amount <= 0) return;
 
     try {
-      const offer = await makeNegotiationOffer(room.id, amount);
-      setRoom((cur) => (cur ? { ...cur, offers: [...(cur.offers || []), offer] } : null));
+      await makeNegotiationOffer(room.id, amount);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Backend limitation: Resell offers are not supported by the current server contract. Please coordinate directly via chat."
+      );
       setShowOfferModal(false);
       setOfferAmount("");
-      // Refresh messages
-      const msgs = await getChatMessages(room.id);
-      setMessages(msgs);
-    } catch {
-      setError("Failed to submit offer.");
     }
   }
 
@@ -263,8 +302,8 @@ export default function ChatRoom({
       await sendChatMessage(room.id, "Offer has been accepted! Item is now marked RESERVED.");
       const msgs = await getChatMessages(room.id);
       setMessages(msgs);
-    } catch {
-      setError("Failed to accept offer.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to accept offer.");
     }
   }
 
@@ -292,9 +331,10 @@ export default function ChatRoom({
         <button
           type="button"
           onClick={() => void loadRoom()}
-          className="retro-btn mt-5 cursor-pointer"
+          className="retro-btn inline-flex items-center gap-1.5 mt-5 cursor-pointer"
         >
-          Try Again ⟳
+          <RefreshIcon className="h-3.5 w-3.5 shrink-0" />
+          <span>Try Again</span>
         </button>
       </div>
     );
@@ -357,8 +397,9 @@ export default function ChatRoom({
                 </span>
 
                 {roomClosed ? (
-                  <span className="rounded-sm border-2 border-black bg-red-950/80 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--accent)] shadow-[1px_1px_0_#000]">
-                    ● Closed
+                  <span className="inline-flex items-center gap-1 rounded-sm border-2 border-black bg-red-950/80 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--accent)] shadow-[1px_1px_0_#000]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                    Closed
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-sm border-2 border-black bg-emerald-950/80 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 shadow-[1px_1px_0_#000]">
@@ -368,8 +409,9 @@ export default function ChatRoom({
                 )}
 
                 {isCreator && (
-                  <span className="rounded-sm border-2 border-black bg-[var(--neon-yellow)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black shadow-[1px_1px_0_#000]">
-                    ★ You are Host
+                  <span className="inline-flex items-center gap-1 rounded-sm border-2 border-black bg-[var(--neon-yellow)] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black shadow-[1px_1px_0_#000]">
+                    <StarIcon className="h-2.5 w-2.5 shrink-0" />
+                    <span>Host</span>
                   </span>
                 )}
               </div>
@@ -403,9 +445,10 @@ export default function ChatRoom({
                   <button
                     type="button"
                     onClick={() => setPendingConfirm("close")}
-                    className="retro-btn text-xs font-black cursor-pointer"
+                    className="retro-btn inline-flex items-center gap-1 text-xs font-black cursor-pointer"
                   >
-                    Close Room ✕
+                    <span>Close Room</span>
+                    <XIcon className="h-3 w-3 shrink-0" />
                   </button>
                 )
               ) : (
@@ -436,15 +479,25 @@ export default function ChatRoom({
             <p className="comic-sub font-readable mx-auto max-w-sm mt-1">
               Join to send messages, coordinate pickup spots, or make an offer on this post.
             </p>
-            <button
-              type="button"
-              onClick={() => void handleJoin()}
-              disabled={roomClosed || joining}
-              className="retro-btn mt-5 cursor-pointer disabled:opacity-40"
-            >
-              {joining ? "Joining Room..." : "Join Coordination Room ↗"}
-            </button>
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={() => void handleJoin()}
+                disabled={roomClosed || joining}
+                className="retro-btn mt-5 cursor-pointer disabled:opacity-40"
+              >
+                {joining ? "Joining Room..." : "Join Coordination Room ↗"}
+              </button>
+            ) : (
+              <Link
+                href={`/login?redirect=${encodeURIComponent(`/rooms?postId=${postId}`)}`}
+                className="retro-btn mt-5 inline-block text-xs font-bold"
+              >
+                Sign in to Join Room ↗
+              </Link>
+            )}
           </div>
+
         ) : (
           <>
             {/* Chat Messages Log */}
@@ -470,18 +523,6 @@ export default function ChatRoom({
                     isCurrentUser={message.userId === currentUser?.id}
                   />
                 ))
-              )}
-
-              {/* Typing indicator */}
-              {isPeerTyping && (
-                <div className="flex items-center gap-2 text-xs text-[var(--neon-cyan)] italic px-2">
-                  <span className="flex gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-cyan)] animate-bounce" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-cyan)] animate-bounce [animation-delay:0.2s]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-cyan)] animate-bounce [animation-delay:0.4s]" />
-                  </span>
-                  <span>Peer is typing...</span>
-                </div>
               )}
 
               {roomClosed && (
@@ -616,8 +657,9 @@ export default function ChatRoom({
                 <CarIcon className="h-3.5 w-3.5" />
                 <span>Cab Itinerary</span>
               </span>
-              <span className="text-[10px] font-bold text-emerald-400">
-                ● Ready
+              <span className="text-[10px] font-bold text-emerald-400 inline-flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#00ff88]" />
+                <span>Ready</span>
               </span>
             </div>
 
@@ -742,8 +784,9 @@ export default function ChatRoom({
                         <div className="flex items-center justify-between mt-1 text-[10px]">
                           <span className="text-[var(--fg-muted)]">{offer.timestamp}</span>
                           {offer.status === "ACCEPTED" ? (
-                            <span className="font-bold text-emerald-400">
-                              ✓ Accepted
+                            <span className="font-bold text-emerald-400 inline-flex items-center gap-1">
+                              <CheckIcon className="h-3 w-3 text-emerald-400 shrink-0" />
+                              <span>Accepted</span>
                             </span>
                           ) : isCreator && !roomClosed ? (
                             <button
@@ -754,8 +797,9 @@ export default function ChatRoom({
                               Accept Offer
                             </button>
                           ) : (
-                            <span className="text-amber-400 font-bold">
-                              ● Pending
+                            <span className="text-amber-400 font-bold inline-flex items-center gap-1">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                              <span>Pending</span>
                             </span>
                           )}
                         </div>
@@ -833,13 +877,17 @@ export default function ChatRoom({
               <button
                 type="button"
                 onClick={() => setShowOfferModal(false)}
-                className="text-lg font-bold text-white/60 hover:text-white"
+                className="p-1 rounded-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                aria-label="Close offer modal"
               >
-                ×
+                <XIcon className="h-4 w-4" />
               </button>
             </div>
 
             <div className="my-4 space-y-3">
+              <div className="rounded-sm border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200/90 text-left font-readable">
+                <span className="font-bold">Notice:</span> Server does not have an offer negotiation API. You can propose an amount here, or negotiate terms directly in room chat.
+              </div>
               <div>
                 <label className="text-[10px] font-bold uppercase text-[var(--fg-muted)] block mb-1">
                   Your Offer Amount (₹)
@@ -854,7 +902,7 @@ export default function ChatRoom({
                 />
               </div>
               <p className="font-readable text-[11px] text-[var(--fg-muted)] leading-tight">
-                The seller will be notified in the room chat and can accept or counter your offer.
+                Use room chat below for real-time agreement and campus handoff.
               </p>
             </div>
 
@@ -897,9 +945,10 @@ export default function ChatRoom({
               <button
                 type="button"
                 onClick={() => setShowParticipants(false)}
-                className="text-lg font-bold text-white/60 hover:text-white cursor-pointer"
+                className="p-1 rounded-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                aria-label="Close participants modal"
               >
-                ×
+                <XIcon className="h-4 w-4" />
               </button>
             </div>
             <div className="my-4 space-y-2 max-h-64 overflow-y-auto">

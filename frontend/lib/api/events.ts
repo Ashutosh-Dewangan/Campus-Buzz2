@@ -45,8 +45,16 @@ async function getErrorMessage(
     // Ignore invalid/non-JSON error bodies.
   }
 
+  if (response.status === 401) {
+    return "Authentication required. Please sign in to continue.";
+  }
+  if (response.status === 403) {
+    return "Permission denied. You do not have permission for this event operation.";
+  }
+
   return `Request failed with status ${response.status}`;
 }
+
 
 export async function getEvents(): Promise<Event[]> {
   try {
@@ -89,26 +97,15 @@ export async function getEvents(): Promise<Event[]> {
       clearTimeout(timeoutId);
     }
   } catch (error) {
-    // Only use localStorage as a fallback for actual
-    // network/offline failures, not HTTP authorization/server errors.
     if (
       error instanceof Error &&
-      error.name !== "AbortError"
+      (error.name === "AbortError" ||
+        error.message.toLowerCase().includes("fetch") ||
+        error.message.toLowerCase().includes("networkerror"))
     ) {
-      if (
-        error.message.startsWith("Request failed") ||
-        error.message
-          .toLowerCase()
-          .includes("forbidden") ||
-        error.message
-          .toLowerCase()
-          .includes("unauthorized")
-      ) {
-        throw error;
-      }
+      throw new Error("Unable to load events from the server. Please try again.");
     }
-
-    return getStoredEvents();
+    throw error;
   }
 }
 
@@ -168,11 +165,6 @@ export async function createEvent(
       clearTimeout(timeoutId);
     }
   } catch (error) {
-    /*
-     * IMPORTANT:
-     * Never create a fake event when the backend explicitly rejected
-     * the request.
-     */
     if (
       error instanceof Error &&
       error.name !== "AbortError" &&
@@ -182,21 +174,7 @@ export async function createEvent(
     ) {
       throw error;
     }
-
-    // Only network/offline failure gets the local fallback.
-    const newEvent: Event = {
-      id: `e-${Date.now()}`,
-      ...event,
-    };
-
-    const current = getStoredEvents();
-
-    saveStoredEvents([
-      newEvent,
-      ...current,
-    ]);
-
-    return newEvent;
+    throw new Error("Unable to reach the server. The event was not created. Please try again.");
   }
 }
 
@@ -299,15 +277,6 @@ export async function deleteEvent(
     ) {
       throw error;
     }
-
-    // Network failure: maintain local fallback behavior.
-    const current = getStoredEvents();
-
-    saveStoredEvents(
-      current.filter(
-        (event) => event.id !== eventId,
-      ),
-    );
 
     throw error;
   }

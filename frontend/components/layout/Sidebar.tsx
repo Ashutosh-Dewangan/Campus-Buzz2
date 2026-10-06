@@ -12,6 +12,7 @@ import {
   AlertCircleIcon,
   PinIcon,
   ShieldIcon,
+  LogOutIcon,
 } from "@/components/ui/Icons";
 
 interface NavItem {
@@ -155,46 +156,54 @@ export default function Sidebar() {
       {/* Account / Pass Section */}
       <div className="cb-profile-card">
         <div className="cb-id-card">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <div className="cb-id-avatar">
               {user ? getUserInitials(user) : "?"}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[9px] font-black uppercase tracking-widest text-[var(--fg-muted)] leading-none mb-0.5">
-                {user ? "PASS ID" : "CAMPUS PASS"}
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[9px] font-black uppercase tracking-wider text-[var(--fg-muted)]">
+                  {user?.rollNumber ? `ROLL: ${user.rollNumber}` : "CAMPUS PASS"}
+                </span>
+                {user?.role === "ADMIN" && (
+                  <span className="tag-pill tag-food text-[8px] px-1 py-0 leading-tight">Admin</span>
+                )}
+                {user?.role === "CLUB" && (
+                  <span className="tag-pill tag-cab text-[8px] px-1 py-0 leading-tight">Club</span>
+                )}
+                {user?.role === "COMMITTEE" && (
+                  <span className="tag-pill tag-lost text-[8px] px-1 py-0 leading-tight">Comm</span>
+                )}
+                {user?.role === "STUDENT" && (
+                  <span className="tag-pill tag-found text-[8px] px-1 py-0 leading-tight">Verified</span>
+                )}
               </div>
-              <div className="cb-id-name truncate">
+              <div className="cb-id-name truncate mt-0.5">
                 {user ? user.email.split("@")[0] : "Guest"}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-black/40">
-            <div className="flex items-center gap-1 min-w-0 truncate">
-              <span className="cb-id-role truncate">
-                {user ? getRoleLabel(user) : "Not signed in"}
-              </span>
-              {user?.role === "ADMIN" && (
-                <span className="tag-pill tag-food text-[8px] px-1 py-0 leading-tight">Admin</span>
-              )}
-              {user?.role === "STUDENT" && (
-                <span className="tag-pill tag-found text-[8px] px-1 py-0 leading-tight">Verified</span>
-              )}
-            </div>
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/40">
+            <span className="cb-id-role truncate text-[11px]">
+              {user ? getRoleLabel(user) : "Not signed in"}
+            </span>
+
             {user ? (
               <button
                 type="button"
                 onClick={() => {
-                clearSession();
-                router.replace("/login");
+                  clearSession();
+                  router.replace("/login");
                 }}              
-                className="text-[10px] font-bold text-[var(--fg-muted)] hover:text-[var(--accent)] underline shrink-0 cursor-pointer transition"
+                className="flex items-center gap-1 text-[11px] font-bold text-[var(--fg-muted)] hover:text-[var(--accent)] cursor-pointer transition py-0.5 px-1 rounded-sm hover:bg-white/5"
                 title="Sign out of your session"
               >
-                Sign out
+                <LogOutIcon className="h-3 w-3 shrink-0" />
+                <span>Sign out</span>
               </button>
             ) : (
-              <Link href="/login" className="text-[10px] font-bold text-[var(--neon-cyan)] hover:underline shrink-0 transition">
+              <Link href="/login" className="text-[11px] font-bold text-[var(--neon-cyan)] hover:underline shrink-0 transition">
                 Sign in ↗
               </Link>
             )}

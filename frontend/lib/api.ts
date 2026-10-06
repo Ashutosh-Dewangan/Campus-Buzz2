@@ -1,6 +1,6 @@
 // ============================================================
 // CAMPUS BUZZ API FAÇADE
-// Re-exports all domain service modules with resilient mock fallbacks.
+// Re-exports the frontend domain API modules.
 // ============================================================
 
 export * from "./api/index";

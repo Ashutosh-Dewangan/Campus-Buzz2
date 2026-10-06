@@ -34,20 +34,21 @@ export async function getOfficialPosts(): Promise<
   if (!response.ok) {
     let message = `Failed to load official posts (${response.status})`;
 
-    try {
-      const data = await response.json();
-
-      if (
-        typeof data?.message === "string"
-      ) {
-        message = data.message;
-      } else if (
-        typeof data?.error === "string"
-      ) {
-        message = data.error;
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to view official announcements.";
+    } else if (response.status === 403) {
+      message = "Access forbidden. You do not have permission to view official announcements.";
+    } else {
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          message = data.message;
+        } else if (typeof data?.error === "string") {
+          message = data.error;
+        }
+      } catch {
+        // Keep the default message.
       }
-    } catch {
-      // Keep the default message.
     }
 
     throw new Error(message);
@@ -111,16 +112,24 @@ export async function createOfficialPost(
   }
 
   if (!response.ok) {
-    const message =
+    let message = `Failed to create official post (${response.status})`;
+
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to publish official announcements.";
+    } else if (response.status === 403) {
+      message = "Forbidden. Only authorized club and committee leaders or administrators can publish official announcements.";
+    } else if (
       typeof data === "object" &&
       data !== null &&
       "message" in data &&
       typeof data.message === "string"
-        ? data.message
-        : `Failed to create official post (${response.status})`;
+    ) {
+      message = data.message;
+    }
 
     throw new Error(message);
   }
+
 
   /*
    * Backend returns:

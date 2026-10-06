@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getEvents } from "@/lib/api";
 import { parseEventDate } from "@/lib/date";
 import { Event } from "@/types";
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "@/components/ui/Icons";
 
 export default function OfficialCalendarPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -120,9 +121,9 @@ export default function OfficialCalendarPage() {
                 type="button"
                 onClick={handlePrevMonth}
                 aria-label="Previous month"
-                className="comic-btn-outline px-2 py-0.5 text-xs font-bold"
+                className="comic-btn-outline p-1 text-xs font-bold inline-flex items-center justify-center"
               >
-                ◀
+                <ChevronLeftIcon className="h-3.5 w-3.5" />
               </button>
               <div className="stay-loop-title" style={{ fontSize: 20 }}>
                 {monthName} {year}
@@ -131,9 +132,9 @@ export default function OfficialCalendarPage() {
                 type="button"
                 onClick={handleNextMonth}
                 aria-label="Next month"
-                className="comic-btn-outline px-2 py-0.5 text-xs font-bold"
+                className="comic-btn-outline p-1 text-xs font-bold inline-flex items-center justify-center"
               >
-                ▶
+                <ChevronRightIcon className="h-3.5 w-3.5" />
               </button>
               {!isCurrentMonthView && (
                 <button
@@ -263,9 +264,10 @@ export default function OfficialCalendarPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedDayEvents(null)}
-                  className="text-xs text-[var(--fg-muted)] hover:text-white"
+                  className="text-xs text-[var(--fg-muted)] hover:text-white inline-flex items-center gap-1 cursor-pointer"
                 >
-                  ✕ Close
+                  <XIcon className="h-3.5 w-3.5" />
+                  <span>Close</span>
                 </button>
               </div>
 

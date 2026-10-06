@@ -27,20 +27,26 @@ export async function getOrganizations(): Promise<Organization[]> {
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
 
-    try {
-      const data = await response.json();
-
-      if (typeof data?.message === "string") {
-        message = data.message;
-      } else if (typeof data?.error === "string") {
-        message = data.error;
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to view organizations.";
+    } else if (response.status === 403) {
+      message = "Access forbidden. You do not have permission to view organizations.";
+    } else {
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          message = data.message;
+        } else if (typeof data?.error === "string") {
+          message = data.error;
+        }
+      } catch {
+        // Keep the default error message.
       }
-    } catch {
-      // Keep the default error message.
     }
 
     throw new Error(message);
   }
+
 
   const data = await response.json();
 

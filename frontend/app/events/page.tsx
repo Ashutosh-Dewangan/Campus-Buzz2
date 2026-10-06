@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -10,10 +11,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import EventCard from "@/components/events/EventCard";
 import EventForm from "@/components/events/EventForm";
-import { CalendarIcon } from "@/components/ui/Icons";
+import { CalendarIcon, CheckIcon, RefreshIcon, XIcon } from "@/components/ui/Icons";
 import { Event } from "@/types";
 import { getEvents, getUserRsvps, rsvpEvent, deleteEvent } from "@/lib/api";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, canCreateEvent } from "@/lib/auth";
+
 import { useCurrentUser } from "@/lib/session";
 import { parseEventDate } from "@/lib/date";
 
@@ -21,25 +23,29 @@ function getEventDate(event: Event): Date {
   return parseEventDate(event.date, event.time);
 }
 
-export default function EventsPage() {
+function EventsContent() {
   const [events, setEvents] = useState<Event[]>([]);
   const [rsvpedEvents, setRsvpedEvents] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [explicitlySelectedEvent, setExplicitlySelectedEvent] = useState<Event | null>(null);
+  const [urlEventDismissed, setUrlEventDismissed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const searchParams = useSearchParams();
   const eventIdFromUrl = searchParams.get("event");
   const user = useCurrentUser();
 
-const isUserAdmin = user ? isAdmin(user.role) : false;
+  const selectedEvent = useMemo(() => {
+    if (explicitlySelectedEvent) return explicitlySelectedEvent;
+    if (!urlEventDismissed && eventIdFromUrl && events.length > 0) {
+      return events.find((item) => item.id === eventIdFromUrl) ?? null;
+    }
+    return null;
+  }, [explicitlySelectedEvent, urlEventDismissed, eventIdFromUrl, events]);
 
-const hasActiveMembership =
-  user?.memberships?.some(
-    (membership) => membership.status === "ACTIVE",
-  ) ?? false;
+  const isUserAdmin = user ? isAdmin(user.role) : false;
+  const canCreate = user ? canCreateEvent(user.role, user.memberships ?? []) : false;
 
-const canCreate = isUserAdmin || hasActiveMembership;
 const canManageEvent = (event: Event) => {
   if (!user) {
     return false;
@@ -125,19 +131,16 @@ const canManageEvent = (event: Event) => {
     [events]
   );
 
-  useEffect(() => {
-  if (!eventIdFromUrl || events.length === 0) {
-    return;
+  function handleOpenDetails(ev: Event) {
+    setExplicitlySelectedEvent(ev);
+    setUrlEventDismissed(false);
   }
 
-  const event = events.find(
-    (item) => item.id === eventIdFromUrl,
-  );
-
-  if (event) {
-    setSelectedEvent(event);
+  function handleCloseDetails() {
+    setExplicitlySelectedEvent(null);
+    setUrlEventDismissed(true);
   }
-}, [eventIdFromUrl, events]);
+
   async function toggleRsvp(eventId: string) {
     const isNowGoing = await rsvpEvent(eventId);
     setRsvpedEvents((current) =>
@@ -151,7 +154,7 @@ const canManageEvent = (event: Event) => {
     await deleteEvent(eventId);
     setEvents((current) => current.filter((e) => e.id !== eventId));
     if (selectedEvent?.id === eventId) {
-      setSelectedEvent(null);
+      handleCloseDetails();
     }
   }
 
@@ -216,9 +219,10 @@ const canManageEvent = (event: Event) => {
             <button
               type="button"
               onClick={loadEvents}
-              className="comic-btn mt-4 cursor-pointer"
+              className="comic-btn mt-4 cursor-pointer inline-flex items-center gap-1.5"
             >
-              Try again ⟳
+              <RefreshIcon className="h-3.5 w-3.5" />
+              <span>Try again</span>
             </button>
           </div>
         )}
@@ -283,7 +287,7 @@ const canManageEvent = (event: Event) => {
                   event={event}
                   isRsvped={rsvpedEvents.includes(event.id)}
                   onRsvp={() => toggleRsvp(event.id)}
-                  onViewDetails={(ev) => setSelectedEvent(ev)}
+                  onViewDetails={handleOpenDetails}
                 />
               ))}
             </div>
@@ -327,7 +331,7 @@ const canManageEvent = (event: Event) => {
                   key={event.id}
                   event={event}
                   isRsvped={rsvpedEvents.includes(event.id)}
-                  onViewDetails={(ev) => setSelectedEvent(ev)}
+                  onViewDetails={handleOpenDetails}
                 />
               ))}
             </div>
@@ -352,12 +356,12 @@ const canManageEvent = (event: Event) => {
                 </h2>
                 <button
                   type="button"
-                  onClick={() => setSelectedEvent(null)}
+                  onClick={handleCloseDetails}
                   aria-label="Close"
-                  className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+                  className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
                   style={{ boxShadow: "2px 2px 0 #000" }}
                 >
-                  ✕
+                  <XIcon className="h-4 w-4" />
                 </button>
               </div>
 
@@ -399,20 +403,27 @@ const canManageEvent = (event: Event) => {
                   Delete Event
                 </button>
               )}
-              *</div>
+              </div>
                 <div className="flex items-center gap-2">
                   {getEventDate(selectedEvent) >= now && (
                     <button
                       type="button"
                       onClick={() => toggleRsvp(selectedEvent.id)}
-                      className="comic-btn text-xs"
+                      className="comic-btn text-xs inline-flex items-center gap-1.5"
                     >
-                      {rsvpedEvents.includes(selectedEvent.id) ? "✓ RSVP Confirmed" : "RSVP Now ↗"}
+                      {rsvpedEvents.includes(selectedEvent.id) ? (
+                        <>
+                          <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+                          <span>Saved on Device</span>
+                        </>
+                      ) : (
+                        "Save RSVP (This Device)"
+                      )}
                     </button>
                   )}
                   <button
                     type="button"
-                    onClick={() => setSelectedEvent(null)}
+                    onClick={handleCloseDetails}
                     className="comic-btn-outline text-xs"
                   >
                     Close
@@ -424,5 +435,25 @@ const canManageEvent = (event: Event) => {
         )}
       </div>
     </main>
+  );
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="comic-page">
+          <div className="mx-auto max-w-7xl">
+            <div className="comic-card animate-pulse p-8 text-center">
+              <p className="text-xs font-semibold text-[var(--neon-yellow)]">
+                Loading campus events...
+              </p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <EventsContent />
+    </Suspense>
   );
 }

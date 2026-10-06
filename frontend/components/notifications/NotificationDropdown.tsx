@@ -10,71 +10,98 @@ import {
 import { NotificationItem } from "@/types";
 import { getSession } from "@/lib/session";
 import { createChatSocket } from "@/lib/socket";
-import { BellIcon } from "@/components/ui/Icons";
+import {
+  BellIcon,
+  ClockIcon,
+  RefreshIcon,
+  ChevronRightIcon,
+  CheckIcon,
+} from "@/components/ui/Icons";
 
 export default function NotificationDropdown() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
- useEffect(() => {
-  let socket: ReturnType<typeof createChatSocket> | null =
-    null;
-
-  async function load() {
+  async function handleRetry() {
+    setLoading(true);
+    setError(null);
     try {
       const items = await getNotifications();
       setNotifications(items);
-    } catch (error) {
-      console.error(
-        "Failed to load notifications:",
-        error,
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load notifications"
       );
+    } finally {
+      setLoading(false);
     }
   }
 
-  load();
+  useEffect(() => {
+    let socket: ReturnType<typeof createChatSocket> | null = null;
+    let ignore = false;
 
-  const session = getSession();
+    async function load() {
+      const session = getSession();
+      if (!session?.token) {
+        return;
+      }
 
-  if (!session?.token) {
-    return;
-  }
+      try {
+        const items = await getNotifications();
+        if (!ignore) {
+          setNotifications(items);
+          setError(null);
+        }
+      } catch (err) {
+        if (!ignore) {
+          console.error("Failed to load notifications:", err);
+          setError(
+            err instanceof Error ? err.message : "Failed to load notifications"
+          );
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
 
-  socket = createChatSocket(session.token);
+    void load();
 
-  socket.on(
-    "notification",
-    (notification: NotificationItem) => {
-      setNotifications((current) => {
-        const withoutDuplicate = current.filter(
-          (item) => item.id !== notification.id,
-        );
+    const session = getSession();
+    if (session?.token) {
+      socket = createChatSocket(session.token);
 
-        return [
-          notification,
-          ...withoutDuplicate,
-        ];
+      socket.on("notification", (notification: NotificationItem) => {
+        setNotifications((current) => {
+          const withoutDuplicate = current.filter(
+            (item) => item.id !== notification.id
+          );
+          return [notification, ...withoutDuplicate];
+        });
       });
-    },
-  );
 
-  socket.on("connect_error", (error) => {
-    console.error(
-      "Notification socket connection failed:",
-      error,
-    );
-  });
+      socket.on("connect_error", (error) => {
+        console.error("Notification socket connection failed:", error);
+      });
 
-  socket.connect();
+      socket.connect();
+    }
 
-  return () => {
-    socket?.off("notification");
-    socket?.off("connect_error");
-    socket?.disconnect();
-  };
-}, []);
+    return () => {
+      ignore = true;
+      if (socket) {
+        socket.off("notification");
+        socket.off("connect_error");
+        socket.disconnect();
+      }
+    };
+  }, []);
 
   const unreadCount = notifications.filter(
     (notification) => notification.unread
@@ -131,7 +158,15 @@ export default function NotificationDropdown() {
     setIsOpen(false);
 
     if (item.link) {
-      router.push(item.link);
+      let target = item.link;
+      if (target.startsWith("/chat/")) {
+        const roomId = target.replace("/chat/", "");
+        target = `/rooms/${roomId}`;
+      } else if (target.startsWith("/buzz/")) {
+        const postId = target.replace("/buzz/", "");
+        target = `/buzz?postId=${encodeURIComponent(postId)}`;
+      }
+      router.push(target);
     }
   } catch (error) {
     console.error(
@@ -162,15 +197,15 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="cb-notification-dropdown comic-modal absolute right-0 top-11 z-50 rounded-sm p-0 shadow-[6px_6px_0_#000]">
+        <div className="cb-notification-dropdown comic-modal absolute right-0 top-11 z-50 rounded-sm p-0 shadow-[6px_6px_0_#000] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b-2 border-black pb-3">
+          <div className="flex items-center justify-between border-b-2 border-black bg-[rgba(18,12,38,0.98)] px-4 py-3">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-black uppercase tracking-wider text-white">
                 Campus Alerts
               </h2>
               {unreadCount > 0 && (
-                <span className="rounded-sm border border-black bg-[var(--accent)] px-1.5 py-0.2 text-[9px] font-black text-white">
+                <span className="rounded-sm border border-black bg-[var(--accent)] px-1.5 py-0.2 text-[9px] font-black text-white shadow-[1px_1px_0_#000]">
                   {unreadCount} new
                 </span>
               )}
@@ -180,25 +215,43 @@ export default function NotificationDropdown() {
               <button
                 type="button"
                 onClick={handleMarkAllAsRead}
-                className="cursor-pointer text-[10px] font-bold text-[var(--neon-cyan)] hover:underline"
+                className="flex items-center gap-1 cursor-pointer text-[10px] font-bold text-[var(--neon-cyan)] hover:underline"
               >
-                Mark all as read
+                <CheckIcon className="h-3 w-3 shrink-0" />
+                <span>Mark all as read</span>
               </button>
             )}
           </div>
 
           {/* Notifications List */}
-          <div className="mt-3 space-y-2 max-h-80 overflow-y-auto pr-0.5">
-            {notifications.length === 0 ? (
-              <div className="py-8 text-center text-xs text-[var(--fg-muted)]">
+          <div className="p-3 space-y-2.5 max-h-[380px] overflow-y-auto">
+            {loading ? (
+              <div className="py-8 text-center text-xs text-[var(--neon-cyan)] animate-pulse">
+                Loading campus alerts...
+              </div>
+            ) : error ? (
+              <div className="py-6 text-center text-xs text-[var(--accent)] space-y-2">
+                <p>{error}</p>
+                <button
+                  type="button"
+                  onClick={() => void handleRetry()}
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--neon-cyan)] underline cursor-pointer"
+                >
+                  <RefreshIcon className="h-3 w-3 shrink-0" />
+                  <span>Retry</span>
+                </button>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[var(--fg-muted)] font-readable">
                 No notifications right now.
               </div>
             ) : (
               notifications.map((item) => (
-                <div
+                <button
+                  type="button"
                   key={item.id}
                   onClick={() => handleItemClick(item)}
-                  className={`flex cursor-pointer items-start justify-between gap-3 p-3 transition rounded-sm ${
+                  className={`flex w-full cursor-pointer items-start justify-between gap-3 p-3.5 text-left transition rounded-sm ${
                     item.unread
                       ? "border-2 border-black border-l-4 border-l-[var(--neon-cyan)] bg-[rgba(26,18,52,0.95)] shadow-[2px_2px_0_#000] hover:bg-[rgba(32,22,64,0.98)]"
                       : "border border-black/40 bg-[rgba(10,8,22,0.6)] opacity-80 hover:opacity-100 hover:bg-[rgba(18,14,36,0.85)]"
@@ -224,24 +277,23 @@ export default function NotificationDropdown() {
                       {item.description}
                     </p>
 
-                    <p className="text-[10px] text-[var(--fg-muted)] pt-0.5">
-                      {item.time}
-                    </p>
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--fg-muted)] pt-0.5 font-readable">
+                      <ClockIcon className="h-2.5 w-2.5 shrink-0" />
+                      <span>{item.time}</span>
+                    </div>
                   </div>
 
                   {item.link && (
-                    <span className="text-xs text-[var(--neon-cyan)] shrink-0 self-center">
-                      ↗
-                    </span>
+                    <ChevronRightIcon className="h-4 w-4 text-[var(--neon-cyan)] shrink-0 self-center" />
                   )}
-                </div>
+                </button>
               ))
             )}
           </div>
 
           {/* Footer note */}
-          <div className="mt-3 border-t border-black/40 pt-2 text-center text-[10px] text-[var(--fg-muted)]">
-            Verified real-time alerts
+          <div className="border-t border-black/40 bg-[rgba(10,8,22,0.95)] px-4 py-2 text-center text-[10px] text-[var(--fg-muted)] font-readable">
+            Verified real-time campus alerts
           </div>
         </div>
       )}

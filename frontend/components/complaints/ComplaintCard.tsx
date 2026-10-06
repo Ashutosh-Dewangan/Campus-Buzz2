@@ -1,5 +1,5 @@
 import { Complaint } from "@/types";
-import { LockIcon } from "@/components/ui/Icons";
+import { LockIcon, CheckIcon } from "@/components/ui/Icons";
 
 interface ComplaintCardProps {
   complaint: Complaint;
@@ -58,11 +58,21 @@ export default function ComplaintCard({
 
           <div className="flex flex-col items-end gap-1">
             <span
-              className={`tag-pill text-[10px] ${
+              className={`tag-pill text-[10px] inline-flex items-center gap-1 ${
                 isResolved ? "tag-found" : "tag-food"
               }`}
             >
-              {isResolved ? "✓ Resolved" : "● Open"}
+              {isResolved ? (
+                <>
+                  <CheckIcon className="h-3 w-3 shrink-0" />
+                  <span>Resolved</span>
+                </>
+              ) : (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                  <span>Open</span>
+                </>
+              )}
             </span>
 
             {complaint.category && (
@@ -105,9 +115,10 @@ export default function ComplaintCard({
           <button
             type="button"
             onClick={handleResolveClick}
-            className="retro-btn cursor-pointer px-3 py-1 text-xs"
+            className="retro-btn cursor-pointer px-3 py-1 text-xs inline-flex items-center gap-1.5"
           >
-            ✓ Mark Resolved
+            <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+            <span>Mark Resolved</span>
           </button>
         </div>
       )}

@@ -62,8 +62,10 @@ export default function RoomDetailsPage({
         const [postsData, roomsData] = await Promise.all([getPosts(), getRooms()]);
         if (ignore) return;
 
-        // Find post by direct ID or room postId
-        let matchedPost = postsData.find((p) => p.id === roomIdOrPostId);
+        // Find post by direct ID, chatRoomId, or room postId
+        let matchedPost = postsData.find(
+          (p) => p.id === roomIdOrPostId || p.chatRoomId === roomIdOrPostId
+        );
         if (!matchedPost) {
           const matchedRoom = roomsData.find(
             (r) => r.id === roomIdOrPostId || `r-${r.postId}` === roomIdOrPostId

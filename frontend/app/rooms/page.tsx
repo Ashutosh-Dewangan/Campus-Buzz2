@@ -288,8 +288,9 @@ function RoomsContent() {
               const matchedRoom = rooms.find(
                 (r) => r.postId === rPost.id || r.id === `r-${rPost.id}`
               );
-              const participantCount =
-                matchedRoom?.participants?.length || matchedRoom?.members?.length || 2;
+              const participantCount = matchedRoom
+                ? matchedRoom.participants?.length ?? matchedRoom.members?.length
+                : undefined;
 
               return (
                 <div
@@ -307,10 +308,12 @@ function RoomsContent() {
                         <span>{config.tag}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[11px] text-[var(--fg-muted)]">
-                        <span className="inline-flex items-center gap-1">
-                          <UsersIcon className="h-3 w-3" />
-                          <span>{participantCount} joined</span>
-                        </span>
+                        {participantCount !== undefined && (
+                          <span className="inline-flex items-center gap-1">
+                            <UsersIcon className="h-3 w-3" />
+                            <span>{participantCount} joined</span>
+                          </span>
+                        )}
                         <span>· By {rPost.author}</span>
                       </div>
                     </div>
@@ -342,7 +345,7 @@ function RoomsContent() {
                   <div className="mt-4 flex items-center justify-between border-t border-black/40 pt-3">
                     <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      Live Coordination
+                      Room Open
                     </span>
                     <Link
                       href={`/rooms?postId=${rPost.id}`}

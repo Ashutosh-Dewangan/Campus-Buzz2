@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCurrentUser } from "@/lib/session";
+import { isAdmin } from "@/lib/auth";
 import {
   AlertCircleIcon,
   CalendarIcon,
   MegaphoneIcon,
   PinIcon,
+  ShieldIcon,
   UsersIcon,
 } from "@/components/ui/Icons";
 
-const mobileNav = [
+const baseMobileNav = [
   { label: "Buzz",       href: "/buzz",       Icon: MegaphoneIcon   },
   { label: "Events",     href: "/events",     Icon: CalendarIcon    },
   { label: "Rooms",      href: "/rooms",      Icon: UsersIcon       },
@@ -20,10 +23,17 @@ const mobileNav = [
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const user = useCurrentUser();
+  const isUserAdmin = user ? isAdmin(user.role) : false;
+
+  const navItems = isUserAdmin
+    ? [...baseMobileNav, { label: "Admin", href: "/admin", Icon: ShieldIcon }]
+    : baseMobileNav;
+
 
   return (
     <nav className="cb-mobile-nav" aria-label="Mobile navigation">
-      {mobileNav.map((item) => {
+      {navItems.map((item) => {
         const isActive =
           item.href === "/buzz"
             ? pathname === "/buzz" || pathname.startsWith("/buzz/")

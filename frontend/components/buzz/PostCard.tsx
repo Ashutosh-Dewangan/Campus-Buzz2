@@ -10,6 +10,7 @@ import {
   SearchIcon,
   SparkIcon,
   ClockIcon,
+  CheckIcon,
 } from "@/components/ui/Icons";
 
 interface PostCardProps {
@@ -188,8 +189,9 @@ export default function PostCard({ post, onAction }: PostCardProps) {
             <span className="text-xs font-bold text-white sm:text-sm">
               {post.author}
             </span>
-            <span className="inline-flex items-center gap-0.5 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-400">
-              ✓ Verified Student
+            <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-400">
+              <CheckIcon className="h-2.5 w-2.5 shrink-0" />
+              <span>Verified Student</span>
             </span>
             <span className="text-[11px] text-[var(--fg-muted)]">
               · {ago}

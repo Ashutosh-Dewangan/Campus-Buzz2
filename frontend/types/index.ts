@@ -30,6 +30,7 @@ export interface Post {
   createdAt: string;
   expiresAt?: string;
   status: "ACTIVE" | "CLOSED";
+  chatRoomId?: string;
   // Coordination metadata
   price?: string;
   itemCondition?: string;

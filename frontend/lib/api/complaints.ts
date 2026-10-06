@@ -80,20 +80,26 @@ export async function getComplaints(): Promise<Complaint[]> {
   if (!response.ok) {
     let message = `Failed to load complaints (${response.status})`;
 
-    try {
-      const data = await response.json();
-
-      if (typeof data?.message === "string") {
-        message = data.message;
-      } else if (typeof data?.error === "string") {
-        message = data.error;
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to view complaints.";
+    } else if (response.status === 403) {
+      message = "Access forbidden. You do not have permission to view complaints.";
+    } else {
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          message = data.message;
+        } else if (typeof data?.error === "string") {
+          message = data.error;
+        }
+      } catch {
+        // Keep the default error message.
       }
-    } catch {
-      // Keep the default error message.
     }
 
     throw new Error(message);
   }
+
 
   const data = await response.json();
 
@@ -125,16 +131,21 @@ export async function createComplaint(complaint: {
   if (!response.ok) {
     let message = `Failed to create complaint (${response.status})`;
 
-    try {
-      const data = await response.json();
-
-      if (typeof data?.message === "string") {
-        message = data.message;
-      } else if (typeof data?.error === "string") {
-        message = data.error;
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to submit a complaint.";
+    } else if (response.status === 403) {
+      message = "Access forbidden. You do not have permission to submit complaints.";
+    } else {
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          message = data.message;
+        } else if (typeof data?.error === "string") {
+          message = data.error;
+        }
+      } catch {
+        // Keep the default error message.
       }
-    } catch {
-      // Keep the default error message.
     }
 
     throw new Error(message);
@@ -157,18 +168,23 @@ export async function resolveComplaint(
   if (!response.ok) {
     let message = `Failed to resolve complaint (${response.status})`;
 
-    try {
-      const data = await response.json();
-
-      if (typeof data?.message === "string") {
-        message = data.message;
-      } else if (typeof data?.error === "string") {
-        message = data.error;
+    if (response.status === 401) {
+      message = "Authentication required. Please sign in to resolve complaints.";
+    } else if (response.status === 403) {
+      message = "You are not authorized to resolve this complaint. Only the original submitter or a campus administrator can resolve it.";
+    } else {
+      try {
+        const data = await response.json();
+        if (typeof data?.message === "string") {
+          message = data.message;
+        } else if (typeof data?.error === "string") {
+          message = data.error;
+        }
+      } catch {
+        // Keep the default error message.
       }
-    } catch {
-      // Keep the default error message.
     }
     throw new Error(message);
   }
   return normalizeComplaint(await response.json());
-}
+}

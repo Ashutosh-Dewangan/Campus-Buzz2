@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import ComplaintCard from "@/components/complaints/ComplaintCard";
+
 import CreateComplaint from "@/components/complaints/CreateComplaint";
-import { LockIcon } from "@/components/ui/Icons";
+import { LockIcon, CheckIcon, RefreshIcon } from "@/components/ui/Icons";
 import { Complaint, ComplaintCategory } from "@/types";
 import { getComplaints, resolveComplaint } from "@/lib/api";
 import { isAdmin } from "@/lib/auth";
@@ -83,7 +85,7 @@ export default function ComplaintsPage() {
         )
       );
 
-      setResolveMessage("✓ Complaint marked as resolved.");
+      setResolveMessage("Complaint marked as resolved.");
 
       setTimeout(() => {
         setResolveMessage("");
@@ -104,7 +106,7 @@ export default function ComplaintsPage() {
     setShowCreateModal(false);
 
     setResolveMessage(
-      "✓ Anonymous complaint submitted to campus administration."
+      "Anonymous complaint submitted to campus administration."
     );
 
     setTimeout(() => {
@@ -170,25 +172,36 @@ export default function ComplaintsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(true)}
-            className="comic-btn text-xs"
-          >
-            + File Complaint
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="comic-btn text-xs"
+            >
+              + File Complaint
+            </button>
+          ) : (
+            <Link
+              href="/login?redirect=/complaints"
+              className="retro-btn text-xs font-bold"
+            >
+              Sign in to File Complaint ↗
+            </Link>
+          )}
         </div>
+
 
         {/* Resolve / submission message */}
         {resolveMessage && (
           <div
-            className="mb-4 rounded-sm border-2 border-black px-4 py-3 text-xs font-bold shadow-[2px_2px_0_#000]"
+            className="mb-4 flex items-center gap-2.5 rounded-sm border-2 border-black px-4 py-3 text-xs font-bold shadow-[2px_2px_0_#000]"
             style={{
               background: "rgba(0,229,200,0.15)",
               color: "var(--tag-found)",
             }}
           >
-            {resolveMessage}
+            <CheckIcon className="h-4 w-4 shrink-0" />
+            <span>{resolveMessage}</span>
           </div>
         )}
 
@@ -200,12 +213,14 @@ export default function ComplaintsPage() {
               value: "ALL",
             },
             {
-              label: "● Open Issues",
+              label: "Open Issues",
               value: "OPEN",
+              hasDot: true,
             },
             {
-              label: "✓ Resolved",
+              label: "Resolved",
               value: "RESOLVED",
+              hasCheck: true,
             },
             {
               label: "My Complaints",
@@ -218,13 +233,19 @@ export default function ComplaintsPage() {
               onClick={() =>
                 setFilter(tab.value as typeof filter)
               }
-              className={`filter-pill cursor-pointer ${
+              className={`filter-pill cursor-pointer inline-flex items-center gap-1.5 ${
                 filter === tab.value
                   ? "filter-pill--active"
                   : ""
               }`}
             >
-              {tab.label}
+              {tab.hasDot && (
+                <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" />
+              )}
+              {tab.hasCheck && (
+                <CheckIcon className="h-3 w-3 shrink-0" />
+              )}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -284,9 +305,10 @@ export default function ComplaintsPage() {
             <button
               type="button"
               onClick={loadComplaints}
-              className="comic-btn mt-4 cursor-pointer"
+              className="comic-btn mt-4 cursor-pointer inline-flex items-center gap-1.5"
             >
-              Try again ⟳
+              <RefreshIcon className="h-3.5 w-3.5" />
+              <span>Try again</span>
             </button>
           </div>
         )}

@@ -12,6 +12,7 @@ import {
   Organization,
 } from "@/lib/api/organizations";
 import { getSession } from "@/lib/session";
+import { XIcon } from "@/components/ui/Icons";
 
 interface CreateOfficialPostProps {
   onClose: () => void;
@@ -239,10 +240,10 @@ export default function CreateOfficialPost({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="cursor-pointer border-2 border-black bg-[#16192b] px-2.5 py-1 text-sm font-bold text-white transition hover:bg-[#252a48]"
+            className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
             style={{ boxShadow: "2px 2px 0 #000" }}
           >
-            ×
+            <XIcon className="h-4 w-4" />
           </button>
         </div>
 
