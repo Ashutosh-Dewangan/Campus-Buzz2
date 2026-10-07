@@ -141,6 +141,23 @@ export default function CreateOfficialPost({
     };
   }, []);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
   const availableEvents = events.filter((event) => {
     if (!organizationId) {
       return false;
@@ -217,20 +234,25 @@ export default function CreateOfficialPost({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="comic-modal w-full max-w-lg p-6">
-        <div
-          className="mb-6 flex items-center justify-between border-b pb-4"
-          style={{ borderColor: "#000" }}
-        >
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="official-modal-title"
+    >
+      <div
+        className="comic-modal flex flex-col w-full max-w-lg max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
           <div>
-            <h2 className="stay-loop-title" style={{ fontSize: 24 }}>
+            <h2 id="official-modal-title" className="stay-loop-title text-lg sm:text-xl">
               Create Official Notice
             </h2>
 
             <p
-              className="mt-1 text-xs"
-              style={{ color: "var(--neon-cyan)" }}
+              className="mt-0.5 text-xs text-[var(--neon-cyan)]"
             >
               Authorized Student Bodies &amp; Campus Announcements
             </p>
@@ -239,28 +261,27 @@ export default function CreateOfficialPost({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
-            style={{ boxShadow: "2px 2px 0 #000" }}
+            aria-label="Close dialog"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
           >
             <XIcon className="h-4 w-4" />
           </button>
         </div>
 
-        {error && (
-          <div
-            className="mb-4 border-2 border-black p-3 text-sm font-bold"
-            style={{
-              background: "rgba(255,45,74,0.18)",
-              color: "var(--accent)",
-              boxShadow: "2px 2px 0 #000",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+          {error && (
+            <div
+              className="mb-4 border-2 border-black p-3 text-xs sm:text-sm font-bold shadow-[2px_2px_0_#000]"
+              style={{
+                background: "rgba(255,45,74,0.18)",
+                color: "var(--accent)",
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <form id="create-official-form" onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="official-title"
@@ -431,31 +452,34 @@ export default function CreateOfficialPost({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="comic-btn-outline"
-            >
-              Cancel
-            </button>
+          </form>
+        </div>
 
-            <button
-              type="submit"
-              disabled={
-                isSubmitting ||
-                isLoadingOrganizations ||
-                organizations.length === 0
-              }
-              className="comic-btn disabled:opacity-50"
-            >
-              {isSubmitting
-                ? "Publishing..."
-                : "Publish Notice"}
-            </button>
-          </div>
-        </form>
+        <div className="shrink-0 flex items-center justify-end gap-3 border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="comic-btn-outline cursor-pointer disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            form="create-official-form"
+            disabled={
+              isSubmitting ||
+              isLoadingOrganizations ||
+              organizations.length === 0
+            }
+            className="comic-btn disabled:opacity-50 cursor-pointer"
+          >
+            {isSubmitting
+              ? "Publishing..."
+              : "Publish Notice ↗"}
+          </button>
+        </div>
       </div>
     </div>
   );

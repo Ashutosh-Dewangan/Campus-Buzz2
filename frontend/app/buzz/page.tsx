@@ -48,6 +48,23 @@ function ContactModal({
 }) {
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
   const handleCopy = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(contactPhone);
@@ -58,21 +75,24 @@ function ContactModal({
 
   return (
     <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-modal-title"
     >
       <div
-        className="comic-modal w-full max-w-sm rounded-sm p-5 text-left"
+        className="comic-modal flex flex-col w-full max-w-sm max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden text-left"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-black/40 pb-3">
+        {/* Pinned Header */}
+        <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-sm border-2 border-black bg-[var(--neon-cyan)] text-black shadow-[2px_2px_0_#000]">
               <UserIcon className="h-4 w-4" />
             </span>
             <div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-white">
+              <h2 id="contact-modal-title" className="text-sm font-black uppercase tracking-wider text-white">
                 Poster Contact Details
               </h2>
               <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
@@ -84,15 +104,15 @@ function ContactModal({
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer text-[var(--fg-muted)] hover:text-white"
-            aria-label="Close"
+            aria-label="Close dialog"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
           >
             <XIcon className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="my-4 space-y-3">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
           {/* Name */}
           <div className="rounded-sm border-2 border-black bg-[rgba(8,6,20,0.85)] p-3 shadow-[2px_2px_0_#000]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fg-muted)]">
@@ -138,8 +158,8 @@ function ContactModal({
           </div>
         </div>
 
-        {/* Footer actions */}
-        <div className="flex items-center gap-2">
+        {/* Pinned Footer actions */}
+        <div className="shrink-0 flex items-center gap-2 border-t-2 border-black bg-[rgba(18,10,32,0.98)] p-3 sm:p-4">
           <a
             href={`tel:${contactPhone}`}
             className="retro-btn flex-1 text-center text-xs font-black"
@@ -257,6 +277,24 @@ export default function BuzzPage() {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showCreatePost) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowCreatePost(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showCreatePost]);
 
   const trendingTags = useMemo(() => {
     return getTrendingTags(posts);
@@ -607,16 +645,19 @@ export default function BuzzPage() {
       {/* ===== CREATE POST MODAL ===== */}
       {showCreatePost && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
           onClick={() => setShowCreatePost(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-buzz-modal-title"
         >
           <div
-            className="comic-modal max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-sm"
+            className="comic-modal flex flex-col w-full max-w-lg max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.95)] px-4 py-3 sm:px-5">
+            <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
               <div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-[var(--accent)] sm:text-base">
+                <h2 id="create-buzz-modal-title" className="text-sm font-black uppercase tracking-wider text-[var(--accent)] sm:text-base">
                   Create a Buzz
                 </h2>
                 <p className="text-[11px] text-[var(--fg-muted)]">
@@ -626,13 +667,13 @@ export default function BuzzPage() {
               <button
                 type="button"
                 onClick={() => setShowCreatePost(false)}
-                className="cursor-pointer p-1 text-[var(--fg-muted)] hover:text-white hover:bg-white/10 rounded-sm transition-colors"
-                aria-label="Close"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
+                aria-label="Close dialog"
               >
-                <XIcon className="h-5 w-5" />
+                <XIcon className="h-4 w-4" />
               </button>
             </div>
-            <div className="p-4 sm:p-5">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5">
               <CreatePostForm
                 onPostCreated={handlePostCreated}
                 onClose={() => setShowCreatePost(false)}

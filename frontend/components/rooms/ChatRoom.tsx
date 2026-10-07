@@ -207,6 +207,28 @@ export default function ChatRoom({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const isAnyModalOpen = Boolean(pendingConfirm || showOfferModal || showParticipants);
+    if (!isAnyModalOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (pendingConfirm) setPendingConfirm(null);
+        else if (showOfferModal) setShowOfferModal(false);
+        else if (showParticipants) setShowParticipants(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [pendingConfirm, showOfferModal, showParticipants]);
+
   async function handleJoin() {
     if (!room || joining) return;
     try {
@@ -353,12 +375,21 @@ export default function ChatRoom({
       <div className="comic-card relative flex flex-1 flex-col h-[650px] overflow-hidden">
         {/* Close/Leave Inline Confirmation Modal */}
         {pendingConfirm && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="comic-modal p-6 text-center max-w-sm rounded-sm">
-              <h3 className="text-sm font-black uppercase text-white mb-2">
+          <div
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setPendingConfirm(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+          >
+            <div
+              className="comic-modal p-6 text-center max-w-sm rounded-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 id="confirm-dialog-title" className="text-sm font-black uppercase text-white mb-2">
                 {pendingConfirm === "close" ? "Close Coordination Room?" : "Leave This Room?"}
               </h3>
-              <p className="text-xs text-[var(--fg-muted)] mb-5">
+              <p className="text-xs text-[var(--fg-muted)] mb-5 font-readable leading-relaxed">
                 {pendingConfirm === "close"
                   ? "Closing the room will disable messaging for all members. Existing messages will be preserved."
                   : "You can rejoin later from the Campus Buzz feed or Rooms list."}
@@ -367,7 +398,7 @@ export default function ChatRoom({
                 <button
                   type="button"
                   onClick={() => setPendingConfirm(null)}
-                  className="retro-btn-outline text-xs"
+                  className="retro-btn-outline text-xs min-h-[38px] px-4 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -378,7 +409,7 @@ export default function ChatRoom({
                       ? void handleCloseRoom()
                       : void handleLeaveRoom()
                   }
-                  className="retro-btn text-xs font-black"
+                  className="retro-btn text-xs font-black min-h-[38px] px-4 cursor-pointer"
                 >
                   {pendingConfirm === "close" ? "Confirm Close" : "Confirm Leave"}
                 </button>
@@ -826,12 +857,12 @@ export default function ChatRoom({
           <div className="flex items-center justify-between border-b border-black/40 pb-2">
             <span className="text-xs font-black uppercase text-white inline-flex items-center gap-1.5">
               <UsersIcon className="h-3.5 w-3.5" />
-              <span>Room Roster ({room.participants.length})</span>
+              <span>Room Roster ({room.participants?.length ?? 0})</span>
             </span>
           </div>
 
           <div className="space-y-2">
-            {room.participants.map((p) => (
+            {(room.participants ?? []).map((p) => (
               <div
                 key={p.id}
                 className="flex items-center justify-between rounded-sm border border-black bg-black/40 p-2 text-xs"
@@ -863,28 +894,31 @@ export default function ChatRoom({
       {/* ================= MAKE OFFER MODAL ================= */}
       {showOfferModal && (
         <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm"
           onClick={() => setShowOfferModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="offer-modal-title"
         >
           <div
-            className="comic-modal w-full max-w-sm rounded-sm p-5 text-left"
+            className="comic-modal flex flex-col w-full max-w-sm max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-black/40 pb-2">
-              <h3 className="text-sm font-black uppercase text-white">
+            <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
+              <h3 id="offer-modal-title" className="text-sm font-black uppercase text-white">
                 Make Negotiation Offer
               </h3>
               <button
                 type="button"
                 onClick={() => setShowOfferModal(false)}
-                className="p-1 rounded-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Close offer modal"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
+                aria-label="Close dialog"
               >
                 <XIcon className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="my-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
               <div className="rounded-sm border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-200/90 text-left font-readable">
                 <span className="font-bold">Notice:</span> Server does not have an offer negotiation API. You can propose an amount here, or negotiate terms directly in room chat.
               </div>
@@ -906,11 +940,11 @@ export default function ChatRoom({
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-black/40 pt-3">
+            <div className="shrink-0 flex justify-end gap-2 border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
               <button
                 type="button"
                 onClick={() => setShowOfferModal(false)}
-                className="retro-btn-outline text-xs"
+                className="retro-btn-outline text-xs min-h-[38px] px-3.5 cursor-pointer"
               >
                 Cancel
               </button>
@@ -918,7 +952,7 @@ export default function ChatRoom({
                 type="button"
                 onClick={() => void handleMakeOffer()}
                 disabled={!offerAmount.trim()}
-                className="retro-btn text-xs font-black disabled:opacity-40"
+                className="retro-btn text-xs font-black min-h-[38px] px-3.5 cursor-pointer disabled:opacity-40"
               >
                 Submit Offer ↗
               </button>
@@ -930,28 +964,31 @@ export default function ChatRoom({
       {/* ================= PARTICIPANTS MODAL ================= */}
       {showParticipants && room && (
         <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm"
           onClick={() => setShowParticipants(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="participants-modal-title"
         >
           <div
-            className="comic-modal w-full max-w-sm rounded-sm p-5 text-left"
+            className="comic-modal flex flex-col w-full max-w-sm max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden text-left"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-black/40 pb-2">
-              <h3 className="text-sm font-black uppercase text-white inline-flex items-center gap-1.5">
+            <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
+              <h3 id="participants-modal-title" className="text-sm font-black uppercase text-white inline-flex items-center gap-1.5">
                 <UsersIcon className="h-4 w-4" />
                 <span>Room Participants ({room.participants.length})</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowParticipants(false)}
-                className="p-1 rounded-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Close participants modal"
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
+                aria-label="Close dialog"
               >
                 <XIcon className="h-4 w-4" />
               </button>
             </div>
-            <div className="my-4 space-y-2 max-h-64 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2">
               {room.participants.map((p) => (
                 <div
                   key={p.id}
@@ -980,11 +1017,11 @@ export default function ChatRoom({
                 </div>
               ))}
             </div>
-            <div className="flex justify-end border-t border-black/40 pt-3">
+            <div className="shrink-0 flex justify-end border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
               <button
                 type="button"
                 onClick={() => setShowParticipants(false)}
-                className="retro-btn-outline text-xs cursor-pointer"
+                className="retro-btn-outline text-xs min-h-[38px] px-4 cursor-pointer"
               >
                 Close
               </button>

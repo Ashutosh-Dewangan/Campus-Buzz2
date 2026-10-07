@@ -163,6 +163,23 @@ const canManageEvent = (event: Event) => {
     setShowCreateModal(false);
   }
 
+  // Lock body scroll and listen for ESC when event details modal is open
+  useEffect(() => {
+    if (!selectedEvent) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCloseDetails();
+      }
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedEvent]);
+
   return (
     <main className="comic-page">
       <div className="mx-auto max-w-7xl">
@@ -348,24 +365,36 @@ const canManageEvent = (event: Event) => {
 
         {/* View Event Details Modal */}
         {selectedEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-            <div className="comic-modal p-6 rounded-sm max-w-md w-full">
-              <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
-                <h2 className="stay-loop-title" style={{ fontSize: 22 }}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleCloseDetails();
+              }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="event-details-title"
+          >
+            <div
+              className="comic-modal flex flex-col w-full max-w-lg max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-6 sm:py-4">
+                <h2 id="event-details-title" className="stay-loop-title text-base sm:text-xl font-black uppercase text-white truncate max-w-[80%]">
                   {selectedEvent.name}
                 </h2>
                 <button
                   type="button"
                   onClick={handleCloseDetails}
-                  aria-label="Close"
-                  className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
-                  style={{ boxShadow: "2px 2px 0 #000" }}
+                  aria-label="Close Event Details dialog"
+                  className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-sm border-2 border-black bg-[#16192b] text-[var(--fg-muted)] hover:text-white hover:bg-[#252a48] transition-colors shadow-[2px_2px_0_#000] focus-visible:outline-2 focus-visible:outline-[var(--neon-cyan)] cursor-pointer"
                 >
-                  <XIcon className="h-4 w-4" />
+                  <XIcon className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="my-5 space-y-3 text-sm" style={{ color: "var(--fg)" }}>
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 text-sm text-[var(--fg)]">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-[var(--neon-yellow)]">Date:</span>
                   <span>{selectedEvent.date}</span>
@@ -392,24 +421,24 @@ const canManageEvent = (event: Event) => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: "#000" }}>
-              <div>
-              {canManageEvent(selectedEvent) && (
-                <button
-                  type="button"
-                  onClick={() => void handleDeleteEvent(selectedEvent.id)}
-                  className="text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer"
-                >
-                  Delete Event
-                </button>
-              )}
-              </div>
+              <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-6 sm:py-3.5">
+                <div>
+                  {canManageEvent(selectedEvent) && (
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteEvent(selectedEvent.id)}
+                      className="text-xs font-bold text-[var(--accent)] hover:underline cursor-pointer"
+                    >
+                      Delete Event
+                    </button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   {getEventDate(selectedEvent) >= now && (
                     <button
                       type="button"
                       onClick={() => toggleRsvp(selectedEvent.id)}
-                      className="comic-btn text-xs inline-flex items-center gap-1.5"
+                      className="comic-btn min-h-[40px] text-xs inline-flex items-center gap-1.5 cursor-pointer"
                     >
                       {rsvpedEvents.includes(selectedEvent.id) ? (
                         <>
@@ -424,7 +453,7 @@ const canManageEvent = (event: Event) => {
                   <button
                     type="button"
                     onClick={handleCloseDetails}
-                    className="comic-btn-outline text-xs"
+                    className="comic-btn-outline min-h-[40px] text-xs cursor-pointer"
                   >
                     Close
                   </button>

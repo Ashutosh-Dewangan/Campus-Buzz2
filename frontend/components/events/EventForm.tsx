@@ -8,7 +8,7 @@ import {
   getOfficialPosts,
   getOrganizations,
 } from "@/lib/api";
-import { XIcon } from "@/components/ui/Icons";
+import { AlertCircleIcon, XIcon } from "@/components/ui/Icons";
 
 interface EventFormProps {
   onClose: () => void;
@@ -227,258 +227,264 @@ export default function EventForm({
     }
   }
 
+  // Lock background scrolling and attach ESC key listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
-        <div className="mb-6 flex items-center justify-between">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-event-modal-title"
+    >
+      <div
+        className="comic-modal flex flex-col w-full max-w-lg max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Fixed Header */}
+        <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
           <div>
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+            <h2
+              id="create-event-modal-title"
+              className="text-base font-black uppercase tracking-wider text-[var(--neon-cyan)] sm:text-lg"
+            >
               Create Event
             </h2>
-
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Add an event to the campus calendar.
+            <p className="font-readable text-xs text-[var(--fg-muted)]">
+              Add an official or student event to the campus calendar.
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm p-1.5 text-zinc-400 transition hover:bg-white/10 hover:text-white"
-            aria-label="Close"
+            className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-sm border-2 border-black bg-[#16192b] text-[var(--fg-muted)] hover:text-white hover:bg-[#252a48] transition-colors shadow-[2px_2px_0_#000] focus-visible:outline-2 focus-visible:outline-[var(--neon-cyan)] cursor-pointer"
+            aria-label="Close Create Event dialog"
           >
             <XIcon className="h-5 w-5" />
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="event-name"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Event Name
-            </label>
-
-            <input
-              id="event-name"
-              type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Campus Tech Meetup"
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="event-date"
-                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Date
-              </label>
-
-              <input
-                id="event-date"
-                type="date"
-                value={date}
-                onChange={(event) => setDate(event.target.value)}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="event-time"
-                className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Time
-              </label>
-
-              <input
-                id="event-time"
-                type="time"
-                value={time}
-                onChange={(event) => setTime(event.target.value)}
-                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="event-venue"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Venue
-            </label>
-
-            <input
-              id="event-venue"
-              type="text"
-              value={venue}
-              onChange={(event) => setVenue(event.target.value)}
-              placeholder="e.g. Main Auditorium"
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="event-organization"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Organization
-            </label>
-
-            <select
-              id="event-organization"
-              value={organizationId}
-              onChange={(event) => {
-                setOrganizationId(event.target.value);
-                setLinkedOfficialPostId("");
-              }}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={
-                isSubmitting ||
-                (isAdmin && isLoadingOrganizations)
-              }
-            >
-              {isAdmin && (
-                <option value="">
-                  Campus-wide event
-                </option>
-              )}
-
-              {!isAdmin && (
-                <option value="" disabled>
-                  Select organization
-                </option>
-              )}
-
-              {isAdmin
-                ? organizations.map((organization) => (
-                    <option
-                      key={organization.id}
-                      value={organization.id}
-                    >
-                      {organization.name}
-                    </option>
-                  ))
-                : memberships.map((membership) => (
-                    <option
-                      key={membership.organization.id}
-                      value={membership.organization.id}
-                    >
-                      {membership.organization.name}
-                    </option>
-                  ))}
-            </select>
-
-            {isAdmin ? (
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Admins can create campus-wide events or create
-                events on behalf of an organization.
-              </p>
-            ) : memberships.length === 0 ? (
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                You need an active organization membership to
-                create events.
-              </p>
-            ) : (
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                You can create events only for organizations
-                where you are an active member.
-              </p>
+        {/* Form with scrollable body and pinned footer */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+            {error && (
+              <div className="flex items-center gap-2 rounded-sm border-2 border-black bg-[rgba(255,45,74,0.18)] p-3 text-xs font-bold text-[var(--accent)] shadow-[2px_2px_0_#000]">
+                <AlertCircleIcon className="h-4 w-4 shrink-0" />
+                <span className="font-readable">{error}</span>
+              </div>
             )}
-          </div>
 
-          <div>
-            <label
-              htmlFor="event-official-post"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Link Official Notice
-            </label>
+            <div>
+              <label
+                htmlFor="event-name"
+                className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+              >
+                Event Name <span className="text-[var(--accent)]">*</span>
+              </label>
+              <input
+                id="event-name"
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="e.g. Campus Tech Meetup"
+                className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                disabled={isSubmitting}
+                required
+              />
+            </div>
 
-            <select
-              id="event-official-post"
-              value={linkedOfficialPostId}
-              onChange={(event) =>
-                setLinkedOfficialPostId(event.target.value)
-              }
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={
-                isSubmitting ||
-                isLoadingOfficialPosts
-              }
-            >
-              <option value="">
-                {isLoadingOfficialPosts
-                  ? "Loading official notices..."
-                  : "No linked notice"}
-              </option>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="event-date"
+                  className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+                >
+                  Date <span className="text-[var(--accent)]">*</span>
+                </label>
+                <input
+                  id="event-date"
+                  type="date"
+                  value={date}
+                  onChange={(event) => setDate(event.target.value)}
+                  className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
 
-              {availableOfficialPosts.map((post) => (
-                <option key={post.id} value={post.id}>
-                  {post.title} — {post.organization.name}
+              <div>
+                <label
+                  htmlFor="event-time"
+                  className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+                >
+                  Time <span className="text-[var(--accent)]">*</span>
+                </label>
+                <input
+                  id="event-time"
+                  type="time"
+                  value={time}
+                  onChange={(event) => setTime(event.target.value)}
+                  className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                  disabled={isSubmitting}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="event-venue"
+                className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+              >
+                Venue <span className="text-[var(--accent)]">*</span>
+              </label>
+              <input
+                id="event-venue"
+                type="text"
+                value={venue}
+                onChange={(event) => setVenue(event.target.value)}
+                placeholder="e.g. Main Auditorium / SAC Amphitheater"
+                className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                disabled={isSubmitting}
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="event-organization"
+                className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+              >
+                Organization {isAdmin ? "(Optional)" : <span className="text-[var(--accent)]">*</span>}
+              </label>
+              <select
+                id="event-organization"
+                value={organizationId}
+                onChange={(event) => {
+                  setOrganizationId(event.target.value);
+                  setLinkedOfficialPostId("");
+                }}
+                className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                disabled={isSubmitting || (isAdmin && isLoadingOrganizations)}
+              >
+                {isAdmin && <option value="">Campus-wide event</option>}
+                {!isAdmin && (
+                  <option value="" disabled>
+                    Select organization
+                  </option>
+                )}
+                {isAdmin
+                  ? organizations.map((organization) => (
+                      <option key={organization.id} value={organization.id}>
+                        {organization.name}
+                      </option>
+                    ))
+                  : memberships.map((membership) => (
+                      <option key={membership.organization.id} value={membership.organization.id}>
+                        {membership.organization.name}
+                      </option>
+                    ))}
+              </select>
+              {isAdmin ? (
+                <p className="font-readable mt-1 text-[11px] text-[var(--fg-muted)]">
+                  Admins can create campus-wide events or host on behalf of an organization.
+                </p>
+              ) : memberships.length === 0 ? (
+                <p className="font-readable mt-1 text-[11px] text-[var(--accent)]">
+                  You need an active organization membership to create events.
+                </p>
+              ) : (
+                <p className="font-readable mt-1 text-[11px] text-[var(--fg-muted)]">
+                  You can create events only for organizations where you are an active member.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="event-official-post"
+                className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+              >
+                Link Official Notice (Optional)
+              </label>
+              <select
+                id="event-official-post"
+                value={linkedOfficialPostId}
+                onChange={(event) => setLinkedOfficialPostId(event.target.value)}
+                className="comic-input font-readable w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+                disabled={isSubmitting || isLoadingOfficialPosts}
+              >
+                <option value="">
+                  {isLoadingOfficialPosts
+                    ? "Loading official notices..."
+                    : "No linked notice"}
                 </option>
-              ))}
-            </select>
+                {availableOfficialPosts.map((post) => (
+                  <option key={post.id} value={post.id}>
+                    {post.title} — {post.organization.name}
+                  </option>
+                ))}
+              </select>
+              <p className="font-readable mt-1 text-[11px] text-[var(--fg-muted)]">
+                Optionally link this event to a published official campus circular.
+              </p>
+            </div>
 
-            <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-              Optional. Link this event to an official campus notice.
-            </p>
+            <div>
+              <label
+                htmlFor="event-description"
+                className="mb-1 block text-xs font-extrabold uppercase tracking-wider text-[var(--neon-yellow)]"
+              >
+                Description <span className="text-[var(--accent)]">*</span>
+              </label>
+              <textarea
+                id="event-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Describe schedule, registration info, eligibility, and highlights..."
+                rows={4}
+                className="comic-input font-readable w-full resize-none px-3 py-2 text-xs leading-relaxed text-[var(--fg)] outline-none"
+                disabled={isSubmitting}
+                required
+              />
+            </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="event-description"
-              className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Description
-            </label>
-
-            <textarea
-              id="event-description"
-              value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
-              placeholder="Describe the event..."
-              rows={5}
-              className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:focus:border-zinc-500 dark:focus:ring-zinc-800"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
+          {/* Pinned Footer Actions */}
+          <div className="shrink-0 flex items-center justify-end gap-3 border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="retro-btn-outline min-h-[40px] px-4 py-2 text-xs font-bold cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
-
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+              className="retro-btn min-h-[40px] px-5 py-2 text-xs font-black cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create Event"}
+              {isSubmitting ? "Creating..." : "Create Event ↗"}
             </button>
           </div>
         </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Complaint, ComplaintCategory } from "@/types";
 import { createComplaint } from "@/lib/api";
 import { XIcon } from "@/components/ui/Icons";
@@ -28,6 +28,23 @@ export default function CreateComplaint({
   const [category, setCategory] = useState<ComplaintCategory>("Hostel");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,14 +78,24 @@ export default function CreateComplaint({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="comic-modal w-full max-w-lg p-6">
-        <div className="mb-6 flex items-center justify-between border-b pb-4" style={{ borderColor: "#000" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="complaint-modal-title"
+    >
+      <div
+        className="comic-modal flex flex-col w-full max-w-lg max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-48px)] rounded-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Pinned Header */}
+        <div className="shrink-0 flex items-center justify-between border-b-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
           <div>
-            <h2 className="stay-loop-title" style={{ fontSize: 24 }}>
+            <h2 id="complaint-modal-title" className="stay-loop-title text-lg sm:text-xl">
               File a Complaint
             </h2>
-            <p className="mt-1 text-xs" style={{ color: "var(--neon-cyan)" }}>
+            <p className="mt-0.5 text-xs text-[var(--neon-cyan)]">
               Protected Anonymous Channel · Real Campus Triage
             </p>
           </div>
@@ -76,115 +103,118 @@ export default function CreateComplaint({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="cursor-pointer border-2 border-black bg-[#16192b] p-1.5 text-white transition hover:bg-[#252a48]"
-            style={{ boxShadow: "2px 2px 0 #000" }}
+            aria-label="Close dialog"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-sm border-2 border-black bg-[#16192b] hover:bg-[#252a48] text-white transition-colors cursor-pointer shadow-[2px_2px_0_#000]"
           >
             <XIcon className="h-4 w-4" />
           </button>
         </div>
 
-        {error && (
-          <div
-            className="mb-4 border-2 border-black p-3 text-sm font-bold"
-            style={{
-              background: "rgba(255,45,74,0.18)",
-              color: "var(--accent)",
-              boxShadow: "2px 2px 0 #000",
-            }}
+        {/* Scrollable Form Body */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+          {error && (
+            <div
+              className="mb-4 border-2 border-black p-3 text-xs sm:text-sm font-bold shadow-[2px_2px_0_#000]"
+              style={{
+                background: "rgba(255,45,74,0.18)",
+                color: "var(--accent)",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <form id="create-complaint-form" onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="complaint-cat"
+                className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+                style={{ color: "var(--neon-yellow)" }}
+              >
+                Category *
+              </label>
+              <select
+                id="complaint-cat"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
+                className="comic-input w-full px-3 py-2 text-xs text-[var(--fg)] outline-none"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="complaint-title"
+                className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+                style={{ color: "var(--neon-yellow)" }}
+              >
+                Subject / Title *
+              </label>
+              <input
+                id="complaint-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Broken water purifier in Hostel 2, Wi-Fi outage"
+                className="comic-input font-readable w-full px-3 py-2 text-xs"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="complaint-desc"
+                className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
+                style={{ color: "var(--neon-yellow)" }}
+              >
+                Description &amp; Location Details *
+              </label>
+              <textarea
+                id="complaint-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                placeholder="Describe the issue, exact wing/floor/room, and duration..."
+                className="comic-input font-readable w-full px-3 py-2 text-xs leading-relaxed"
+                required
+              />
+            </div>
+
+            <div
+              className="font-readable border-2 border-black p-3 text-xs leading-relaxed rounded-sm"
+              style={{
+                background: "rgba(42,240,255,0.08)",
+                color: "var(--fg-muted)",
+                boxShadow: "2px 2px 0 #000",
+              }}
+            >
+              <strong style={{ color: "var(--neon-cyan)" }}>Privacy Notice:</strong> The public feed only displays <em style={{ color: "#fff" }}>Anonymous Student</em>. No student identity or roll number is publicly shown.
+            </div>
+          </form>
+        </div>
+
+        {/* Pinned Footer Actions */}
+        <div className="shrink-0 flex items-center justify-end gap-3 border-t-2 border-black bg-[rgba(18,10,32,0.98)] px-4 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="comic-btn-outline cursor-pointer"
           >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="complaint-cat"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
-            >
-              Category *
-            </label>
-            <select
-              id="complaint-cat"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
-              className="comic-input w-full px-4 py-2.5 text-xs text-[var(--fg)] outline-none"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="complaint-title"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
-            >
-              Subject / Title *
-            </label>
-            <input
-              id="complaint-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Broken water purifier in Hostel 2, Wi-Fi outage"
-              className="comic-input font-readable w-full px-4 py-2.5 text-xs"
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="complaint-desc"
-              className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider"
-              style={{ color: "var(--neon-yellow)" }}
-            >
-              Description &amp; Location Details *
-            </label>
-            <textarea
-              id="complaint-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              placeholder="Describe the issue, exact wing/floor/room, and duration..."
-              className="comic-input font-readable w-full px-4 py-2.5 text-xs leading-relaxed"
-              required
-            />
-          </div>
-
-          <div
-            className="font-readable border-2 border-black p-3.5 text-xs leading-relaxed"
-            style={{
-              background: "rgba(42,240,255,0.08)",
-              color: "var(--fg-muted)",
-              boxShadow: "2px 2px 0 #000",
-            }}
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="create-complaint-form"
+            disabled={isSubmitting}
+            className="comic-btn disabled:opacity-50 cursor-pointer"
           >
-            <strong style={{ color: "var(--neon-cyan)" }}>Privacy Notice:</strong> The public feed only displays <em style={{ color: "#fff" }}>Anonymous Student</em>. No student identity or roll number is publicly shown.
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="comic-btn-outline"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="comic-btn disabled:opacity-50"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Complaint"}
-            </button>
-          </div>
-        </form>
+            {isSubmitting ? "Submitting..." : "Submit Complaint ↗"}
+          </button>
+        </div>
       </div>
     </div>
   );
