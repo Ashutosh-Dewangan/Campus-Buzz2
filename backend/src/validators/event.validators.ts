@@ -12,14 +12,18 @@ const eventFields = {
   date: z
     .string()
     .trim()
-    .min(1, "Event date is required")
-    .max(100, "Event date is invalid"),
+    .regex(
+      /^\d{4}-\d{2}-\d{2}$/,
+      "Event date must be in the format YYYY-MM-DD",
+    ),
 
   time: z
     .string()
     .trim()
-    .min(1, "Event time is required")
-    .max(100, "Event time is invalid"),
+    .regex(
+      /^([01]\d|2[0-3]):([0-5]\d)$/,
+      "Event time must be in the format HH:MM (24-hour format)",
+    ),
 
   venue: z
     .string()

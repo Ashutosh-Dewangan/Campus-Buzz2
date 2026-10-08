@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config";
 
 import prisma from "../lib/prisma";
 
 import type { LoginInput } from "../validators/auth.validators";
-
-const JWT_SECRET: string =
-  process.env.JWT_SECRET || "default_jwt_secret_dev";
 
 export async function loginUser(input: LoginInput) {
   const user = await prisma.user.findFirst({

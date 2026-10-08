@@ -6,14 +6,23 @@ import type {
 } from "../validators/event.validators";
 
 function parseEventStart(date: string, time: string): Date {
-  const normalizedTime = time.replace(/\s+/g, " ").trim();
-  const combined = `${date} ${normalizedTime}`;
-  const parsed = new Date(combined);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  const timeMatch = /^(?:[01]\d|2[0-3]):[0-5]\d$/.exec(time);
+
+  if (!match || !timeMatch) {
+    throw new Error("Invalid event date or time");
+  }
+
+  const [, year, month, day] = match;
+  const [hour, minute] = time.split(":");
+
+  const parsed = new Date(
+    `${year}-${month}-${day}T${hour}:${minute}:00+05:30`,
+  );
 
   if (Number.isNaN(parsed.getTime())) {
     throw new Error("Invalid event date or time");
   }
-
   return parsed;
 }
 function formatCampusDate(date: Date): string {

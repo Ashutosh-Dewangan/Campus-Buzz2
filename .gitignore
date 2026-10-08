@@ -1,7 +1,7 @@
 node_modules/
-frontend/.env
-backend/.env
 dist/
 backend/uploads/*
-!.gitkeep
-
+.env
+.env.*
+!.env.example
+*.log

@@ -16,34 +16,7 @@ function getAuthenticatedUserId(req: Request): string {
 
   return userId;
 }
-export async function createTestNotificationController(
-  req: Request,
-  res: Response,
-) {
-  try {
-    const userId = getAuthenticatedUserId(req);
-
-    const notification = await createNotification({
-      userId,
-      type: "EVENT_ALERT",
-      title: "Notification test",
-      description:
-        "This is a real-time Campus Buzz notification test.",
-      link: "/events",
-    });
-
-    return res.status(201).json(notification);
-  } catch (error) {
-    console.error(
-      "Create test notification failed:",
-      error,
-    );
-
-    return res.status(500).json({
-      error: "Failed to create test notification",
-    });
-  }
-}
+  
 export async function getNotificationsController(
   req: Request,
   res: Response,

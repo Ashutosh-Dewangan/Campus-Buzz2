@@ -1,11 +1,9 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "./config";
 
 import prisma from "./lib/prisma";
 import { getRoomWithPost } from "./services/chat.service";
-
-const JWT_SECRET =
-  process.env.JWT_SECRET || "default_jwt_secret_dev";
 
   let socketServer: Server | null = null;
 
@@ -97,9 +95,7 @@ export function registerSocketServer(
     );
     const userRoom = `user:${authenticatedSocket.user.userId}`;
     socket.join(userRoom);
-    socket.join(
-      `user:${authenticatedSocket.user.userId}`,
-    );
+    
     socket.on(
       "join-room",
       async (roomId: string, callback?: (result: unknown) => void) => {
@@ -203,15 +199,19 @@ export function registerSocketServer(
           return;
         }
 
-        socket.leave(roomId);
+        if (!socket.rooms.has(roomId)) {
+  return;
+}
 
-        socket.to(roomId).emit(
-          "room-member-left",
-          {
-            userId:
-              authenticatedSocket.user.userId,
-          },
-        );
+socket.leave(roomId);
+
+socket.to(roomId).emit(
+  "room-member-left",
+  {
+    userId:
+      authenticatedSocket.user.userId,
+  },
+);
       },
     );
 

@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config";
 
 export interface JwtPayload {
   userId: string;
@@ -17,8 +18,6 @@ declare global {
     }
   }
 }
-
-const JWT_SECRET: string = process.env.JWT_SECRET || "default_jwt_secret_dev";
 
 export function authenticate(
   req: Request,
