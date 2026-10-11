@@ -389,7 +389,7 @@ These are visible in the current code and worth addressing before any real deplo
 | Name | Role | GitHub |
 |---|---|---|
 | Priyal Pinjani | Backend, database | [@emerald-13-coder](https://github.com/emerald-13-coder) |
-| Ashutosh Dewangan | Frontend, UI | [@](https://github.com/Ashutosh-Dewangan) |
+| Ashutosh Dewangan | Frontend, UI | [@Ashutosh-Dewangan](https://github.com/Ashutosh-Dewangan) |
 <!-- Add teammates here: | Name | Role | GitHub | -->
 
 ## License
