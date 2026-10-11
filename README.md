@@ -391,7 +391,3 @@ These are visible in the current code and worth addressing before any real deplo
 | Priyal Pinjani | Backend, database | [@emerald-13-coder](https://github.com/emerald-13-coder) |
 | Ashutosh Dewangan | Frontend, UI | [@Ashutosh-Dewangan](https://github.com/Ashutosh-Dewangan) |
 <!-- Add teammates here: | Name | Role | GitHub | -->
-
-## License
-
-No `LICENSE` file is present. `backend/package.json` declares `ISC`, but the frontend and root `package.json` declare no license. **The maintainers need to confirm the intended license** and add a `LICENSE` file.
