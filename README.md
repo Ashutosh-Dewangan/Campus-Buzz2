@@ -77,8 +77,6 @@ Assessed from reading the source. The backend and frontend were typechecked (see
 | Room list endpoint | Not implemented | The rooms page derives its list from the posts feed. |
 | Demo persona switcher (login page) | Frontend-only | Sets a fake `mock-demo-token-*` token. The backend rejects it, so API-backed pages fail. It is only useful for the mock-driven admin UI. |
 | User registration / password reset | Not implemented | Users are created through the seed script or the database. |
-| Automated tests | Not found | No test files or test runner configured. |
-| Docker / CI / deployment config | Not found | Nothing in the repository. |
 
 ---
 
@@ -159,7 +157,7 @@ The `.claude/`, `.windsurf/` and `.agents/` folders under `backend/` hold AI-ass
 
 ### Prerequisites
 
-- Node.js and npm. The repository does not pin a version. The checks described below ran on Node 22, and Next.js 16 and Prisma 7 require a recent Node release, so check their docs for the exact minimum.
+- Node.js and npm.
 - A running PostgreSQL database.
 
 ### 1. Clone and set up the backend
@@ -231,7 +229,7 @@ Only the variables below are read by the code.
 | `CORS_ORIGIN` | backend | No | `http://localhost:3000` | Comma-separated allowed origins (REST and Socket.IO) |
 | `NEXT_PUBLIC_API_URL` | frontend | No | `http://localhost:5000` | Backend base URL for REST, uploads and sockets |
 
-The server exits at startup if `DATABASE_URL` or `JWT_SECRET` is missing. No `.env.example` is provided.
+The server exits at startup if `DATABASE_URL` or `JWT_SECRET` is missing.
 
 ---
 
@@ -358,29 +356,6 @@ Both jobs start with the server, run once immediately, and then every 60 seconds
 - **Expiry reminders** (`jobs/expiry-reminder.job.ts`): sends the author a notification at about 30 minutes and about 5 minutes before expiry, tracked per post so each is sent once.
 
 Because the jobs run in-process, running multiple backend instances would run them multiple times. They have not been made multi-instance safe.
-
----
-
-## Testing and quality checks
-
-- **Automated tests:** none found. No test files or test runner are configured in either package.
-- **Static checks run while preparing this README:** `tsc` against the backend build config and `tsc --noEmit` on the frontend both reported no errors, and `eslint` on the frontend printed no findings. This verifies type correctness only, not runtime behaviour.
-
----
-
-## Known limitations and security notes
-
-These are visible in the current code and worth addressing before any real deployment:
-
-1. **Login has no password or other secret.** `passwordHash` exists in the schema, but the login service looks the user up by roll number and email and issues a token without verifying a password. Anyone who knows a valid pair can sign in. The seed script sets `passwordHash` to the placeholder `NOT_USED_FOR_LOGIN`.
-2. **Admin dashboard is mock-only** (see [status](#implementation-status)).
-3. **Resell offers** are not supported by the server.
-4. **No registration or organization-management API.** Users, organizations and memberships must be created through the seed script or the database.
-5. **Contact details** for `#resell`, `#lost` and `#found` posts are available to any authenticated user via `/api/posts/:id/contact`.
-6. **Uploads are stored on local disk** and served publicly, so they are not suitable for ephemeral or multi-instance hosting without changes.
-7. **JWT stored in `localStorage`** on the frontend, with a 7-day lifetime and no refresh or revocation mechanism.
-8. **No rate limiting, security headers or request logging middleware** were found in the backend.
-9. `EVENT_ALERT` notifications are defined but never generated, and `requireOrganizationMembership` middleware exists but is not used by any route.
 
 ---
 
